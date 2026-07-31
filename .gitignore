@@ -76,3 +76,6 @@ secrets.yaml
 .DS_Store
 Thumbs.db
 *.swp
+
+# ---------- Stato locale degli assistenti AI ----------
+.claude/
