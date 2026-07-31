@@ -1,0 +1,11 @@
+# Normalizza i fine riga: evita diff spuri tra sistemi diversi
+* text=auto eol=lf
+
+# File binari: git non tenta di fare diff testuali
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.pt   binary
+*.pth  binary
+*.ckpt binary
