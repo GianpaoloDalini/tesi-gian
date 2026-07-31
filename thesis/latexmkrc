@@ -1,0 +1,17 @@
+# Configurazione latexmk per la tesi.
+$pdf_mode   = 1;            # pdflatex
+$bibtex_use = 2;            # esegue biber e ripulisce i file .bbl
+$biber      = 'biber %O %S';
+$out_dir    = 'build';      # gli artefatti NON sporcano il repository
+$clean_ext  = 'bbl glo gls glg ist acn acr alg run.xml synctex.gz nav snm';
+
+# glossaries: genera l'elenco degli acronimi
+add_cus_dep('acn', 'acr', 0, 'makeglossaries');
+sub makeglossaries {
+    my ($base_name, $path) = fileparse($_[0]);
+    my @args = ($base_name);
+    pushd $path;
+    my $return = system('makeglossaries', @args);
+    popd;
+    return $return;
+}

@@ -1,0 +1,45 @@
+% ============================================================================
+%  frontespizio.tex — copertina. I dati arrivano da metadata.tex.
+%  ATTENZIONE: verificare con la segreteria UniBg il frontespizio ufficiale
+%  richiesto per la laurea magistrale prima della consegna definitiva.
+% ============================================================================
+\begin{titlepage}
+  \centering
+  \thispagestyle{empty}
+
+  \includegraphics[width=0.55\textwidth]{unibg_logo.pdf}
+
+  \vspace{1.2cm}
+
+  {\Large \textsc{\tesiAteneo} \par}
+  \vspace{0.4cm}
+  {\normalsize \tesiDipartimento \par}
+  \vspace{0.8cm}
+  {\large \tesiCorso \par}
+  {\normalsize \tesiClasse \par}
+
+  \vspace{2.5cm}
+
+  {\LARGE \bfseries \tesiTitolo \par}
+
+  \vspace{3cm}
+
+  \begin{minipage}[t]{0.48\textwidth}
+    \raggedright
+    \textbf{Relatore:}\\
+    \tesiRelatore
+    \ifx\tesiCorrelatore\empty\else
+      \\[0.6em]\textbf{Correlatore:}\\ \tesiCorrelatore
+    \fi
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \raggedleft
+    \textbf{Tesi di Laurea Magistrale di:}\\
+    \tesiAutore\\
+    Matricola n. \tesiMatricola
+  \end{minipage}
+
+  \vfill
+  {\normalsize ANNO ACCADEMICO \tesiAnnoAccademico \par}
+\end{titlepage}

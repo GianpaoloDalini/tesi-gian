@@ -1,0 +1,21 @@
+% ============================================================================
+%  commands.tex — macro personali e segnaposto di lavorazione.
+% ============================================================================
+
+% --- Segnaposto: rendono visibili nel PDF i buchi da colmare ----------------
+%  Prima della consegna: \todototal deve essere zero.
+\newcommand{\todocite}[1]{\todo[inline,color=red!30]{CITAZIONE MANCANTE: #1}}
+\newcommand{\tododata}[1]{\todo[inline,color=orange!30]{DATO MANCANTE: #1}}
+\newcommand{\todoscrivi}[1]{\todo[inline,color=yellow!40]{DA SCRIVERE: #1}}
+
+% --- Abbreviazioni ricorrenti ------------------------------------------------
+\newcommand{\gan}{\textsc{gan}\xspace}
+\newcommand{\can}{\textsc{can}\xspace}
+
+% --- Notazione matematica ----------------------------------------------------
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\expect}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\genr}{G}          % generatore
+\newcommand{\disc}{D}          % discriminatore
+\newcommand{\noise}{\bm{z}}    % vettore di rumore latente
+\newcommand{\dataset}{\mathcal{D}}

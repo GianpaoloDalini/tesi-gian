@@ -1,0 +1,49 @@
+% ============================================================================
+%  style.tex — impostazioni tipografiche e di impaginazione.
+% ============================================================================
+
+\onehalfspacing
+
+% --- Intestazioni e piè di pagina -------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{15pt}
+
+% --- Stile per i listati di codice ------------------------------------------
+\definecolor{codegray}{gray}{0.95}
+\definecolor{codekeyword}{RGB}{0,0,180}
+\definecolor{codecomment}{RGB}{100,100,100}
+\definecolor{codestring}{RGB}{200,80,0}
+
+\lstdefinestyle{tesi}{
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\color{codekeyword}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  numberstyle=\tiny\color{codecomment},
+  backgroundcolor=\color{codegray},
+  numbers=left,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  framerule=0pt,
+  captionpos=b,
+  tabsize=4,
+  language=Python
+}
+\lstset{style=tesi}
+\renewcommand{\lstlistingname}{Listato}
+
+% --- Ambienti matematici -----------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definizione}{Definizione}[chapter]
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{proposizione}{Proposizione}[chapter]
+\theoremstyle{remark}
+\newtheorem{osservazione}{Osservazione}[chapter]

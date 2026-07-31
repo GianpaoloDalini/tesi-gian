@@ -1,0 +1,64 @@
+% ============================================================================
+%  TESI DI LAUREA MAGISTRALE — Universita degli Studi di Bergamo
+%
+%  Compilare con:  make thesis        (dalla radice del repository)
+%  oppure:         latexmk -pdf thesis/main.tex
+%
+%  Questo file e' solo un orchestratore: NON scrivere contenuto qui dentro.
+%  Il testo sta in capitoli/ e appendici/, la configurazione in preamble/.
+% ============================================================================
+
+\documentclass[a4paper,12pt,twoside,openright]{book}
+
+\input{metadata}
+\input{preamble/packages}
+\input{preamble/style}
+\input{preamble/commands}
+
+\graphicspath{{figures/}{figures/static/}{figures/generated/}}
+
+\makeglossaries
+\input{acronimi}
+
+\begin{document}
+
+% ---------------------------------------------------------------- FRONT MATTER
+\frontmatter
+\pagenumbering{roman}
+
+\input{frontespizio}
+
+\input{capitoli/00-abstract}
+
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+\listoftables
+\cleardoublepage
+\printglossary[type=\acronymtype,title={Elenco degli acronimi}]
+
+% ----------------------------------------------------------------- MAIN MATTER
+\mainmatter
+\pagenumbering{arabic}
+
+\input{capitoli/01-introduzione}
+\input{capitoli/02-fondamenti}
+\input{capitoli/03-stato-arte}
+\input{capitoli/04-metodologia}
+\input{capitoli/05-implementazione}
+\input{capitoli/06-risultati}
+\input{capitoli/07-discussione}
+\input{capitoli/08-conclusioni}
+
+% ------------------------------------------------------------------ BACK MATTER
+\appendix
+\input{appendici/A-iperparametri}
+\input{appendici/B-riproducibilita}
+
+\backmatter
+\cleardoublepage
+\printbibliography[heading=bibintoc,title={Bibliografia}]
+
+\end{document}

@@ -1,0 +1,76 @@
+% ============================================================================
+%  packages.tex — pacchetti. Nessuna definizione di stile qui.
+%  L'ordine conta: hyperref va caricato quasi per ultimo, cleveref dopo hyperref.
+% ============================================================================
+
+% --- Lingua e codifica -------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{csquotes}          % obbligatorio con biblatex; fornisce \enquote{}
+
+% --- Layout ------------------------------------------------------------------
+\usepackage[a4paper,margin=2.5cm,bindingoffset=0.5cm]{geometry}
+\usepackage{emptypage}         % pagine bianche davvero vuote (niente header)
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+% --- Matematica --------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+
+% --- Figure e tabelle --------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{booktabs}          % toprule/midrule/bottomrule: mai \hline
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,width=0.9\linewidth}
+
+% --- Codice ------------------------------------------------------------------
+\usepackage{listings}
+\usepackage{xcolor}
+
+% --- Bibliografia ------------------------------------------------------------
+%  authoryear: "(Elgammal et al., 2017)". Per passare al numerico IEEE basta
+%  sostituire questa riga con: \usepackage[style=ieee,backend=biber]{biblatex}
+\usepackage[
+  style=authoryear,
+  backend=biber,
+  maxcitenames=2,
+  maxbibnames=99,
+  giveninits=true,
+  uniquename=init,
+  sorting=nyt,
+  doi=true,
+  url=true,
+  isbn=false
+]{biblatex}
+\addbibresource{references/bibliography.bib}
+
+% --- Varie -------------------------------------------------------------------
+\usepackage{enumitem}
+\usepackage{xurl}              % spezza gli URL lunghi
+\usepackage{xspace}
+\usepackage{todonotes}
+\usepackage[acronym,nomain,nonumberlist]{glossaries}
+
+% --- Collegamenti (penultimo) ------------------------------------------------
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue!60!black,
+  pdftitle={\tesiTitolo},
+  pdfauthor={\tesiAutore}
+}
+
+% --- Riferimenti intelligenti (ultimo, dopo hyperref) ------------------------
+\usepackage[italian,capitalise,noabbrev]{cleveref}
