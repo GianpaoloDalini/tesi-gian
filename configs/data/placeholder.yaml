@@ -1,0 +1,7 @@
+# Segnaposto: il dataset non e' ancora stato scelto.
+# Vedi docs/decisions/0003-impianto-sperimentale.md.
+name: placeholder
+root: data/processed
+image_size: 64
+num_workers: 4
+train_split: 0.8

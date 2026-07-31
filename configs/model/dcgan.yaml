@@ -1,0 +1,7 @@
+# Baseline. Serve come termine di paragone, non come contributo originale.
+name: dcgan
+latent_dim: 100
+image_size: 64
+channels: 3
+generator_features: 64
+discriminator_features: 64

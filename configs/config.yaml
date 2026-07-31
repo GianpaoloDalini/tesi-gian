@@ -1,0 +1,37 @@
+# ============================================================================
+#  Configurazione radice (Hydra).
+#  Un esperimento si lancia con:
+#      python -m tesi_gan.cli train experiment=<nome>
+#  Nessun valore qui dentro va replicato nel codice sorgente.
+# ============================================================================
+defaults:
+  - model: dcgan
+  - data: placeholder
+  - _self_
+
+seed: 42
+strict_determinism: false
+
+training:
+  epochs: 50
+  batch_size: 64
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 5        # in epoche; alto rischio su sessioni cloud effimere
+
+tracking:
+  backend: wandb
+  project: tesi-gan-creativita
+  entity: null               # impostare con il proprio username W&B
+  # L'API key va SOLO nella variabile d'ambiente WANDB_API_KEY, mai qui.
+
+paths:
+  data: data/processed
+  checkpoints: experiments/checkpoints
+  figures: thesis/figures/generated
+
+hydra:
+  run:
+    dir: experiments/${now:%Y-%m-%d_%H-%M-%S}

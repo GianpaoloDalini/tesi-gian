@@ -1,0 +1,13 @@
+# Creative Adversarial Network: al discriminatore si aggiunge una testa di
+# classificazione dello stile, e al generatore una penalita' che lo spinge verso
+# output stilisticamente ambigui.
+# RIFERIMENTO: Elgammal et al. (2017). Verificare i valori sul paper originale
+# prima di dichiararli in tesi: quelli qui sotto sono segnaposto.
+name: can
+latent_dim: 100
+image_size: 64
+channels: 3
+generator_features: 64
+discriminator_features: 64
+num_styles: null             # TODO: dipende dal dataset scelto
+style_ambiguity_weight: 1.0  # TODO: verificare sul paper
