@@ -132,19 +132,32 @@ relatore dopo M2.
 
 ## Registro delle decisioni
 
-| Data | Decisione | Motivazione | ADR |
+Il verbale completo — decisione, alternative scartate, motivazione, conseguenze — vive
+in **[`docs/registro-decisioni.md`](registro-decisioni.md)**, insieme all'elenco delle
+questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
+
+| ID | Data | Decisione | ADR |
 |---|---|---|---|
-| 2026-07-31 | Monorepo unico invece di submodule | Tracciabilità diretta risultato→testo, minor attrito operativo per un lavoro individuale | ADR-0001 |
-| 2026-07-31 | Bibliografia `authoryear` invece di IEEE numerico | Leggibilità nella discussione critica, coerente con il taglio etico-filosofico | ADR-0002 |
-| 2026-07-31 | Tesi in italiano | Scelta dell'autore | — |
-| 2026-07-31 | W&B come sistema di tracciamento | Gratuito per uso accademico, adatto a run su servizi remoti | ADR-0002 |
+| D-001 | 2026-07-31 | Monorepo unico invece di submodule | ADR-0001 |
+| D-002 | 2026-07-31 | Tesi in italiano | — |
+| D-003 | 2026-07-31 | Bibliografia `authoryear` invece di IEEE numerico | ADR-0002 |
+| D-004 | 2026-07-31 | W&B come sistema di tracciamento | ADR-0002 |
+| D-005 | 2026-07-31 | Zotero + Better BibTeX come unica fonte bibliografica | ADR-0002 |
+| D-006 | 2026-07-31 | Training su servizi remoti che clonano da GitHub → codice script-first | — |
+| D-007 | 2026-07-31 | Configurazioni via Hydra, nessun iperparametro nel codice | ADR-0002 |
+| D-008 | 2026-07-31 | Template seguito nella struttura, non nelle pratiche git | — |
+| D-009 | 2026-07-31 | Struttura in 8 capitoli + 2 appendici (provvisoria) | — |
 
 ## Prossime decisioni da prendere
 
-1. **Sessione di laurea** — blocca tutto il resto della pianificazione.
-2. **Tipo di contributo:** replica della CAN, variante originale, o caso di studio
-   a supporto dell'analisi etica. Determina l'intero impianto (ADR-0003).
-3. **Dataset**, con verifica della licenza.
-4. **Servizio di calcolo** e budget disponibile.
-5. **Metriche** e se includere o meno uno studio percettivo con soggetti umani
-   (che comporta questioni di consenso informato e forse approvazione etica).
+Dettaglio e criticità in [`docs/registro-decisioni.md` §3](registro-decisioni.md#3-questioni-aperte).
+
+1. **Q1 — Sessione di laurea** 🔴 blocca tutto il resto della pianificazione.
+2. **Q2 — Impianto sperimentale** 🔴 replica della CAN, variante originale, o caso di
+   studio a supporto dell'analisi etica (ADR-0003).
+3. **Q3 — Peso relativo tra componente tecnica ed etica.**
+4. **Q4 — Dataset**, con verifica della licenza.
+5. **Q5 — Metriche**, con dichiarazione esplicita dei loro limiti.
+6. **Q6 — Studio percettivo con soggetti umani** sì o no (consenso informato, vaglio etico).
+7. **Q7 — Servizio di calcolo** e budget disponibile.
+8. **Q8 — Domande di ricerca**, formulabili solo dopo la revisione della letteratura.

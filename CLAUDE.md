@@ -21,9 +21,18 @@ Bergamo, su **AI generativa e creatività in ambito artistico**, con analisi di 
 | Tipo di tesi | Sperimentale con componente analitico-etica |
 | Sessione di laurea | *(da confermare)* |
 
-Lo stato aggiornato del progetto vive in **`docs/project-plan.md`**. Quel file è la
-fonte di verità su obiettivi, domande di ricerca e decisioni prese. Se una tua
-modifica cambia una decisione di progetto, aggiorna anche quel file nello stesso commit.
+Due documenti governano il progetto e vanno letti prima di intervenire:
+
+- **`docs/project-plan.md`** — lo *stato attuale*: obiettivi, domande di ricerca,
+  piano sperimentale, rischi. È la fotografia del progetto oggi.
+- **`docs/registro-decisioni.md`** — la *storia*: ogni decisione presa con alternative
+  scartate e motivazione, le questioni ancora aperte, le verifiche da fare.
+
+**Obbligo:** se un tuo intervento prende una decisione, la rovescia, apre una questione
+o introduce un'ipotesi da verificare, aggiorni `registro-decisioni.md` **nello stesso
+commit**. Una decisione applicata e non registrata è una decisione che fra tre mesi
+nessuno saprà motivare davanti alla commissione. Le decisioni strutturali meritano
+anche un ADR in `docs/decisions/`.
 
 ---
 
@@ -119,8 +128,9 @@ riproducibile con un comando, va documentata la provenienza esatta.
 ├── data/                      ← dataset (ignorato da git)
 │
 └── docs/                      ← il cervello del progetto
-    ├── project-plan.md        ← documento di progetto vivo (fonte di verità)
-    ├── decisions/             ← ADR: ogni decisione metodologica motivata
+    ├── project-plan.md        ← stato attuale del progetto (fotografia)
+    ├── registro-decisioni.md  ← storia delle decisioni, questioni aperte, verifiche
+    ├── decisions/             ← ADR: approfondimento delle decisioni strutturali
     ├── literature/            ← una nota per paper, schema fisso
     └── meetings/              ← verbali dei ricevimenti col relatore
 ```
@@ -269,8 +279,9 @@ Serve a sapere esattamente cosa ha letto e commentato.
   chiesto, appena le noti.
 - **Valuta sempre le proposte** su: punti di forza, punti di debolezza, rischi,
   alternative, impatto sulla qualità scientifica.
-- **Aggiorna `docs/project-plan.md`** quando una decisione cambia, e registra le
-  decisioni metodologiche significative come ADR in `docs/decisions/`.
+- **Aggiorna `docs/registro-decisioni.md`** a ogni decisione, questione aperta o
+  ipotesi da verificare; aggiorna `docs/project-plan.md` quando cambia lo stato del
+  progetto; apri un ADR in `docs/decisions/` per le decisioni strutturali.
 - Distingui sempre ciò che sai da ciò che stai supponendo. Nel dubbio su un fatto
   della letteratura, dillo e verifica, non riempire il vuoto.
 

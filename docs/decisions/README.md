@@ -3,6 +3,12 @@
 Un ADR registra **una** decisione significativa: il contesto in cui è stata presa,
 le alternative valutate, la scelta e le sue conseguenze.
 
+> **Non tutte le decisioni diventano un ADR.** L'elenco completo e cronologico di ciò
+> che è stato deciso sul progetto sta in [`../registro-decisioni.md`](../registro-decisioni.md).
+> Qui finiscono solo le decisioni *strutturali*, quelle che meritano una pagina di
+> argomentazione perché condizionano il resto del lavoro o perché dovrai difenderle
+> in sede di discussione.
+
 ## Perché serve in una tesi
 
 Alla discussione la commissione non chiede solo *cosa* hai fatto, ma *perché* lo hai
