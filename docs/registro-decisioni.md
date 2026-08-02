@@ -19,7 +19,7 @@
 > una riga qui nello stesso commit che la applica. Una decisione superata non si
 > cancella: si marca `superata` e si indica da cosa.
 
-**Ultimo aggiornamento:** 2026-07-31
+**Ultimo aggiornamento:** 2026-08-02
 
 ---
 
@@ -224,66 +224,159 @@ Risultati · Discussione · Conclusioni. Appendici: iperparametri, riproducibili
 
 ---
 
+### D-010 — Impianto sperimentale: confronto controllato DCGAN → CAN
+**Data:** 2026-08-02 · **Stato:** attiva, **da ratificare col relatore** · **Approfondimento:** [ADR-0003](decisions/0003-impianto-sperimentale.md)
+
+Due addestramenti in sequenza sullo stesso dataset, con generatore identico, backbone
+del discriminatore identica, stessi iperparametri, stesso seed, stesso numero di
+epoche. **L'unica variabile indipendente è la funzione di perdita.**
+
+**Alternative scartate:** replica integrale della CAN a 256×256 (fuori budget
+temporale); variante architetturale originale (rischio di risultato non significativo
+con un solo tentativo disponibile); esperimento puramente illustrativo a supporto
+dell'analisi etica (rischio di leggerezza tecnica per una LM-32).
+
+**Motivazione:** con una sola variabile indipendente, qualunque differenza osservata
+è attribuibile al meccanismo di ambiguità stilistica e a nient'altro. Il contributo
+non è inventare un'architettura ma isolarne rigorosamente l'effetto e misurare la
+distanza fra ciò che produce e ciò che la letteratura afferma che produca.
+
+**Conseguenza vincolante sul codice:** DCGAN e CAN **non** sono due implementazioni.
+Sono la stessa classe con un parametro booleano (`style_head`). Se fossero separate,
+ogni differenza nei risultati sarebbe confusa con differenze di implementazione.
+L'invariante è verificato automaticamente da `tests/test_impianto.py`: se quei test
+falliscono, non è un bug, è il confronto che non è più valido.
+
+**Percorso decisionale:** la scelta è stata presa senza il relatore, in agosto, per
+non perdere le uniche settimane utili. Va portata al primo ricevimento e verbalizzata
+in `docs/meetings/`. Se il relatore la rovescia, ADR-0003 si marca `superato`.
+
+---
+
+### D-011 — Dataset: sottoinsieme bilanciato di WikiArt
+**Data:** 2026-08-02 · **Stato:** attiva **con riserva** (V-007) · **Approfondimento:** [ADR-0004](decisions/0004-dataset.md)
+
+Da 5 a 10 stili ben popolati, bilanciati, a 64×64. Nessuna ridistribuzione di dati
+né di pesi.
+
+**Alternative scartate:** The Met Open Access (licenza CC0 inequivocabile, ma privo
+di etichette di stile art-storico, che la CAN richiede); Art Institute of Chicago
+(copertura parziale delle etichette); dataset costruito ad hoc (proibitivo nei tempi).
+
+**Motivazione:** il vincolo dominante è che ADR-0003 richiede etichette di stile,
+senza le quali la testa di classificazione non è addestrabile.
+
+**La conseguenza più importante non è tecnica.** La tensione fra «il dataset standard
+del settore è WikiArt» e «WikiArt contiene opere sotto copyright» va **dichiarata
+nella tesi**, non aggirata. Una tesi che discute le implicazioni etiche dei modelli
+generativi addestrati su opere d'arte, e che tace sulla licenza del proprio dataset,
+perde credibilità sull'intera componente etica. Rilevare che Elgammal et al. hanno
+usato WikiArt senza discuterne i termini è un contributo critico originale a costo
+zero di calcolo.
+
+---
+
+### D-012 — Studio percettivo leggero, campione di convenienza
+**Data:** 2026-08-02 · **Stato:** attiva
+
+Questionario online su poche decine di rispondenti, con consenso informato.
+
+**Alternative scartate:** nessuno studio umano (lascerebbe la valutazione alle sole
+metriche automatiche, che per ammissione della tesi stessa non misurano creatività);
+replica del protocollo di Elgammal (mesi di lavoro, incompatibile con la scadenza).
+
+**Motivazione:** serve almeno un giudizio umano perché il capitolo dei risultati non
+poggi interamente su FID e IS, di cui la tesi dichiara i limiti.
+
+**Limite da dichiarare senza attenuanti:** campione di convenienza, non
+rappresentativo, numerosità bassa. I risultati vanno presentati come **indicativi**,
+mai come statisticamente significativi. Presentare un campione di convenienza come
+evidenza forte è un errore che la commissione rileva immediatamente; dichiararlo come
+esplorativo è invece perfettamente difendibile.
+
+---
+
 ## 3. Questioni aperte
 
-Ordinate per criticità. Le prime due bloccano il dimensionamento dell'intero progetto.
+Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla
+decisione che le ha risolte: cancellarle farebbe perdere la traccia del percorso.
 
-### Q1 — Sessione di laurea 🔴 bloccante
-**Stato:** ambiguo
+### Q1 — Sessione di laurea ✅ chiusa
+**Stato:** risolta il 2026-08-02 · **Verifica:** V-006
 
-Inizialmente indicata come settembre. Alla mia obiezione — al 31 luglio 2026 restano
-4-6 settimane utili, con agosto in cui relatore e segreteria sono di fatto
-irraggiungibili, il che non basta per un impianto sperimentale su GAN partendo da zero
-— la risposta è stata di non preoccuparsi delle scadenze. **Non è chiaro se questo
-significhi che la sessione è stata spostata o che l'obiezione è stata accantonata.**
+Sessione autunnale, **discussione magistrale 2 ottobre 2026**. Le date non sono più
+un'ipotesi: sono state lette sull'avviso ufficiale della Scuola di Ingegneria, che
+riporta testualmente «non sono ammesse deroghe rispetto alle scadenze indicate».
 
-Da questa dipende tutto: un impianto con studio percettivo su soggetti umani richiede
-mesi, una replica ridotta su dataset piccolo richiede settimane.
+L'obiezione del 31 luglio era fondata e la risposta «non preoccuparti delle scadenze»
+era basata su un'informazione sbagliata: **la Fase 1 scade il 14 agosto 2026**, non a
+settembre. Vedi V-006 per il calendario completo.
 
-### Q2 — Impianto sperimentale 🔴 bloccante
-**Stato:** aperta · **Approfondimento:** [ADR-0003](decisions/0003-impianto-sperimentale.md)
+### Q2 — Impianto sperimentale ✅ chiusa
+**Stato:** risolta il 2026-08-02 → **D-010**, [ADR-0003](decisions/0003-impianto-sperimentale.md)
 
-Dichiarato «non ancora deciso». Tre alternative sul tavolo:
-
-| Opzione | Vantaggi | Rischi |
-|---|---|---|
-| A — Replica della CAN su WikiArt | Riferimento solido, confronto immediato con baseline | Contributo originale scarso se ci si ferma alla replica |
-| B — Baseline DCGAN + variante originale | Contributo proprio, calcolo contenuto | Risultato negativo o non significativo |
-| C — Esperimento come caso di studio a supporto dell'analisi etica | Coerente con l'area del relatore, calcolo minimo | Possibile giudizio di leggerezza tecnica per una LM-32 |
-
-Osservazione: una replica ben eseguita **accompagnata da un'analisi critica originale
-dei suoi limiti** è spesso più difendibile di una variante originale mal validata.
-
-L'architettura del codice è stata predisposta agnostica rispetto a questa scelta:
-`configs/` contiene sia `dcgan.yaml` sia `can.yaml`, entrambi parametrici.
+Confronto controllato DCGAN → CAN a variabile indipendente singola. Nessuna delle tre
+alternative originali presa in forma pura. Da ratificare col relatore.
 
 ### Q3 — Peso relativo tra componente tecnica ed etica 🟠 alta
+**Stato:** aperta
+
 Determina quale capitolo porta il contributo principale. Da concordare col relatore,
-la cui area include l'informatica etica.
+la cui area include l'informatica etica. L'impianto scelto (D-010) è compatibile con
+entrambi gli sbilanciamenti, quindi questa questione non blocca più il lavoro
+sperimentale — ma blocca ancora la stesura del capitolo di discussione.
 
-### Q4 — Dataset 🟠 alta
-Non scelto. Va verificata la licenza **prima** del download: usare un dataset di opere
-d'arte senza verificarne i termini sarebbe un'incoerenza che una tesi la quale discute
-le implicazioni etiche dell'IA generativa non può permettersi.
+### Q4 — Dataset ✅ chiusa con riserva
+**Stato:** risolta il 2026-08-02 → **D-011**, [ADR-0004](decisions/0004-dataset.md) · **Riserva:** V-007
 
-### Q5 — Metriche di valutazione 🟠 alta
-Candidate: FID, Inception Score, studio percettivo. **Avvertenza metodologica:** FID e
-IS misurano fedeltà e varietà, *non* creatività. Usarle come proxy della creatività
-senza dichiararne esplicitamente il limite è un errore facilmente rilevabile in sede
-di discussione.
+Sottoinsieme bilanciato di WikiArt. La verifica della licenza resta da fare **prima**
+del download, ed è bloccante: lo script di preparazione dei dati si rifiuta di girare
+senza il flag `--licenza-verificata`.
 
-### Q6 — Studio percettivo con soggetti umani? 🟡 media
-Se incluso: consenso informato, probabile vaglio etico, tempi non comprimibili.
-Va deciso presto perché cambia la pianificazione.
+### Q5 — Metriche di valutazione 🟡 chiusa nella scelta, aperta nella formulazione
+**Stato:** metriche scelte, una formulazione da verificare
 
-### Q7 — Servizio di calcolo e budget 🟡 media
-Non specificato quale servizio remoto verrà usato né con quale budget. Determina
-risoluzione delle immagini, dimensione del dataset e numero di run comparativi.
+Adottate: FID, Inception Score, entropia della posterior di stile, studio percettivo
+leggero. Ciascuna è accompagnata dalla dichiarazione esplicita di cosa **non** misura
+(vedi la tabella in ADR-0003 e la nota in `src/tesi_gan/evaluation/metrics.py`).
 
-### Q8 — Domande di ricerca 🟠 alta
-Non ancora formulate. Dipendono da Q2 e dalla revisione della letteratura: formulare
-domande di ricerca prima di conoscere lo stato dell'arte produce quasi sempre domande
-già risolte o mal poste.
+**Resta aperto:** la forma esatta della penalità di ambiguità stilistica in Elgammal
+et al. Il codice implementa due varianti — entropia incrociata rispetto all'uniforme
+e opposto dell'entropia — che **non sono equivalenti**. Vanno confrontate col paper
+originale prima di dichiarare in tesi quale è stata usata.
+
+**Ipotesi attesa, da dichiarare prima di vedere i risultati:** la CAN peggiora il FID
+e aumenta l'entropia di stile. Se accade, non è un fallimento ma la dimostrazione
+empirica che fedeltà e ambiguità stilistica sono obiettivi in tensione.
+
+### Q6 — Studio percettivo con soggetti umani ✅ chiusa
+**Stato:** risolta il 2026-08-02 → **D-012**
+
+Sì, versione leggera con campione di convenienza. Limiti da dichiarare senza
+attenuanti.
+
+### Q7 — Servizio di calcolo e budget ✅ chiusa parzialmente
+**Stato:** GPU a pagamento su servizio online; **budget e servizio specifico da
+indicare**
+
+Sufficiente a fissare il dimensionamento: 64×64, due run da circa 100 epoche su un
+sottoinsieme dell'ordine di 10-20 mila immagini. Il servizio esatto va comunque
+annotato qui, perché finisce nell'appendice sulla riproducibilità.
+
+### Q8 — Domande di ricerca 🔴 ora la più urgente
+**Stato:** aperta
+
+Non ancora formulate. Con Q2 chiusa non dipendono più dall'impianto, ma restano
+subordinate alla revisione della letteratura: formulare domande di ricerca prima di
+conoscere lo stato dell'arte produce quasi sempre domande già risolte o mal poste.
+
+**Vincolo nuovo:** la Fase 1 della domanda di laurea richiede il **titolo della tesi
+entro il 14 agosto 2026** (V-006). Un titolo si può cambiare, ma sceglierlo senza
+avere almeno una domanda di ricerca abbozzata significa sceglierlo a caso.
+
+Direzione compatibile con D-010, da affinare dopo la revisione:
+*che cosa misura effettivamente il meccanismo di ambiguità stilistica di una CAN, e
+in che rapporto sta con le metriche con cui la letteratura ne valuta il risultato.*
 
 ---
 
@@ -291,6 +384,43 @@ già risolte o mal poste.
 
 Punti su cui è stata fatta un'ipotesi o un adattamento che va confermato da una fonte
 autorevole prima della consegna.
+
+### V-006 — Scadenze della sessione autunnale ✅ verificata, con adempimenti aperti
+**Verificata il:** 2026-08-02
+**Fonte:** [Avviso Lauree Settembre 2026 — Scuola di Ingegneria UniBg](https://www.unibg.it/sites/default/files/media/documents/2026-07-03/Avviso%20Lauree%20Settembre%202026.pdf)
+
+L'avviso riporta: «**NON SONO AMMESSE DEROGHE RISPETTO ALLE SCADENZE INDICATE**».
+
+| Adempimento | Scadenza | Stato |
+|---|---|---|
+| Fase 1 — deposito titolo tesi (IT + EN) e nominativo relatore | **ven 14/08/2026** | ⬜ da fare |
+| Fase 2 — approvazione online del relatore | lun 17/08/2026 | ⬜ dipende dal relatore |
+| Fase 3 — domanda definitiva + questionario AlmaLaurea + € 32 | mar 18/08/2026 | ⬜ da fare |
+| Termine registrazione esami | sab 12/09/2026 | ⬜ da verificare |
+| Fase 4 — caricamento dell'elaborato | ven 11/09 – lun 21/09/2026 | ⬜ |
+| Discussione e proclamazione (magistrali) | **ven 02/10/2026** | — |
+
+**Conseguenze immediate.** La Fase 1 richiede il nominativo del relatore, che è
+tuttora `DA DEFINIRE` (§1) e che deve poi approvare online entro il 17 agosto, in
+pieno agosto. Questo, non il training, è il rischio principale del progetto: nessun
+risultato sperimentale compensa una domanda non presentata.
+
+Il tempo effettivo per la parte sperimentale e la stesura è **fino al 21 settembre**,
+cioè circa sette settimane da oggi.
+
+### V-007 — Termini d'uso del dataset 🔴 bloccante per il download
+**Stato:** da fare · **Riferimento:** [ADR-0004](decisions/0004-dataset.md)
+
+Prima di scaricare i dati vanno letti i termini d'uso effettivi della fonte e va
+verificato se l'uso previsto — addestramento di un modello generativo a fini di
+ricerca, senza ridistribuzione né dei dati né dei pesi — vi rientri.
+
+`python -m tesi_gan.data.download` **si rifiuta di girare** finché non si passa
+`--licenza-verificata`. Il blocco è deliberato. Esito negativo → si ripiega su The
+Met Open Access con etichette derivate da *culture* o *period*.
+
+Questa verifica non la può fare un assistente: richiede di leggere i termini alla
+fonte e di assumersene la responsabilità.
 
 ### V-001 — Frontespizio ufficiale per la laurea magistrale 🔴
 Il frontespizio attuale è un adattamento di quello di una tesi di **dottorato**.
@@ -347,18 +477,40 @@ cd "/Users/gian/Documents/Tesi Gian" && rm -f .git/HEAD.lock .git/index.lock
 
 ## 6. Prossimi passi
 
-In ordine di dipendenza. Ogni passo è bloccato dal precedente.
+Ordinati per **scadenza**, non per dipendenza logica: da oggi il calendario comanda.
 
-1. **Risolvere Q1** (sessione di laurea). Senza, il piano non è dimensionabile.
-2. **Incontro col relatore:** presentare l'impianto, raccogliere le sue preferenze su
-   Q2 e Q3, verificare V-001 e i criteri di valutazione. Verbalizzare in
-   `docs/meetings/`.
-3. **Revisione della letteratura:** definire stringhe di ricerca e criteri, schedare i
-   lavori in `docs/literature/`, arrivare a un gap dichiarato.
-4. **Formulare le domande di ricerca** (Q8) e farle approvare.
-5. **Chiudere ADR-0003** (Q2): impianto, dataset, metriche.
-6. **Primo esperimento** end-to-end, anche minimale, per validare la pipeline prima di
-   investire tempo di calcolo.
+### Entro il 14 agosto — amministrativo, non rinviabile
+
+1. **Contattare il relatore.** Il suo nominativo serve in Fase 1 e la sua approvazione
+   online in Fase 2 entro il 17 agosto. È il singolo punto di fallimento del progetto.
+2. **Scegliere il titolo della tesi** (italiano e inglese) anche in forma provvisoria.
+3. **Fase 1** entro venerdì 14/08, **Fase 3** entro martedì 18/08, con questionario
+   AlmaLaurea e pagamento.
+4. **V-007:** verificare i termini d'uso del dataset e sbloccare il download.
+
+### Entro fine agosto — sperimentale
+
+5. Preparare il sottoinsieme del dataset e lanciare lo smoke test su dati sintetici.
+6. **Run E1 (DCGAN)** e **run E2 (CAN)**, registrandoli in `experiments/registry.md`.
+7. Valutazione con metriche identiche sulle due condizioni; export delle figure.
+
+### Entro il 6 settembre — studio percettivo
+
+8. Predisporre questionario e consenso informato; raccogliere le risposte mentre
+   procede la stesura.
+
+### Fino al 21 settembre — stesura
+
+9. Revisione della letteratura e schede in `docs/literature/` (in parallelo, non dopo).
+10. Formulare le domande di ricerca (Q8) e farle approvare.
+11. Stesura dei capitoli; V-001…V-005 chiuse prima della consegna.
+
+**Ordine da non invertire.** La revisione della letteratura sarebbe metodologicamente
+dovuta *prima* dell'esperimento. Con sette settimane e agosto di mezzo, si fa in
+parallelo: è una deviazione consapevole dal metodo, imposta dal calendario, e come
+tale va dichiarata invece che nascosta. L'esperimento è deciso e implementato; se la
+revisione ne rivelasse l'inadeguatezza, resterebbe comunque materiale per la
+discussione dei limiti.
 
 ---
 
@@ -367,3 +519,4 @@ In ordine di dipendenza. Ogni passo è bloccato dal precedente.
 | Data | Attività | Esito |
 |---|---|---|
 | 2026-07-31 | Intervista iniziale; analisi del template `phd-thesis-tex`; impostazione del monorepo | D-001…D-009 decise; Q1…Q8 aperte; infrastruttura verificata |
+| 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |

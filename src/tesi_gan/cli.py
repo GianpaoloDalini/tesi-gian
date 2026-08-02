@@ -1,41 +1,238 @@
 """Punto di ingresso unico degli esperimenti.
 
-    python -m tesi_gan.cli train experiment=<nome>
-    python -m tesi_gan.cli evaluate run_id=<id>
+    python -m tesi_gan.cli train model=dcgan
+    python -m tesi_gan.cli train model=can
+    python -m tesi_gan.cli evaluate --checkpoint experiments/checkpoints/latest.pt
     python -m tesi_gan.cli export-figures
 
-Ogni comando legge la configurazione da configs/ tramite Hydra: nessun
-iperparametro va passato modificando il codice sorgente.
+Ogni comando legge la configurazione da `configs/` tramite Hydra: nessun
+iperparametro va passato modificando il codice sorgente (D-007). Gli override si
+scrivono in coda al comando, es. `training.epochs=100 model=can`.
+
+Si usa l'API di composizione di Hydra invece del decoratore `@hydra.main` per poter
+convivere con i sottocomandi di argparse e per rendere la configurazione
+componibile dai test.
 """
 
 from __future__ import annotations
 
-import argparse
+import json
+import logging
 import sys
+from pathlib import Path
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("tesi_gan")
+
+_CONFIG_DIR = Path(__file__).resolve().parents[2] / "configs"
+
+
+def load_config(overrides: list[str] | None = None):
+    """Compone la configurazione Hydra a partire da `configs/config.yaml`."""
+    from hydra import compose, initialize_config_dir
+    from hydra.core.global_hydra import GlobalHydra
+
+    if GlobalHydra.instance().is_initialized():
+        GlobalHydra.instance().clear()
+    with initialize_config_dir(config_dir=str(_CONFIG_DIR), version_base=None):
+        return compose(config_name="config", overrides=overrides or [])
+
+
+def _device():
+    import torch
+
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+# --------------------------------------------------------------------------- #
+#  train
+# --------------------------------------------------------------------------- #
+
+def cmd_train(cfg, allow_dirty: bool, resume: bool) -> int:
+    from omegaconf import OmegaConf
+
+    from tesi_gan.data import build_dataloader, build_dataset, num_styles_of
+    from tesi_gan.models import build_models
+    from tesi_gan.training import Trainer, count_parameters
+    from tesi_gan.utils import provenance
+    from tesi_gan.utils.seed import set_seed
+    from tesi_gan.utils.tracking import build_tracker
+
+    if not allow_dirty:
+        provenance.assert_clean_tree()
+    prov = provenance.collect()
+
+    set_seed(int(cfg.seed), strict=bool(cfg.get("strict_determinism", False)))
+    device = _device()
+
+    dataset = build_dataset(cfg)
+    detected = num_styles_of(dataset)
+    declared = cfg.model.get("num_styles")
+
+    # Il numero di stili si ricava dai dati (ADR-0004). Se la configurazione ne
+    # dichiara un altro, il modello avrebbe classi mai osservate e l'entropia della
+    # posterior — la metrica su cui si regge il confronto — sarebbe falsata.
+    if str(cfg.model.name).lower() == "can":
+        if declared is None:
+            log.info("model.num_styles non dichiarato: ricavato dai dati = %d", detected)
+            OmegaConf.update(cfg, "model.num_styles", detected, force_add=True)
+        elif int(declared) != detected:
+            raise ValueError(
+                f"model.num_styles={declared} non coincide con gli stili presenti nel "
+                f"dataset ({detected}). Correggi la configurazione o il dataset: "
+                f"addestrare su un numero di classi sbagliato invalida la metrica di "
+                f"ambiguita' stilistica."
+            )
+
+    dataloader = build_dataloader(cfg, dataset)
+    generator, discriminator = build_models(cfg)
+
+    log.info(
+        "Condizione: %s | stili: %d | immagini: %d | batch: %d",
+        str(cfg.model.name).upper(),
+        detected,
+        len(dataset),
+        int(cfg.training.batch_size),
+    )
+    log.info(
+        "Parametri addestrabili — G: %s, D: %s",
+        f"{count_parameters(generator):,}",
+        f"{count_parameters(discriminator):,}",
+    )
+
+    tracker = build_tracker(cfg, prov)
+    trainer = Trainer(cfg, generator, discriminator, dataloader, device, tracker)
+
+    if resume and trainer.maybe_resume():
+        log.info("Run ripreso dall'epoca %d", trainer.state.epoch)
+
+    try:
+        trainer.fit(int(cfg.training.epochs))
+    finally:
+        trainer.save_checkpoint("final.pt")
+        tracker.finish()
+
+    log.info(
+        "Training concluso. Registra il run in experiments/registry.md: "
+        "run_id=%s, commit=%s",
+        tracker.run_id,
+        prov.commit[:8],
+    )
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+#  evaluate
+# --------------------------------------------------------------------------- #
+
+def cmd_evaluate(cfg, checkpoint: Path, n_samples: int, output: Path | None) -> int:
+    import torch
+    from omegaconf import OmegaConf
+
+    from tesi_gan.data import build_dataloader, build_dataset, num_styles_of
+    from tesi_gan.evaluation import evaluate
+    from tesi_gan.models import build_models
+    from tesi_gan.utils.seed import set_seed
+
+    if not checkpoint.exists():
+        log.error("Checkpoint inesistente: %s", checkpoint)
+        return 1
+
+    set_seed(int(cfg.seed))
+    device = _device()
+
+    dataset = build_dataset(cfg)
+    if str(cfg.model.name).lower() == "can" and cfg.model.get("num_styles") is None:
+        OmegaConf.update(cfg, "model.num_styles", num_styles_of(dataset), force_add=True)
+
+    generator, discriminator = build_models(cfg)
+    ckpt = torch.load(checkpoint, map_location=device)
+    generator.load_state_dict(ckpt["generator"])
+    discriminator.load_state_dict(ckpt["discriminator"])
+    generator.to(device).eval()
+    discriminator.to(device).eval()
+
+    result = evaluate(
+        generator=generator,
+        discriminator=discriminator,
+        real_loader=build_dataloader(cfg, dataset),
+        device=device,
+        n_samples=n_samples,
+        batch_size=int(cfg.training.batch_size),
+    )
+
+    payload = {
+        "checkpoint": str(checkpoint),
+        "condizione": str(cfg.model.name),
+        "epoca": int(ckpt.get("epoch", -1)),
+        **result.as_dict(),
+    }
+    print(json.dumps(payload, indent=2, ensure_ascii=False))
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        log.info("Risultati scritti in %s", output)
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+#  export-figures
+# --------------------------------------------------------------------------- #
+
+def cmd_export_figures(cfg, results_dir: Path) -> int:
+    from tesi_gan.evaluation.figures import export_all
+
+    written = export_all(cfg, results_dir)
+    if not written:
+        log.warning(
+            "Nessuna figura prodotta: non ci sono ancora risultati in %s. "
+            "Lancia prima `train` e `evaluate`.",
+            results_dir,
+        )
+        return 1
+    for path in written:
+        log.info("Figura scritta: %s", path)
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 
 def main(argv: list[str] | None = None) -> int:
+    import argparse
+
     parser = argparse.ArgumentParser(prog="tesi-gan", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_train = sub.add_parser("train", help="Addestra un modello")
     p_train.add_argument("--allow-dirty", action="store_true",
                          help="Consente il training con modifiche non committate (sconsigliato)")
+    p_train.add_argument("--resume", action="store_true",
+                         help="Riprende da experiments/checkpoints/latest.pt se esiste")
 
-    sub.add_parser("evaluate", help="Calcola le metriche su un run esistente")
-    sub.add_parser("export-figures", help="Rigenera le figure della tesi")
+    p_eval = sub.add_parser("evaluate", help="Calcola le metriche su un checkpoint")
+    p_eval.add_argument("--checkpoint", type=Path, required=True)
+    p_eval.add_argument("--n-samples", type=int, default=2048,
+                        help="Deve restare identico fra le due condizioni")
+    p_eval.add_argument("--output", type=Path, default=None,
+                        help="File JSON in cui salvare i risultati")
+
+    p_fig = sub.add_parser("export-figures", help="Rigenera le figure della tesi")
+    p_fig.add_argument("--results-dir", type=Path, default=Path("experiments/results"))
 
     args, overrides = parser.parse_known_args(argv)
+    cfg = load_config(overrides)
 
     if args.command == "train":
-        raise NotImplementedError(
-            "Da implementare dopo aver deciso l'impianto sperimentale "
-            "(vedi docs/decisions/0003-impianto-sperimentale.md)."
-        )
+        return cmd_train(cfg, allow_dirty=args.allow_dirty, resume=args.resume)
     if args.command == "evaluate":
-        raise NotImplementedError("Da implementare insieme alle metriche scelte.")
+        return cmd_evaluate(cfg, args.checkpoint, args.n_samples, args.output)
     if args.command == "export-figures":
-        raise NotImplementedError("Da implementare quando esisteranno i primi risultati.")
+        return cmd_export_figures(cfg, args.results_dir)
     return 0
 
 

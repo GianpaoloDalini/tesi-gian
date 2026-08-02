@@ -1,0 +1,26 @@
+# @package _global_
+#
+# E0 — Smoke test su dati sintetici, CPU, pochi secondi.
+#
+#   python -m tesi_gan.cli train experiment=e0-smoke --allow-dirty
+#
+# Serve a verificare che la pipeline giri end-to-end prima di spendere ore di GPU.
+# NON produce risultati citabili: non va registrato in experiments/registry.md.
+defaults:
+  - override /model: can
+  - override /data: placeholder
+
+seed: 42
+
+training:
+  epochs: 2
+  batch_size: 16
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 1
+  label_smoothing: 0.0
+
+tracking:
+  backend: none

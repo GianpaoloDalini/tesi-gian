@@ -1,0 +1,12 @@
+# Sottoinsieme bilanciato di WikiArt (ADR-0004).
+#
+# I dati non stanno nel repository. Si preparano con:
+#   python -m tesi_gan.data.download --ispeziona
+#   python -m tesi_gan.data.download --num-styles 8 --per-style 2000 --licenza-verificata
+#
+# Il flag --licenza-verificata e' obbligatorio: vedi V-007.
+name: wikiart
+root: data/processed
+image_size: 64
+num_workers: 4
+augment: true          # solo flip orizzontale, vedi data/dataset.py

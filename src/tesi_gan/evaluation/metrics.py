@@ -1,0 +1,177 @@
+"""Metriche di valutazione, con dichiarazione esplicita di cosa non misurano.
+
+**Avvertenza metodologica, da riportare in tesi e non solo qui (Q5).** FID e
+Inception Score misurano fedelta' e varieta' rispetto a una distribuzione di
+riferimento. Non misurano creativita', novita' o valore estetico. Di piu': entrambe
+poggiano su una rete Inception addestrata su ImageNet, cioe' su **fotografie**. Il
+suo spazio di feature non e' costruito per rappresentare la pittura, e questo e' un
+limite strutturale, non un margine di errore.
+
+Il paradosso e' istruttivo e vale la pena renderlo esplicito nel capitolo di
+discussione: un modello che genera immagini stilisticamente ambigue — cioe' che fa
+esattamente cio' per cui la CAN e' progettata — si allontana dalla distribuzione dei
+dati reali e quindi **peggiora il FID**. Un FID peggiore per la CAN non falsifica
+l'ipotesi: mostra che la metrica e l'obiettivo sono in tensione.
+
+Le tre metriche vanno lette insieme, mai isolate:
+
+| Metrica | Direzione desiderata | Cosa dice davvero |
+|---|---|---|
+| FID | piu' basso e' meglio | quanto i generati assomigliano ai reali |
+| Inception Score | piu' alto e' meglio | quanto sono nitidi e vari secondo ImageNet |
+| Ambiguita' di stile | alta e' l'obiettivo della CAN | quanto D fatica ad attribuire uno stile |
+"""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import asdict, dataclass
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
+log = logging.getLogger(__name__)
+
+
+@dataclass
+class EvaluationResult:
+    fid: float | None
+    inception_score_mean: float | None
+    inception_score_std: float | None
+    style_entropy: float | None
+    style_entropy_normalized: float | None
+    n_samples: int
+
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+def _to_uint8(images: torch.Tensor) -> torch.Tensor:
+    """Da float in [0, 1] a uint8 in [0, 255], come atteso da torchmetrics."""
+    return (images.clamp(0, 1) * 255).to(torch.uint8)
+
+
+@torch.no_grad()
+def style_ambiguity(
+    discriminator,
+    generator,
+    n_samples: int,
+    batch_size: int,
+    device: torch.device,
+) -> tuple[float, float] | tuple[None, None]:
+    """Entropia media della posterior di stile sulle immagini generate.
+
+    Restituisce `(entropia_nats, entropia_normalizzata)`. La normalizzazione e'
+    rispetto a log(K), quindi il valore normalizzato sta in [0, 1] e vale 1 quando
+    la posterior e' perfettamente uniforme — ambiguita' massima.
+
+    **Limite da dichiarare:** misura l'ambiguita' *secondo il discriminatore che si
+    e' addestrato insieme al generatore*. Non e' un giudizio indipendente, ed e' il
+    motivo per cui non puo' sostituire lo studio percettivo. Confrontare l'ambiguita'
+    fra DCGAN e CAN misurata da due discriminatori diversi e' legittimo solo come
+    indicazione qualitativa: per un confronto pulito serve un classificatore di stile
+    terzo, addestrato una volta sola sui dati reali e tenuto fisso.
+    """
+    if not getattr(discriminator, "style_head_enabled", False):
+        return None, None
+
+    discriminator.eval()
+    generator.eval()
+    total = 0.0
+    seen = 0
+
+    while seen < n_samples:
+        n = min(batch_size, n_samples - seen)
+        images = generator.sample(n, device)
+        _, style_logits = discriminator(images)
+        log_p = F.log_softmax(style_logits, dim=1)
+        entropy = -(log_p.exp() * log_p).sum(dim=1)
+        total += float(entropy.sum())
+        seen += n
+
+    mean_entropy = total / max(seen, 1)
+    k = discriminator.num_styles or 1
+    import math
+
+    normalized = mean_entropy / math.log(k) if k > 1 else 0.0
+    return mean_entropy, normalized
+
+
+@torch.no_grad()
+def evaluate(
+    generator,
+    discriminator,
+    real_loader: DataLoader,
+    device: torch.device,
+    n_samples: int = 2048,
+    batch_size: int = 64,
+    compute_fid: bool = True,
+    compute_is: bool = True,
+) -> EvaluationResult:
+    """Calcola le metriche su `n_samples` immagini generate.
+
+    `n_samples` va tenuto **identico fra le due condizioni**: il FID e' notoriamente
+    sensibile alla numerosita' del campione, e confrontare un FID su 2048 campioni
+    con uno su 10000 non ha significato.
+    """
+    from tesi_gan.data.dataset import denormalize
+
+    generator.eval()
+    fid_value = is_mean = is_std = None
+
+    if compute_fid or compute_is:
+        try:
+            from torchmetrics.image.fid import FrechetInceptionDistance
+            from torchmetrics.image.inception import InceptionScore
+        except ImportError:
+            log.warning("torchmetrics non disponibile: FID e IS non calcolati.")
+            compute_fid = compute_is = False
+
+    if compute_fid:
+        fid = FrechetInceptionDistance(feature=2048, normalize=False).to(device)
+        seen_real = 0
+        for real, _ in real_loader:
+            real = _to_uint8(denormalize(real.to(device)))
+            fid.update(real, real=True)
+            seen_real += real.size(0)
+            if seen_real >= n_samples:
+                break
+        seen_fake = 0
+        while seen_fake < n_samples:
+            n = min(batch_size, n_samples - seen_fake)
+            fake = _to_uint8(denormalize(generator.sample(n, device)))
+            fid.update(fake, real=False)
+            seen_fake += n
+        fid_value = float(fid.compute())
+        log.info("FID = %.3f su %d campioni per lato", fid_value, n_samples)
+
+    if compute_is:
+        inception = InceptionScore(normalize=False).to(device)
+        seen = 0
+        while seen < n_samples:
+            n = min(batch_size, n_samples - seen)
+            inception.update(_to_uint8(denormalize(generator.sample(n, device))))
+            seen += n
+        mean, std = inception.compute()
+        is_mean, is_std = float(mean), float(std)
+        log.info("Inception Score = %.3f ± %.3f", is_mean, is_std)
+
+    entropy, entropy_norm = style_ambiguity(
+        discriminator,
+        generator,
+        n_samples=min(n_samples, 1024),
+        batch_size=batch_size,
+        device=device,
+    )
+    if entropy is not None:
+        log.info("Entropia di stile = %.4f nats (normalizzata %.3f)", entropy, entropy_norm)
+
+    return EvaluationResult(
+        fid=fid_value,
+        inception_score_mean=is_mean,
+        inception_score_std=is_std,
+        style_entropy=entropy,
+        style_entropy_normalized=entropy_norm,
+        n_samples=n_samples,
+    )

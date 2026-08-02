@@ -8,6 +8,10 @@ defaults:
   - model: dcgan
   - data: placeholder
   - _self_
+  # `experiment` viene per ultimo cosi' che i suoi valori vincano sui default.
+  # Gli esperimenti dell'impianto di ADR-0003 sono e1-dcgan-baseline e
+  # e2-can-confronto: vanno lanciati con gli stessi parametri tranne il modello.
+  - optional experiment: null
 
 seed: 42
 strict_determinism: false
@@ -20,6 +24,7 @@ training:
   beta1: 0.5
   beta2: 0.999
   checkpoint_every: 5        # in epoche; alto rischio su sessioni cloud effimere
+  label_smoothing: 0.0       # sui target reali; se > 0 va dichiarato in appendice
 
 tracking:
   backend: wandb

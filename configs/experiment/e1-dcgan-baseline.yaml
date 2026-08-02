@@ -1,0 +1,24 @@
+# @package _global_
+#
+# E1 — Condizione di CONTROLLO dell'esperimento comparativo (ADR-0003).
+#
+#   python -m tesi_gan.cli train experiment=e1-dcgan-baseline
+#
+# Ogni parametro qui sotto deve coincidere con e2-can-confronto.yaml tranne il
+# modello. Se ne cambi uno, cambialo in entrambi: e' l'unica cosa che tiene in
+# piedi la validita' del confronto.
+defaults:
+  - override /model: dcgan
+  - override /data: wikiart
+
+seed: 42
+
+training:
+  epochs: 100
+  batch_size: 128
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 5
+  label_smoothing: 0.1

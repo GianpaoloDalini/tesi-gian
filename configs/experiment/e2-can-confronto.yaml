@@ -1,0 +1,24 @@
+# @package _global_
+#
+# E2 — Condizione SPERIMENTALE dell'esperimento comparativo (ADR-0003).
+#
+#   python -m tesi_gan.cli train experiment=e2-can-confronto
+#
+# Identico a e1-dcgan-baseline tranne il modello. Stesso seed: i due run vedono
+# gli stessi batch nello stesso ordine, quindi la differenza nei risultati non e'
+# imputabile all'ordine di presentazione dei dati.
+defaults:
+  - override /model: can
+  - override /data: wikiart
+
+seed: 42
+
+training:
+  epochs: 100
+  batch_size: 128
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 5
+  label_smoothing: 0.1

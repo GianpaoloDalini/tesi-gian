@@ -1,4 +1,12 @@
-# Baseline. Serve come termine di paragone, non come contributo originale.
+# Deep Convolutional GAN (Radford et al., 2016).
+#
+# Condizione di CONTROLLO del confronto di ADR-0003: non e' il contributo della
+# tesi, e' il termine di paragone rispetto a cui si misura l'effetto del
+# meccanismo di ambiguita' stilistica.
+#
+# Ogni valore qui sotto deve restare identico in can.yaml: se divergono, la
+# differenza osservata fra le due condizioni non e' piu' attribuibile alla sola
+# funzione di perdita e l'esperimento perde validita'.
 name: dcgan
 latent_dim: 100
 image_size: 64

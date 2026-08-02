@@ -1,13 +1,26 @@
-# Creative Adversarial Network: al discriminatore si aggiunge una testa di
-# classificazione dello stile, e al generatore una penalita' che lo spinge verso
-# output stilisticamente ambigui.
-# RIFERIMENTO: Elgammal et al. (2017). Verificare i valori sul paper originale
-# prima di dichiararli in tesi: quelli qui sotto sono segnaposto.
+# Creative Adversarial Network (Elgammal et al., 2017).
+#
+# Condizione SPERIMENTALE del confronto di ADR-0003. Rispetto a dcgan.yaml cambiano
+# solo i tre campi in fondo: generatore e backbone del discriminatore sono identici.
 name: can
 latent_dim: 100
 image_size: 64
 channels: 3
 generator_features: 64
 discriminator_features: 64
-num_styles: null             # TODO: dipende dal dataset scelto
-style_ambiguity_weight: 1.0  # TODO: verificare sul paper
+
+# --- Cio' che distingue la CAN dalla DCGAN -----------------------------------
+# Numero di classi di stile. `null` = ricavato dai dati a runtime, che e' il
+# comportamento corretto: dichiararlo a mano rischia di non coincidere con gli
+# stili effettivamente presenti (ADR-0004).
+num_styles: null
+
+# Peso del termine di ambiguita' stilistica nella loss del generatore.
+# ATTENZIONE: valore da verificare sul paper originale prima di dichiararlo in
+# tesi. Con 0.0 la CAN degenera esattamente nella DCGAN: e' l'ablazione che
+# verifica l'equivalenza dell'implementazione condivisa.
+style_ambiguity_weight: 1.0
+
+# Forma della penalita': `cross_entropy_uniform` oppure `negative_entropy`.
+# Le due non sono equivalenti, vedi la nota in src/tesi_gan/training/losses.py.
+ambiguity_fn: cross_entropy_uniform

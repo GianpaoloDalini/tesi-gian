@@ -1,7 +1,12 @@
-# Segnaposto: il dataset non e' ancora stato scelto.
-# Vedi docs/decisions/0003-impianto-sperimentale.md.
-name: placeholder
+# Dati sintetici per gli smoke test. NON produce risultati citabili in tesi e non
+# deve mai comparire in un run registrato in experiments/registry.md.
+#
+# Serve a verificare che la pipeline giri end-to-end su CPU prima di spendere ore
+# di GPU. Il dataset reale e' configs/data/wikiart.yaml.
+name: synthetic
 root: data/processed
 image_size: 64
-num_workers: 4
-train_split: 0.8
+num_workers: 0
+augment: false
+synthetic_size: 256
+synthetic_styles: 4

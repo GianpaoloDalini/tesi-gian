@@ -6,7 +6,25 @@ tra tre mesi non saprai da quale run proviene la Figura 6.2.
 
 | ID run (W&B) | Data | Commit | Config | Esito | Usato in | Note |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| | | `experiment=e1-dcgan-baseline` | | | | condizione di **controllo** |
+| | | `experiment=e2-can-confronto` | | | | condizione **sperimentale** |
+
+## Confronto E1 / E2
+
+Tabella da compilare dopo `python -m tesi_gan.cli evaluate`. I due run vanno valutati
+con **lo stesso `--n-samples`**: il FID è sensibile alla numerosità del campione e
+confrontare un FID su 2048 campioni con uno su 10000 non significa nulla.
+
+| Metrica | E1 — DCGAN | E2 — CAN | Direzione attesa |
+|---|---|---|---|
+| FID ↓ | | | CAN peggiore |
+| Inception Score ↑ | | | incerta |
+| Entropia di stile normalizzata | — (assente per costruzione) | | CAN alta |
+| Studio percettivo | | | esplorativo |
+
+Il trattino nella riga dell'entropia **non è un dato mancante**: la DCGAN non ha testa
+di stile, quindi la metrica non è definita per quella condizione. Va detto nella
+caption della tabella in tesi, altrimenti sembra un buco nei risultati.
 
 ## Regole
 
