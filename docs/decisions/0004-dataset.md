@@ -1,7 +1,7 @@
 # ADR-0004 — Dataset
 
 - **Data:** 2026-08-02
-- **Stato:** **Decisa con riserva** — subordinata alla verifica V-007
+- **Stato:** Criterio deciso il 2026-08-03; 🔶 lista degli stili ancora aperta; subordinata a V-007
 - **Decisore:** Gian
 - **Dipende da:** [ADR-0003](0003-impianto-sperimentale.md)
 

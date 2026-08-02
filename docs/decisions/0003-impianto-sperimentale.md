@@ -1,7 +1,7 @@
 # ADR-0003 — Impianto sperimentale
 
 - **Data:** 2026-08-02
-- **Stato:** **Decisa** — da ratificare col relatore al primo ricevimento utile
+- **Stato:** Riaperta il 2026-08-03, **ratificata dall'autore lo stesso giorno** con tre precisazioni (vedi D-010)
 - **Decisore:** Gian
 - **Supera:** lo stato «aperta» del 2026-07-31
 

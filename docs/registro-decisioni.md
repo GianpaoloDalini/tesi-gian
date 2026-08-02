@@ -19,7 +19,7 @@
 > una riga qui nello stesso commit che la applica. Una decisione superata non si
 > cancella: si marca `superata` e si indica da cosa.
 
-**Ultimo aggiornamento:** 2026-08-02
+**Ultimo aggiornamento:** 2026-08-03
 
 ---
 
@@ -225,7 +225,26 @@ Risultati · Discussione · Conclusioni. Appendici: iperparametri, riproducibili
 ---
 
 ### D-010 — Impianto sperimentale: confronto controllato DCGAN → CAN
-**Data:** 2026-08-02 · **Stato:** attiva, **da ratificare col relatore** · **Approfondimento:** [ADR-0003](decisions/0003-impianto-sperimentale.md)
+**Data:** 2026-08-02, riaperta il 2026-08-03, **ratificata dall'autore il 2026-08-03**
+**Stato:** attiva · **Approfondimento:** [ADR-0003](decisions/0003-impianto-sperimentale.md)
+
+> **Nota sul percorso, da conservare.** La prima stesura di questa decisione è stata
+> formulata dall'assistente a partire da un'indicazione di massima dell'autore, e
+> scritta come se fosse già una decisione presa. Non lo era. È stata riaperta,
+> discussa e poi ratificata con tre precisazioni che nella prima stesura mancavano.
+
+**Precisazioni emerse dalla discussione del 2026-08-03:**
+
+1. **Taglio espositivo.** Il contributo è il *delta*: quali modifiche servono per
+   passare da una GAN a una CAN, e che effetto hanno. Non «quale delle due vince».
+2. **Riaddestramento da zero per entrambe le condizioni**, non fine-tuning. La
+   formulazione iniziale («poi da lì le modifiche») era ambigua fra le due cose.
+   Proseguire dai pesi della GAN avrebbe dato alla CAN il doppio delle epoche
+   totali, confondendo l'effetto del meccanismo con l'effetto di aver addestrato di più.
+3. **Tre seed per condizione**, sei run in totale. Un run per condizione non dà
+   stima della varianza, e le GAN oscillano molto fra seed: senza repliche, una
+   differenza osservata potrebbe essere rumore. È l'obiezione più prevedibile e più
+   economica da neutralizzare (stimate ~4 ore di GPU aggiuntive, pochi euro).
 
 Due addestramenti in sequenza sullo stesso dataset, con generatore identico, backbone
 del discriminatore identica, stessi iperparametri, stesso seed, stesso numero di
@@ -254,7 +273,37 @@ in `docs/meetings/`. Se il relatore la rovescia, ADR-0003 si marca `superato`.
 ---
 
 ### D-011 — Dataset: sottoinsieme bilanciato di WikiArt
-**Data:** 2026-08-02 · **Stato:** attiva **con riserva** (V-007) · **Approfondimento:** [ADR-0004](decisions/0004-dataset.md)
+**Data:** 2026-08-02, riaperta e ridiscussa il 2026-08-03
+**Stato:** attiva **nel criterio**, 🔶 **aperta nella lista esatta degli stili** · **Approfondimento:** [ADR-0004](decisions/0004-dataset.md)
+
+**Deciso il 2026-08-03 — il criterio di selezione degli stili.** Gli stili si
+scelgono per **due** requisiti congiunti, non uno solo:
+
+1. **Massima distanza visiva** fra loro, perché a 64×64 su un dominio troppo
+   eterogeneo entrambe le condizioni producono immagini indistinguibili e non
+   resta niente da confrontare.
+2. **Opere di pubblico dominio**, cioè movimenti pre-Novecento con autori morti da
+   oltre settant'anni. Esclude cubismo, surrealismo e pop art, che sono i più
+   vistosi ma anche i più problematici.
+
+Il secondo requisito non era nella prima stesura ed è il guadagno principale della
+ridiscussione: scioglie gran parte del nodo etico **senza costare nulla** sul piano
+sperimentale, perché ukiyo-e, barocco, rinascimento e impressionismo sono già fra
+loro lontanissimi.
+
+**Ancora da decidere: la lista.** Dipende dai conteggi reali, perché in un
+sottoinsieme bilanciato **la classe meno popolata determina la dimensione di tutte
+le altre**. Stime da campione troncato al 2%, da non usare per nessun altro scopo:
+impressionismo ~8.000, barocco ~3.600, rinascimento nordico ~1.400, ukiyo-e ~650,
+puntinismo ~200. Se reggono, il puntinismo è fuori e l'ukiyo-e fa da tetto attorno
+alle 900 opere per classe.
+
+I numeri veri si ottengono con `python -m tesi_gan.data.inventory`, che scarica i
+soli indici CSV (~5 MB, nessuna immagine) e produce la tabella esatta.
+
+**Conseguenza da tenere presente:** con 4.000-7.000 immagini si entra nel regime
+«GAN con pochi dati», che è un tema metodologico riconosciuto e non un intoppo.
+`karras2020training` è già in bibliografia ed è il riferimento su quel punto.
 
 Da 5 a 10 stili ben popolati, bilanciati, a 64×64. Nessuna ridistribuzione di dati
 né di pesi.
@@ -277,7 +326,7 @@ zero di calcolo.
 ---
 
 ### D-012 — Studio percettivo leggero, campione di convenienza
-**Data:** 2026-08-02 · **Stato:** attiva
+**Data:** 2026-08-02 · **Stato:** 🔶 **RIAPERTA il 2026-08-03** — proposta non ratificata
 
 Questionario online su poche decine di rispondenti, con consenso informato.
 
@@ -293,6 +342,29 @@ rappresentativo, numerosità bassa. I risultati vanno presentati come **indicati
 mai come statisticamente significativi. Presentare un campione di convenienza come
 evidenza forte è un errore che la commissione rileva immediatamente; dichiararlo come
 esplorativo è invece perfettamente difendibile.
+
+---
+
+### D-013 — Servizio di calcolo: RunPod con RTX 4090
+**Data:** 2026-08-03 · **Stato:** attiva
+
+**Alternative scartate:** Colab Pro (~10 $/mese: azzera il setup ma è notebook-first
+e costa più dell'intero conto di calcolo); Vast.ai (il più economico ma marketplace
+peer-to-peer con macchine interrompibili e host di qualità variabile); Lambda Labs
+(A100 e H100 con SLA: ferro sovradimensionato per questo carico).
+
+**Motivazione.** Il carico è piccolo: una DCGAN a 64×64 su qualche migliaio di
+immagini non richiede A100 né H100, una RTX 4090 avanza. RunPod fattura al secondo,
+offre volumi persistenti su cui mettere il dataset una volta sola, e sposa la
+struttura script-first che clona da GitHub decisa in D-006.
+
+**Ordine di grandezza:** ~1 ora di GPU per run stimata, sei run, quindi **l'intera
+parte sperimentale costa fra i 2 e i 4 dollari**. La stima va sostituita col tempo
+reale misurato sul primo run. I listini cambiano di continuo: vanno ricontrollati
+prima di impegnarsi.
+
+**Da annotare quando disponibile:** modello di GPU effettivamente usato, ore
+consumate e costo totale. Vanno nell'appendice sulla riproducibilità.
 
 ---
 
@@ -312,11 +384,19 @@ L'obiezione del 31 luglio era fondata e la risposta «non preoccuparti delle sca
 era basata su un'informazione sbagliata: **la Fase 1 scade il 14 agosto 2026**, non a
 settembre. Vedi V-006 per il calendario completo.
 
-### Q2 — Impianto sperimentale ✅ chiusa
-**Stato:** risolta il 2026-08-02 → **D-010**, [ADR-0003](decisions/0003-impianto-sperimentale.md)
+### Q2 — Impianto sperimentale ✅ chiusa dall'autore
+**Stato:** chiusa il 2026-08-03 → **D-010**, [ADR-0003](decisions/0003-impianto-sperimentale.md)
 
-Confronto controllato DCGAN → CAN a variabile indipendente singola. Nessuna delle tre
-alternative originali presa in forma pura. Da ratificare col relatore.
+Riaperta e ridiscussa perché la prima chiusura era dell'assistente. I quattro nodi
+sollevati nella revisione sono stati sciolti così:
+
+1. **Riaddestramento da zero**, non fine-tuning → D-010, punto 2.
+2. **Rischio di risultato nullo** → mitigato restringendo il dominio a pochi stili
+   molto distinti → D-011.
+3. **Cosa conta come successo** → 🔶 **ancora aperto.** È l'unico nodo non sciolto:
+   per costruzione la CAN peggiora il FID, e va deciso *prima* dei run quale esito
+   si considera informativo. Da riprendere.
+4. **Varianza fra seed** → tre seed per condizione → D-010, punto 3.
 
 ### Q3 — Peso relativo tra componente tecnica ed etica 🟠 alta
 **Stato:** aperta
@@ -326,8 +406,12 @@ la cui area include l'informatica etica. L'impianto scelto (D-010) è compatibil
 entrambi gli sbilanciamenti, quindi questa questione non blocca più il lavoro
 sperimentale — ma blocca ancora la stesura del capitolo di discussione.
 
-### Q4 — Dataset ✅ chiusa con riserva
-**Stato:** risolta il 2026-08-02 → **D-011**, [ADR-0004](decisions/0004-dataset.md) · **Riserva:** V-007
+### Q4 — Dataset 🔶 chiusa nel criterio, aperta nella lista
+**Stato:** criterio deciso il 2026-08-03 → **D-011**, [ADR-0004](decisions/0004-dataset.md) · **Riserva:** V-007
+
+Deciso: WikiArt, pochi stili scelti per distanza visiva **e** appartenenza al
+pubblico dominio. Da decidere: quali cinque (o quattro), sui conteggi reali prodotti
+da `python -m tesi_gan.data.inventory`.
 
 Sottoinsieme bilanciato di WikiArt. La verifica della licenza resta da fare **prima**
 del download, ed è bloccante: lo script di preparazione dei dati si rifiuta di girare
@@ -349,19 +433,18 @@ originale prima di dichiarare in tesi quale è stata usata.
 e aumenta l'entropia di stile. Se accade, non è un fallimento ma la dimostrazione
 empirica che fedeltà e ambiguità stilistica sono obiettivi in tensione.
 
-### Q6 — Studio percettivo con soggetti umani ✅ chiusa
-**Stato:** risolta il 2026-08-02 → **D-012**
+### Q6 — Studio percettivo con soggetti umani 🔶 riaperta
+**Stato:** **di nuovo aperta dal 2026-08-03** · **Proposta:** D-012
 
 Sì, versione leggera con campione di convenienza. Limiti da dichiarare senza
 attenuanti.
 
-### Q7 — Servizio di calcolo e budget ✅ chiusa parzialmente
-**Stato:** GPU a pagamento su servizio online; **budget e servizio specifico da
-indicare**
+### Q7 — Servizio di calcolo e budget ✅ chiusa
+**Stato:** chiusa il 2026-08-03 → **D-013**
 
-Sufficiente a fissare il dimensionamento: 64×64, due run da circa 100 epoche su un
-sottoinsieme dell'ordine di 10-20 mila immagini. Il servizio esatto va comunque
-annotato qui, perché finisce nell'appendice sulla riproducibilità.
+RunPod con RTX 4090. Dimensionamento: 64×64, sei run (due condizioni × tre seed) da
+circa 100 epoche su un sottoinsieme di alcune migliaia di immagini. Ore consumate e
+costo effettivo vanno annotati qui man mano, per l'appendice sulla riproducibilità.
 
 ### Q8 — Domande di ricerca 🔴 ora la più urgente
 **Stato:** aperta
@@ -408,12 +491,40 @@ risultato sperimentale compensa una domanda non presentata.
 Il tempo effettivo per la parte sperimentale e la stesura è **fino al 21 settembre**,
 cioè circa sette settimane da oggi.
 
-### V-007 — Termini d'uso del dataset 🔴 bloccante per il download
-**Stato:** da fare · **Riferimento:** [ADR-0004](decisions/0004-dataset.md)
+### V-007 — Termini d'uso del dataset 🟠 in parte chiarita
+**Stato:** parzialmente verificata il 2026-08-03; resta da leggere i ToU della fonte
+**Riferimento:** [ADR-0004](decisions/0004-dataset.md)
 
-Prima di scaricare i dati vanno letti i termini d'uso effettivi della fonte e va
-verificato se l'uso previsto — addestramento di un modello generativo a fini di
-ricerca, senza ridistribuzione né dei dati né dei pesi — vi rientri.
+**Novità del 2026-08-03.** La situazione è migliore di come era stata registrata.
+Il dataset non ha licenza «ignota»: il README del WikiArt refined di ArtGAN
+([cs-chan/ArtGAN](https://github.com/cs-chan/ArtGAN/blob/master/WikiArt%20Dataset/README.md))
+dichiara testualmente *«The WikiArt dataset can be used only for non-commercial
+research purpose»*, e rimanda ai termini di WikiArt.org. Una tesi magistrale è
+ricerca non commerciale, quindi rientra nella condizione dichiarata.
+
+Su Hugging Face lo stesso materiale è invece etichettato `license: unknown` con la
+nota *«Data files © Original Authors»*: le due fonti dicono cose diverse sullo
+stesso dataset, ed è di per sé un'osservazione da riportare in tesi.
+
+**Resta da fare:** leggere i termini d'uso di WikiArt.org e verificare che l'uso
+previsto vi rientri. Questa verifica la fa Gian, non l'assistente.
+
+Due elementi giuridici da approfondire, **non sono consulenza legale** e vanno
+verificati con una fonte competente:
+
+- **Direttiva UE 2019/790, art. 14:** le riproduzioni di opere d'arte visiva il cui
+  termine di protezione è scaduto non sono a loro volta protette, salvo originalità
+  propria. Rileva perché il criterio di D-011 seleziona già solo opere di pubblico
+  dominio.
+- **Codice dei beni culturali italiano, artt. 107-108:** prevede canoni per la
+  riproduzione di beni culturali italiani. È una peculiarità nazionale molto
+  discussa e, per una tesi italiana su IA ed etica dell'arte, materiale di merito
+  più che un ostacolo.
+
+Il blocco operativo resta: `python -m tesi_gan.data.download` non gira senza
+`--licenza-verificata`. Non è invece bloccato
+`python -m tesi_gan.data.inventory`, che scarica i soli indici CSV e nessuna
+immagine: contare non è riprodurre.
 
 `python -m tesi_gan.data.download` **si rifiuta di girare** finché non si passa
 `--licenza-verificata`. Il blocco è deliberato. Esito negativo → si ripiega su The
@@ -519,4 +630,5 @@ discussione dei limiti.
 | Data | Attività | Esito |
 |---|---|---|
 | 2026-07-31 | Intervista iniziale; analisi del template `phd-thesis-tex`; impostazione del monorepo | D-001…D-009 decise; Q1…Q8 aperte; infrastruttura verificata |
+| 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato, dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-011 chiusa nel criterio; D-013 RunPod; V-007 chiarita; modulo di inventario del dataset |
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
