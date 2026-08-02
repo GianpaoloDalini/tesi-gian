@@ -76,8 +76,9 @@
 - **Impianto:** confronto controllato a due condizioni, **DCGAN → CAN**, a variabile
   indipendente singola (la funzione di perdita). Vedi ADR-0003 e D-010.
   Da ratificare col relatore.
-- **Dataset:** sottoinsieme bilanciato di WikiArt, 5-10 stili, 64×64.
-  Vedi ADR-0004 e D-011. **Subordinato a V-007** (verifica della licenza).
+- **Dataset:** **ArtBench-10**, sei stili di pubblico dominio (`ukiyo_e`,
+  `renaissance`, `baroque`, `romanticism`, `realism`, `impressionism`), 64×64,
+  30.000 immagini bilanciate. Vedi ADR-0004 e D-014.
 - **Baseline:** DCGAN (Radford et al., 2016) come condizione di controllo, con
   generatore e backbone di discriminatore *identici* a quelli della CAN.
 - **Metriche:** FID, Inception Score, entropia della posterior di stile, studio
@@ -102,13 +103,20 @@ Tracciamento su Weights & Biases; configurazioni via Hydra; bibliografia via Zot
 Configurazioni in `configs/experiment/`. I due run definitivi differiscono per **una
 sola riga**: `override /model`.
 
-| ID | Obiettivo | Variabile indipendente | Dataset | Metriche | Stato |
+| ID | Obiettivo | Variabile indipendente | Run | Metriche | Stato |
 |---|---|---|---|---|---|
-| E0 | Smoke test della pipeline su dati sintetici, CPU | — | sintetico | nessuna | ✅ pipeline implementata |
-| E1 | Condizione di **controllo**: DCGAN | loss avversaria pura | WikiArt ridotto | FID, IS | non avviato |
-| E2 | Condizione **sperimentale**: CAN | + classificazione stile (D) e ambiguità (G) | WikiArt ridotto | FID, IS, entropia di stile | non avviato |
-| E3 | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | WikiArt ridotto | FID, IS | opzionale, se avanza tempo |
+| E0 | Smoke test della pipeline su dati sintetici, CPU | — | 1 | nessuna | ✅ pipeline implementata |
+| E1 | Condizione di **controllo**: DCGAN | loss avversaria pura | 3 (seed 1, 2, 3) | FID, IS | non avviato |
+| E2 | Condizione **sperimentale**: CAN | + classificazione stile (D) e ambiguità (G) | 3 (seed 1, 2, 3) | FID, IS, entropia di stile | non avviato |
+| E3 | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | controllo di sanità |
 | E4 | Studio percettivo leggero sui campioni di E1 ed E2 | condizione mostrata | — | giudizio umano | non avviato |
+
+Dataset per E1-E3: ArtBench-10, sei stili, 30.000 immagini (D-014).
+**E1 ed E2 usano gli stessi tre seed**: a parità di seed le due condizioni partono
+dagli stessi pesi e vedono gli stessi batch nello stesso ordine, quindi la
+differenza nei risultati non è imputabile né all'inizializzazione né all'ordine dei
+dati. Tre repliche per condizione servono a distinguere una differenza vera dalla
+normale oscillazione fra seed, che nelle GAN è ampia.
 
 Tutto ciò che non è la variabile indicata resta **identico** fra E1 ed E2: generatore,
 backbone del discriminatore, iperparametri, seed, epoche, numero di campioni per la
@@ -187,8 +195,10 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 | D-008 | 2026-07-31 | Template seguito nella struttura, non nelle pratiche git | — |
 | D-009 | 2026-07-31 | Struttura in 8 capitoli + 2 appendici (provvisoria) | — |
 | D-010 | 2026-08-02 | Impianto: confronto controllato DCGAN → CAN | ADR-0003 |
-| D-011 | 2026-08-02 | Dataset: sottoinsieme bilanciato di WikiArt (con riserva) | ADR-0004 |
-| D-012 | 2026-08-02 | Studio percettivo leggero, campione di convenienza | — |
+| D-011 | 2026-08-02 | Dataset: sottoinsieme di WikiArt — **superata da D-014** | ADR-0004 |
+| D-012 | 2026-08-02 | Studio percettivo leggero, campione di convenienza (riaperta) | — |
+| D-013 | 2026-08-03 | Servizio di calcolo: RunPod con RTX 4090 | — |
+| D-014 | 2026-08-03 | Dataset: ArtBench-10, sei stili di pubblico dominio | ADR-0004 |
 
 ## Prossime decisioni da prendere
 

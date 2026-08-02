@@ -2,16 +2,26 @@
 #
 # E2 — Condizione SPERIMENTALE dell'esperimento comparativo (ADR-0003).
 #
-#   python -m tesi_gan.cli train experiment=e2-can-confronto
+# Come E1, va lanciato tre volte con gli STESSI seed:
+#   python -m tesi_gan.cli train experiment=e2-can-confronto seed=1
+#   python -m tesi_gan.cli train experiment=e2-can-confronto seed=2
+#   python -m tesi_gan.cli train experiment=e2-can-confronto seed=3
 #
-# Identico a e1-dcgan-baseline tranne il modello. Stesso seed: i due run vedono
-# gli stessi batch nello stesso ordine, quindi la differenza nei risultati non e'
-# imputabile all'ordine di presentazione dei dati.
+# Usare gli stessi seed di E1 non e' un dettaglio: a parita' di seed le due
+# condizioni partono dagli stessi pesi (backbone e testa avversaria) e vedono gli
+# stessi batch nello stesso ordine. La differenza nei risultati non e' quindi
+# imputabile ne' all'inizializzazione ne' all'ordine dei dati.
+#
+# Riaddestramento DA ZERO, non fine-tuning dai pesi di E1 (D-010, punto 2):
+# proseguire da E1 darebbe alla CAN il doppio delle epoche totali e confonderebbe
+# l'effetto del meccanismo con l'effetto di aver addestrato di piu'.
+#
+# Identico a e1-dcgan-baseline tranne il modello.
 defaults:
   - override /model: can
-  - override /data: wikiart
+  - override /data: artbench
 
-seed: 42
+seed: 1
 
 training:
   epochs: 100
@@ -20,5 +30,5 @@ training:
   lr_discriminator: 2e-4
   beta1: 0.5
   beta2: 0.999
-  checkpoint_every: 5
+  checkpoint_every: 10
   label_smoothing: 0.1

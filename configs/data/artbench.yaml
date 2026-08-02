@@ -1,0 +1,28 @@
+# ArtBench-10, ristretto a sei stili (ADR-0004).
+#
+# Liao, Li, Liu, Keutzer — The ArtBench Dataset, arXiv:2206.11404, 2022.
+# Bilanciato per costruzione: 5.000 immagini di training per stile, quindi 30.000
+# in totale sui sei selezionati. Nessun sottocampionamento necessario.
+#
+# Preparazione:
+#   1. scarica la versione ImageFolder con split da
+#      https://artbench.eecs.berkeley.edu/files/artbench-10-imagefolder-split.tar
+#   2. scompattala in data/raw/
+#   3. python -m tesi_gan.data.download --stili ukiyo_e renaissance baroque \
+#          romanticism realism impressionism --per-style 5000 --licenza-verificata
+name: artbench
+root: data/processed
+image_size: 64
+num_workers: 4
+augment: true          # solo flip orizzontale: vedi la nota in data/dataset.py
+
+# I sei stili di ADR-0004. Servono a `data.download` per selezionarli
+# esplicitamente: con un dataset bilanciato non ha senso prendere "i piu'
+# popolati", perche' sono tutti uguali.
+stili:
+  - ukiyo_e
+  - renaissance
+  - baroque
+  - romanticism
+  - realism
+  - impressionism

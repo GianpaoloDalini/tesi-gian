@@ -1,12 +1,18 @@
-# Sottoinsieme bilanciato di WikiArt (ADR-0004).
+# WikiArt — ALTERNATIVA SCARTATA, tenuta come documentazione (ADR-0004).
 #
-# I dati non stanno nel repository. Si preparano con:
-#   python -m tesi_gan.data.download --ispeziona
-#   python -m tesi_gan.data.download --num-styles 8 --per-style 2000 --licenza-verificata
+# Non e' il dataset dell'esperimento. Il dataset e' configs/data/artbench.yaml.
 #
-# Il flag --licenza-verificata e' obbligatorio: vedi V-007.
+# Perche' e' stata scartata: WikiArt ha una distribuzione a coda lunga, quindi in
+# un sottoinsieme bilanciato la classe meno popolata determina la dimensione di
+# tutte le altre. Bilanciando su Ukiyo-e si scendeva attorno alle 4.500 immagini
+# totali, contro le 30.000 di ArtBench. Le etichette, inoltre, sono rumorose.
+#
+# Resta qui perche' il confronto fra i due dataset e' materiale per il capitolo di
+# metodologia, e perche' se ArtBench si rivelasse inutilizzabile serve la strada di
+# ripiego gia' scritta. Lo sbilanciamento si misura con:
+#   python -m tesi_gan.data.inventory
 name: wikiart
 root: data/processed
 image_size: 64
 num_workers: 4
-augment: true          # solo flip orizzontale, vedi data/dataset.py
+augment: true

@@ -29,4 +29,4 @@ difendibile, e alimentano direttamente il capitolo di metodologia.
 | 0001 | Monorepo unico per tesi e codice | Accettata |
 | 0002 | Toolchain: LaTeX, bibliografia, tracciamento esperimenti | Accettata |
 | 0003 | Impianto sperimentale: confronto controllato DCGAN → CAN | Accettata |
-| 0004 | Dataset: sottoinsieme bilanciato di WikiArt | 🔶 Parziale: criterio deciso, stili da fissare |
+| 0004 | Dataset: ArtBench-10, sei stili di pubblico dominio | Accettata |

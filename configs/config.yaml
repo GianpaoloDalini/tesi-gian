@@ -34,7 +34,10 @@ tracking:
 
 paths:
   data: data/processed
-  checkpoints: experiments/checkpoints
+  # I checkpoint sono separati per condizione E per seed. Senza, il secondo run
+  # sovrascriverebbe il primo: con tre seed per condizione (D-010) si perderebbero
+  # cinque run su sei senza accorgersene.
+  checkpoints: experiments/checkpoints/${model.name}-seed${seed}
   figures: thesis/figures/generated
 
 hydra:

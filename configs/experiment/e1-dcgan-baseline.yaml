@@ -2,16 +2,23 @@
 #
 # E1 — Condizione di CONTROLLO dell'esperimento comparativo (ADR-0003).
 #
-#   python -m tesi_gan.cli train experiment=e1-dcgan-baseline
+# Va lanciato TRE VOLTE, una per seed (D-010, punto 3):
+#   python -m tesi_gan.cli train experiment=e1-dcgan-baseline seed=1
+#   python -m tesi_gan.cli train experiment=e1-dcgan-baseline seed=2
+#   python -m tesi_gan.cli train experiment=e1-dcgan-baseline seed=3
 #
-# Ogni parametro qui sotto deve coincidere con e2-can-confronto.yaml tranne il
+# Un solo run non dice nulla sulla varianza: le GAN oscillano molto fra seed, e
+# senza repliche una differenza osservata fra E1 ed E2 potrebbe essere rumore.
+# I checkpoint finiscono in cartelle separate per seed, vedi paths in config.yaml.
+#
+# Ogni parametro qui sotto deve coincidere con e2-can-confronto.yaml TRANNE il
 # modello. Se ne cambi uno, cambialo in entrambi: e' l'unica cosa che tiene in
 # piedi la validita' del confronto.
 defaults:
   - override /model: dcgan
-  - override /data: wikiart
+  - override /data: artbench
 
-seed: 42
+seed: 1
 
 training:
   epochs: 100
@@ -20,5 +27,5 @@ training:
   lr_discriminator: 2e-4
   beta1: 0.5
   beta2: 0.999
-  checkpoint_every: 5
+  checkpoint_every: 10
   label_smoothing: 0.1

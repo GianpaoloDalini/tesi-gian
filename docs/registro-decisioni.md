@@ -276,6 +276,11 @@ in `docs/meetings/`. Se il relatore la rovescia, ADR-0003 si marca `superato`.
 **Data:** 2026-08-02, riaperta e ridiscussa il 2026-08-03
 **Stato:** attiva **nel criterio**, 🔶 **aperta nella lista esatta degli stili** · **Approfondimento:** [ADR-0004](decisions/0004-dataset.md)
 
+> **Superata il 2026-08-03 da D-014.** WikiArt è stato abbandonato in favore di
+> ArtBench-10. Questa voce resta perché il criterio di selezione degli stili che vi
+> era stato definito è sopravvissuto al cambio di dataset, e perché il confronto fra
+> i due dataset è materiale per il capitolo di metodologia.
+
 **Deciso il 2026-08-03 — il criterio di selezione degli stili.** Gli stili si
 scelgono per **due** requisiti congiunti, non uno solo:
 
@@ -345,6 +350,45 @@ esplorativo è invece perfettamente difendibile.
 
 ---
 
+### D-014 — Dataset: ArtBench-10, sei stili
+**Data:** 2026-08-03 · **Stato:** attiva · **Supera:** D-011 · **Approfondimento:** [ADR-0004](decisions/0004-dataset.md)
+
+**ArtBench-10** ristretto a `ukiyo_e`, `renaissance`, `baroque`, `romanticism`,
+`realism`, `impressionism`. Trentamila immagini di training, cinquemila per stile.
+
+**Alternative scartate:** sottoinsieme di WikiArt (D-011); The Met Open Access e
+Rijksmuseum (licenza limpida ma senza etichette di stile art-storico, quindi la CAN
+non sarebbe addestrabile); Art500k, OmniArt, Painter by Numbers (sbilanciati).
+
+**Motivazione.** ArtBench è **bilanciato per costruzione**, il che elimina il
+problema che con WikiArt si stava cercando di aggirare a mano: lì la classe meno
+popolata avrebbe determinato la dimensione di tutte le altre, portando a circa 4.500
+immagini contro le 30.000 di ora. In più ha annotazioni pulite, formato ImageFolder
+già compatibile col codice esistente, e **benchmark pubblicati sullo stesso
+dataset**: questo permette di confrontare il proprio FID con un valore di
+letteratura invece di riportarlo isolato.
+
+**Perché questi sei.** Il criterio di D-011 sopravvive: pubblico dominio più
+distanza visiva. Dei dieci stili di ArtBench il solo Surrealismo è ancora sotto
+copyright ed è escluso. La sequenza Rinascimento → Barocco → Romanticismo →
+Realismo → Impressionismo è la cronologia canonica della pittura occidentale, con
+l'Ukiyo-e come contrappunto non occidentale — e con il legame storico del
+giapponismo, che lo lega agli impressionisti invece di lasciarlo isolato.
+
+**Limite dichiarato.** Barocco, Romanticismo e Realismo sono tutti pittura a olio
+scura: il discriminatore farà più fatica a separarli. È il costo della coerenza
+cronologica, ed è misurabile — va prodotta la **matrice di confusione della testa di
+stile** e commentata, perché l'entropia della posterior va letta alla luce di quali
+classi vengono effettivamente confuse.
+
+**Conseguenza sul codice.** `data.download` ha ora la selezione **esplicita** degli
+stili (`--stili`): con un dataset bilanciato «prendi i più popolati» non seleziona
+nulla di sensato, sono tutti uguali, e la scelta ricadrebbe sull'ordine alfabetico.
+Il bilanciamento viene inoltre forzato sul minimo effettivo, non sul valore
+richiesto.
+
+---
+
 ### D-013 — Servizio di calcolo: RunPod con RTX 4090
 **Data:** 2026-08-03 · **Stato:** attiva
 
@@ -406,12 +450,16 @@ la cui area include l'informatica etica. L'impianto scelto (D-010) è compatibil
 entrambi gli sbilanciamenti, quindi questa questione non blocca più il lavoro
 sperimentale — ma blocca ancora la stesura del capitolo di discussione.
 
-### Q4 — Dataset 🔶 chiusa nel criterio, aperta nella lista
-**Stato:** criterio deciso il 2026-08-03 → **D-011**, [ADR-0004](decisions/0004-dataset.md) · **Riserva:** V-007
+### Q4 — Dataset ✅ chiusa
+**Stato:** chiusa il 2026-08-03 → **D-014**, [ADR-0004](decisions/0004-dataset.md)
 
-Deciso: WikiArt, pochi stili scelti per distanza visiva **e** appartenenza al
-pubblico dominio. Da decidere: quali cinque (o quattro), sui conteggi reali prodotti
-da `python -m tesi_gan.data.inventory`.
+ArtBench-10, sei stili di pubblico dominio, 30.000 immagini bilanciate. Il criterio
+di selezione (pubblico dominio + distanza visiva) è quello fissato in D-011; il
+dataset no.
+
+Percorso: WikiArt → misurazione dello sbilanciamento → scoperta di ArtBench →
+ArtBench. La strada scartata resta documentata perché il confronto fra i due dataset
+è materiale per il capitolo di metodologia.
 
 Sottoinsieme bilanciato di WikiArt. La verifica della licenza resta da fare **prima**
 del download, ed è bloccante: lo script di preparazione dei dati si rifiuta di girare
@@ -492,22 +540,34 @@ Il tempo effettivo per la parte sperimentale e la stesura è **fino al 21 settem
 cioè circa sette settimane da oggi.
 
 ### V-007 — Termini d'uso del dataset 🟠 in parte chiarita
-**Stato:** parzialmente verificata il 2026-08-03; resta da leggere i ToU della fonte
+**Stato:** ricognizione fatta il 2026-08-03; resta la lettura diretta dei termini
 **Riferimento:** [ADR-0004](decisions/0004-dataset.md)
 
-**Novità del 2026-08-03.** La situazione è migliore di come era stata registrata.
-Il dataset non ha licenza «ignota»: il README del WikiArt refined di ArtGAN
-([cs-chan/ArtGAN](https://github.com/cs-chan/ArtGAN/blob/master/WikiArt%20Dataset/README.md))
-dichiara testualmente *«The WikiArt dataset can be used only for non-commercial
-research purpose»*, e rimanda ai termini di WikiArt.org. Una tesi magistrale è
-ricerca non commerciale, quindi rientra nella condizione dichiarata.
+**Ricognizione del 2026-08-03.** Tre fonti autorevoli danno tre qualificazioni
+giuridiche diverse a materiale in larga parte sovrapposto:
 
-Su Hugging Face lo stesso materiale è invece etichettato `license: unknown` con la
-nota *«Data files © Original Authors»*: le due fonti dicono cose diverse sullo
-stesso dataset, ed è di per sé un'osservazione da riportare in tesi.
+| Fonte | Dichiarazione |
+|---|---|
+| **ArtBench-10** (dataset scelto) | «Fair Use license» |
+| WikiArt refined ([cs-chan/ArtGAN](https://github.com/cs-chan/ArtGAN/blob/master/WikiArt%20Dataset/README.md)) | «can be used only for non-commercial research purpose» + ToU di WikiArt.org |
+| [`huggan/wikiart`](https://huggingface.co/datasets/huggan/wikiart) | `license: unknown`, «Data files © Original Authors» |
 
-**Resta da fare:** leggere i termini d'uso di WikiArt.org e verificare che l'uso
-previsto vi rientri. Questa verifica la fa Gian, non l'assistente.
+**Il punto da capire su ArtBench:** *fair use* è un'eccezione del diritto d'autore
+statunitense valutata caso per caso, **non un permesso concesso da un titolare**.
+Gli autori stanno affermando una posizione giuridica, non trasmettendo una licenza.
+Non è un difetto da nascondere: è l'esempio migliore che la tesi possa avere per
+mostrare su che fondamenta poggia la ricerca in creatività computazionale.
+
+**L'osservazione strutturale**, da riportare in tesi: i dataset con licenza limpida
+(Met, Rijksmuseum, CC0) non hanno etichette di stile art-storico; quelli con le
+etichette non hanno licenza limpida. Non è una coincidenza.
+
+**Mitigazione già applicata:** i sei stili scelti in D-014 sono tutti di pubblico
+dominio, il che riduce molto l'esposizione a prescindere da come si qualifichi la
+licenza del dataset.
+
+**Resta da fare:** leggere i termini alla fonte e verificare che l'uso previsto vi
+rientri. Questa verifica la fa Gian, non l'assistente.
 
 Due elementi giuridici da approfondire, **non sono consulenza legale** e vanno
 verificati con una fonte competente:
@@ -630,5 +690,5 @@ discussione dei limiti.
 | Data | Attività | Esito |
 |---|---|---|
 | 2026-07-31 | Intervista iniziale; analisi del template `phd-thesis-tex`; impostazione del monorepo | D-001…D-009 decise; Q1…Q8 aperte; infrastruttura verificata |
-| 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato, dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-011 chiusa nel criterio; D-013 RunPod; V-007 chiarita; modulo di inventario del dataset |
+| 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato; ricognizione dei dataset artistici; dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-013 RunPod; D-014 ArtBench-10 supera D-011; Q2, Q4, Q7 chiuse; V-007 documentata; pipeline adattata |
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |

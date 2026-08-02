@@ -49,11 +49,18 @@ def prepare(
     per_style: int,
     seed: int,
     min_per_style: int,
+    stili: list[str] | None = None,
 ) -> dict:
     """Costruisce il sottoinsieme bilanciato a partire dai dati grezzi.
 
-    Sceglie i `num_styles` stili piu' popolati, ne campiona `per_style` immagini
-    ciascuno e li copia in `processed/<stile>/`.
+    Due modalita' di selezione degli stili:
+
+    - **esplicita** (`stili=[...]`): prende esattamente quelli indicati. E' la
+      modalita' corretta con ArtBench (ADR-0004), che e' gia' bilanciato: chiedere
+      "i piu' popolati" non avrebbe senso, sono tutti uguali, e la scelta ricadrebbe
+      sull'ordine alfabetico invece che su un criterio dichiarato.
+    - **per numerosita'** (`num_styles=N`): prende gli N piu' popolati. Serviva per
+      WikiArt, che ha una coda lunga.
 
     **Il bilanciamento non e' cosmetico.** Con classi sbilanciate la testa di stile
     del discriminatore impara la distribuzione a priori invece dello stile, e
@@ -71,15 +78,42 @@ def prepare(
             f"stile: {raw}/<stile>/<immagine>.jpg"
         )
 
-    eligible = [(s, n) for s, n in counts.most_common() if n >= min_per_style]
-    if len(eligible) < num_styles:
-        raise RuntimeError(
-            f"Richiesti {num_styles} stili con almeno {min_per_style} immagini, "
-            f"ma solo {len(eligible)} li raggiungono. Stili disponibili: "
-            f"{dict(counts.most_common())}"
-        )
+    if stili:
+        mancanti = [s for s in stili if s not in counts]
+        if mancanti:
+            raise RuntimeError(
+                f"Stili richiesti ma non presenti in {raw}: {mancanti}. "
+                f"Disponibili: {sorted(counts)}"
+            )
+        sotto_soglia = [s for s in stili if counts[s] < min_per_style]
+        if sotto_soglia:
+            raise RuntimeError(
+                f"Stili sotto la soglia di {min_per_style} immagini: "
+                f"{ {s: counts[s] for s in sotto_soglia} }. In un sottoinsieme "
+                f"bilanciato la classe piu' piccola determina la dimensione di "
+                f"tutte le altre: abbassa --min-per-style solo se sai cosa comporta."
+            )
+        selected = [(s, counts[s]) for s in stili]
+        tetto = min(counts[s] for s in stili)
+        if per_style > tetto:
+            log.warning(
+                "--per-style vale %d ma lo stile meno popolato ne ha %d: il "
+                "sottoinsieme sara' bilanciato a %d per classe.",
+                per_style, tetto, tetto,
+            )
+    else:
+        eligible = [(s, n) for s, n in counts.most_common() if n >= min_per_style]
+        if len(eligible) < num_styles:
+            raise RuntimeError(
+                f"Richiesti {num_styles} stili con almeno {min_per_style} immagini, "
+                f"ma solo {len(eligible)} li raggiungono. Stili disponibili: "
+                f"{dict(counts.most_common())}"
+            )
+        selected = eligible[:num_styles]
 
-    selected = eligible[:num_styles]
+    # Il bilanciamento e' sul minimo effettivo, non sul valore richiesto: copiare
+    # 5000 immagini da una classe e 900 da un'altra non e' un dataset bilanciato.
+    per_style = min(per_style, min(n for _, n in selected))
     rng = random.Random(seed)
     processed.mkdir(parents=True, exist_ok=True)
     manifest_styles = {}
@@ -104,7 +138,8 @@ def prepare(
         "destinazione": str(processed.resolve()),
         "seed": seed,
         "num_styles": len(selected),
-        "per_style_richieste": per_style,
+        "per_style_effettive": per_style,
+        "selezione": "esplicita" if stili else "per numerosita'",
         "stili": manifest_styles,
         "totale_immagini": sum(v["copiate"] for v in manifest_styles.values()),
         "nota": (
@@ -129,10 +164,15 @@ def main(argv: list[str] | None = None) -> int:
                         help="Cartella dei dati grezzi, una sottocartella per stile")
     parser.add_argument("--processed", type=Path, default=Path("data/processed"),
                         help="Cartella di destinazione del sottoinsieme")
-    parser.add_argument("--num-styles", type=int, default=8,
-                        help="Numero di stili da tenere, i piu' popolati")
-    parser.add_argument("--per-style", type=int, default=2000,
-                        help="Immagini per stile nel sottoinsieme bilanciato")
+    parser.add_argument("--stili", nargs="+", default=None,
+                        help="Selezione ESPLICITA degli stili, es. --stili ukiyo_e "
+                             "renaissance baroque romanticism realism impressionism. "
+                             "E' la modalita' corretta con ArtBench (ADR-0004).")
+    parser.add_argument("--num-styles", type=int, default=6,
+                        help="Usato solo senza --stili: tiene gli N piu' popolati")
+    parser.add_argument("--per-style", type=int, default=5000,
+                        help="Immagini per stile; ridotto automaticamente al minimo "
+                             "disponibile per non rompere il bilanciamento")
     parser.add_argument("--min-per-style", type=int, default=500,
                         help="Soglia minima perche' uno stile sia ammissibile")
     parser.add_argument("--seed", type=int, default=42)
@@ -174,6 +214,7 @@ def main(argv: list[str] | None = None) -> int:
         per_style=args.per_style,
         seed=args.seed,
         min_per_style=args.min_per_style,
+        stili=args.stili,
     )
     return 0
 
