@@ -494,6 +494,61 @@ errore già corretto sui percorsi dei checkpoint, ricomparso altrove.
 
 ---
 
+### D-017 — Selezione degli stili rivista sulla base della matrice di confusione
+**Data:** 2026-08-03 · **Stato:** attiva · **Modifica:** D-014
+
+Fuori `romanticism` e `realism`, dentro `art_nouveau` ed `expressionism`.
+Insieme finale: **ukiyo_e, renaissance, baroque, art_nouveau, expressionism,
+impressionism**.
+
+**Perché.** Il giudice di stile (D-015), addestrato sui sei stili originali e
+validato sullo split `test` ufficiale, si è fermato al **52,7%** di accuratezza. La
+matrice di confusione ha mostrato che il problema non era distribuito:
+
+| Stile | Corrette | Caso puro = 16,7% |
+|---|---|---|
+| `ukiyo_e` | 91% | separabile nettamente |
+| `baroque` | 65% | accettabile |
+| `impressionism` | 59% | accettabile |
+| `renaissance` | 45% | confuso col Barocco (33%) |
+| `realism` | 30% | disperso |
+| `romanticism` | **26%** | 1,6× il caso: praticamente non riconosciuto |
+
+Il Romanticismo non sbagliava verso un vicino ma si spargeva su quattro classi
+(23% Barocco, 20% Impressionismo, 18% Realismo). Non è confusione fra stili
+adiacenti: **a 64×64 non ha un'identità visiva propria**, essendo definito più da
+soggetto e atmosfera che da una tecnica riconoscibile. Il Realismo veniva scambiato
+per Impressionismo nel 28% dei casi, confusione che non era stata prevista.
+
+**Perché contava e non era solo estetica.** L'entropia sui reali si assestava a
+0,811 nats, cioè **0,45 normalizzata su un massimo di 1**. Quel pavimento alto
+derivava in buona parte dalle tre classi opache: il giudice era incerto già
+sull'arte vera. Poiché l'effetto della CAN si misura come innalzamento
+dell'entropia, un pavimento a 0,45 comprime lo spazio in cui l'effetto può
+manifestarsi. Rimuovere le classi opache non è un ritocco cosmetico: **allarga la
+dinamica della metrica su cui si regge l'intero confronto**.
+
+**Costo accettato:** si perde l'arco cronologico Rinascimento → Barocco →
+Romanticismo → Realismo → Impressionismo che aveva motivato la selezione originale,
+con l'Ukiyo-e come contrappunto e il legame storico del giapponismo. Era una
+narrazione elegante; è stata scambiata con la misurabilità.
+
+**Alternative scartate:** tenere i sei originali dichiarando il limite (metrica
+debole); ridurre a quattro stili (confronto meno ricco, e `renaissance` resta
+impigliato col `baroque`); migliorare il giudice prima di toccare gli stili
+(l'ipotesi era che il 52,7% fosse debolezza del classificatore, ma la dispersione
+degli errori del Romanticismo indica sovrapposizione reale, non incapacità).
+
+**La matrice di confusione resta un risultato da riportare in tesi**, non solo un
+passaggio diagnostico: che il Romanticismo non sia una categoria visivamente
+coerente a bassa risoluzione è un'osservazione difendibile e non banale.
+
+**Conseguenza operativa:** vanno rifatte la preparazione dei dati (train e
+riferimento) e l'addestramento del giudice. I run precedenti al 2026-08-03 non sono
+confrontabili con quelli successivi.
+
+---
+
 ## 3. Questioni aperte
 
 Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla
@@ -756,6 +811,30 @@ Met Open Access con etichette derivate da *culture* o *period*.
 
 Questa verifica non la può fare un assistente: richiede di leggere i termini alla
 fonte e di assumersene la responsabilità.
+
+### V-008 — L'espressionismo non è integralmente in pubblico dominio 🟠
+**Stato:** aperta, aperta consapevolmente il 2026-08-03 · **Origine:** D-017
+
+D-014 aveva selezionato gli stili anche in base al criterio che fossero **tutti di
+pubblico dominio**, e quella è oggi la mitigazione principale rispetto a V-007.
+D-017 introduce `expressionism`, che nell'analisi dei dieci stili di ArtBench era
+classificato «in gran parte sì», **non** «sì».
+
+È primo Novecento: Munch (†1944) e Kandinsky (†1944) sono liberi, ma Nolde (†1956)
+e altri espressionisti ricadono ancora nei settant'anni di protezione. Il dataset li
+include sulla base della stessa posizione di *fair use* dichiarata dalla fonte.
+
+**Scelta consapevole**, non svista: la distanza visiva dell'espressionismo è ciò che
+serve alla metrica, e l'alternativa pienamente in pubblico dominio
+(`post_impressionism`) avrebbe ricreato il problema di sovrapposizione che D-017
+esiste per risolvere.
+
+**Da fare:** dichiararlo esplicitamente in tesi, dove si descrive il dataset e dove
+si discutono le implicazioni etiche. Scrivere «tutti gli stili sono di pubblico
+dominio» sarebbe ora **falso**, e la formula va corretta ovunque compaia. Cinque
+stili su sei lo sono; il sesto è incluso con la stessa qualificazione giuridica che
+la tesi analizza criticamente — il che, dichiarato, è materiale di merito più che un
+difetto.
 
 ### V-001 — Frontespizio ufficiale per la laurea magistrale 🔴
 Il frontespizio attuale è un adattamento di quello di una tesi di **dottorato**.

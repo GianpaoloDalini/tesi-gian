@@ -23,9 +23,18 @@ sulla riproducibilita' della tesi le richiede.
 | **ArtBench-10**, sei stili | [artbench.eecs.berkeley.edu](https://artbench.eecs.berkeley.edu/files/artbench-10-imagefolder-split.tar) — data di download `DA COMPILARE` | «Fair Use» (autodichiarazione, vedi V-007) | 5.000 immagini per stile, 64×64, vedi [ADR-0004](../docs/decisions/0004-dataset.md) |
 | WikiArt | *alternativa scartata* | «non-commercial research» | tenuta come confronto metodologico |
 
-Stili selezionati: `ukiyo_e`, `renaissance`, `baroque`, `romanticism`, `realism`,
-`impressionism`. Tutti di pubblico dominio; escluso il Surrealismo, l'unico dei
-dieci ancora sotto copyright.
+Stili selezionati (rivisti il 2026-08-03, vedi D-017): `ukiyo_e`, `renaissance`,
+`baroque`, `art_nouveau`, `expressionism`, `impressionism`.
+
+`romanticism` e `realism` sono stati rimossi perché il classificatore di stile li
+riconosceva al 26% e al 30% contro un caso puro del 16,7%: a 64×64 non hanno
+un'identità visiva propria, e la loro opacità comprimeva la metrica di ambiguità.
+
+**Cinque stili su sei sono di pubblico dominio.** L'espressionismo **non** lo è
+integralmente (V-008): comprende autori morti dopo il 1955 le cui opere restano
+protette, ed è incluso sulla base della stessa posizione di *fair use* dichiarata
+dalla fonte. Va dichiarato in tesi: la formula «tutti gli stili sono di pubblico
+dominio» non è più corretta.
 
 ### Dove si scarica
 
@@ -52,7 +61,7 @@ python -m tesi_gan.data.download --ispeziona --raw data/raw
 
 # 3. costruisci il sottoinsieme (solo dopo aver chiuso V-007)
 python -m tesi_gan.data.download \
-    --stili ukiyo_e renaissance baroque romanticism realism impressionism \
+    --stili ukiyo_e renaissance baroque art_nouveau expressionism impressionism \
     --per-style 5000 --resize 64 --seed 42 --licenza-verificata
 ```
 

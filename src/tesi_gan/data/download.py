@@ -245,7 +245,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="Cartella di destinazione del sottoinsieme")
     parser.add_argument("--stili", nargs="+", default=None,
                         help="Selezione ESPLICITA degli stili, es. --stili ukiyo_e "
-                             "renaissance baroque romanticism realism impressionism. "
+                             "renaissance baroque art_nouveau expressionism impressionism. "
                              "E' la modalita' corretta con ArtBench (ADR-0004).")
     parser.add_argument("--num-styles", type=int, default=6,
                         help="Usato solo senza --stili: tiene gli N piu' popolati")

@@ -9,7 +9,7 @@
 #      https://artbench.eecs.berkeley.edu/files/artbench-10-imagefolder-split.tar
 #   2. scompattala in data/raw/
 #   3. python -m tesi_gan.data.download --stili ukiyo_e renaissance baroque \
-#          romanticism realism impressionism --per-style 5000 --resize 64 \
+#          art_nouveau expressionism impressionism --per-style 5000 --resize 64 \
 #          --licenza-verificata
 #
 # --resize 64 scrive le immagini gia' alla risoluzione di addestramento: ArtBench e'
@@ -33,13 +33,27 @@ augment: true          # solo flip orizzontale: vedi la nota in data/dataset.py
 # piu' la distribuzione dei dati reali.
 reference_root: data/processed_test
 
-# I sei stili di ADR-0004. Servono a `data.download` per selezionarli
+# I sei stili di ADR-0004, rivisti il 2026-08-03 (D-017) sulla base della matrice
+# di confusione del giudice. Servono a `data.download` per selezionarli
 # esplicitamente: con un dataset bilanciato non ha senso prendere "i piu'
 # popolati", perche' sono tutti uguali.
+#
+# ROMANTICISM e REALISM sono stati rimossi: il giudice li riconosceva al 26% e al
+# 30% contro un caso puro del 16,7%, con errori sparsi su quattro classi. A 64x64
+# non hanno un'identita' visiva propria, e la loro opacita' alzava il pavimento
+# dell'entropia sui reali comprimendo lo spazio in cui misurare l'effetto CAN.
+#
+# ART_NOUVEAU ed EXPRESSIONISM li sostituiscono per distanza visiva: linea
+# decorativa e campiture piatte il primo, colore violento e forme distorte il
+# secondo.
+#
+# ATTENZIONE (V-008): l'espressionismo NON e' integralmente in pubblico dominio.
+# Comprende autori morti dopo il 1955 le cui opere sono ancora protette. E' l'unica
+# eccezione al criterio di D-014 e va dichiarata in tesi, non lasciata implicita.
 stili:
   - ukiyo_e
   - renaissance
   - baroque
-  - romanticism
-  - realism
+  - art_nouveau
+  - expressionism
   - impressionism
