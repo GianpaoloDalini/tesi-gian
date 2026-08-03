@@ -30,36 +30,82 @@ REF_DIR="$FAST_DIR/$(basename "$REF_SRC")"
 echo "==> Repository: $REPO_ROOT"
 echo "==> Commit:     $(git rev-parse --short HEAD)"
 
-# Un working tree sporco fa fallire il primo `train` per via di
-# assert_clean_tree. Meglio accorgersene subito che dopo mezz'ora di attesa.
+# --- Controlli preliminari --------------------------------------------------
+# TUTTI i controlli stanno prima della copia dei dati, che dura minuti. Un
+# controllo che costa un millisecondo non deve mai stare dopo un'operazione che
+# costa minuti: la prima versione di questo script verificava la chiave W&B dopo
+# la copia, e falliva quando l'attesa era gia' stata pagata.
+
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
   echo "!!! Working tree sporco: committa prima di lanciare l'impianto."
   echo "!!! Un run non riconducibile a un commit non e' citabile in tesi."
   exit 1
 fi
 
-# --- Dati sul disco veloce --------------------------------------------------
-# `/dev/shm` e' un disco in RAM: si svuota allo spegnimento del pod, quindi la
-# copia va rifatta a ogni sessione. E' una copia, non uno spostamento.
-for pair in "$TRAIN_SRC:$TRAIN_DIR" "$REF_SRC:$REF_DIR"; do
-  src="${pair%%:*}"
-  dst="${pair##*:}"
-  if [[ -d "$dst" ]]; then
-    echo "==> Gia' presente: $dst"
-  else
-    echo "==> Copia $src -> $dst (qualche minuto: sono decine di migliaia di file)"
-    cp -r "$src" "$dst"
+if [[ -z "${WANDB_API_KEY:-}" ]]; then
+  echo "!!! WANDB_API_KEY non impostata: i run NON sarebbero tracciati e i loro"
+  echo "!!! numeri non sono citabili in tesi (CLAUDE.md §6)."
+  echo "!!!"
+  echo "!!!   export WANDB_API_KEY=<chiave da wandb.ai/authorize>"
+  echo "!!!"
+  echo "!!! Per non ripeterlo a ogni sessione, aggiungila alle variabili"
+  echo "!!! d'ambiente del pod nella configurazione RunPod."
+  exit 1
+fi
+
+for sorgente in "$TRAIN_SRC" "$REF_SRC"; do
+  if [[ ! -d "$sorgente" ]]; then
+    echo "!!! Dati assenti: $sorgente"
+    echo "!!! Preparali con python -m tesi_gan.data.download (vedi data/README.md)."
+    exit 1
   fi
 done
 
-echo "==> Immagini di addestramento: $(find "$TRAIN_DIR" -name '*.jpg' | wc -l)"
-echo "==> Immagini di riferimento:   $(find "$REF_DIR" -name '*.jpg' | wc -l)"
-
-if [[ -z "${WANDB_API_KEY:-}" ]]; then
-  echo "!!! WANDB_API_KEY non impostata: i run NON saranno tracciati e i loro"
-  echo "!!! numeri non sono citabili in tesi (CLAUDE.md §6). Interrompo."
+if [[ ! -f experiments/style_judge/style_classifier.pt ]]; then
+  echo "!!! Giudice di stile assente: senza, l'ambiguita' non e' confrontabile"
+  echo "!!! fra DCGAN e CAN (ADR-0005). Addestralo con:"
+  echo "!!!   python -m tesi_gan.cli train-style-classifier data=artbench"
   exit 1
 fi
+
+# --- Dati sul disco veloce --------------------------------------------------
+# `/dev/shm` e' un disco in RAM: si svuota allo spegnimento del pod, quindi la
+# copia va rifatta a ogni sessione. E' una copia, non uno spostamento.
+#
+# **La copia viene verificata, non data per fatta.** Interrompere un `cp -r` a
+# meta' lascia una cartella che *esiste* ma e' incompleta: uno script che si
+# limitasse a controllarne la presenza addestrerebbe su un dataset parziale
+# senza alcun errore visibile, e i risultati sarebbero sbagliati in un modo
+# impossibile da notare a posteriori. Si contano i file e si confrontano con
+# l'originale.
+copia_verificata() {
+  local src="$1" dst="$2" attese effettive
+
+  attese=$(find "$src" -name '*.jpg' | wc -l)
+
+  if [[ -d "$dst" ]]; then
+    effettive=$(find "$dst" -name '*.jpg' | wc -l)
+    if [[ "$effettive" -eq "$attese" ]]; then
+      echo "==> $dst gia' completo ($effettive immagini)"
+      return 0
+    fi
+    echo "==> $dst incompleto ($effettive su $attese): lo rifaccio da capo"
+    rm -rf "$dst"
+  fi
+
+  echo "==> Copia $src -> $dst ($attese file, qualche minuto)"
+  cp -r "$src" "$dst"
+
+  effettive=$(find "$dst" -name '*.jpg' | wc -l)
+  if [[ "$effettive" -ne "$attese" ]]; then
+    echo "!!! Copia incompleta: $effettive su $attese. Interrompo."
+    exit 1
+  fi
+  echo "==> Copiate $effettive immagini"
+}
+
+copia_verificata "$TRAIN_SRC" "$TRAIN_DIR"
+copia_verificata "$REF_SRC" "$REF_DIR"
 
 OVERRIDES=(
   "data.root=$TRAIN_DIR"
