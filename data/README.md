@@ -78,25 +78,31 @@ dichiarata.
 **La risoluzione finisce nel manifest.** Un `data/processed` a 64px e uno a 256px sono
 indistinguibili a occhio ma producono run non confrontabili.
 
-### Prestazioni: copiare i dati sul disco locale
+### Prestazioni: leggere i dati dal disco locale, non dal volume di rete
 
-Misurato il 2026-08-03: leggendo `data/processed` dal Network Volume, un'epoca su
-30.000 immagini richiede **44 secondi**, quindi 100 epoche fanno 73 minuti e i sei
-run dell'impianto circa 7 ore.
+Misurato il 2026-08-03 su RTX 4090, 30.000 immagini a 64×64, batch 128:
 
-Il collo di bottiglia non è la GPU ma il filesystem di rete, che deve servire 30.000
-file piccoli a ogni epoca. Il sottoinsieme preparato pesa meno di 200 MB e sta
-comodamente sul disco locale del container:
+| Sorgente dei dati | Secondi per epoca | Sei run da 100 epoche |
+|---|---|---|
+| Network Volume (`data/processed`) | **44** | ~7 ore |
+| Disco in RAM (`/dev/shm/processed`) | **3,6** | **~40 minuti** |
+
+**Dodici volte più veloce.** Il collo di bottiglia non era la GPU ma il filesystem di
+rete, che deve servire 30.000 file piccoli a ogni epoca: la scheda restava ferma ad
+aspettare. È il genere di dettaglio che decide se la parte sperimentale costa una
+giornata o mezz'ora.
+
+Lo fa già `scripts/run_impianto.sh`; a mano:
 
 ```bash
-cp -r data/processed data/processed_test /dev/shm/     # oppure /root/
+cp -r data/processed data/processed_test /dev/shm/
 python -m tesi_gan.cli train experiment=e1-dcgan-baseline \
     data.root=/dev/shm/processed data.reference_root=/dev/shm/processed_test
 ```
 
-Il disco del container è **effimero**: si svuota quando il pod viene fermato, e i dati
-vanno ricopiati a ogni sessione. È una copia, non uno spostamento: l'originale resta
-sul volume persistente.
+`/dev/shm` è un disco in RAM: **si svuota allo spegnimento del pod** e i dati vanno
+ricopiati a ogni sessione. È una copia, non uno spostamento — l'originale resta sul
+volume persistente. I 200 MB sono sottratti alla RAM disponibile, su 60 GB.
 
 La struttura attesa in `data/raw/` è una sottocartella per stile:
 
