@@ -8,6 +8,22 @@ import tesi_gan
 from tesi_gan.utils import provenance, seed
 
 
+def test_progress_disattivata_restituisce_iterabile_intatto():
+    """Una barra mancante o disattivata non deve alterare i dati che avvolge."""
+    from tesi_gan.utils.progress import progress
+
+    assert list(progress(range(5), "x", enabled=False)) == [0, 1, 2, 3, 4]
+    assert sum(progress(range(100), "x", enabled=False)) == 4950
+
+
+def test_progress_non_consuma_l_iterabile_due_volte():
+    """Con la barra attiva l'iterazione deve restare completa: una barra che
+    consumasse elementi farebbe saltare batch di training senza errori visibili."""
+    from tesi_gan.utils.progress import progress
+
+    assert list(progress(range(7), "x", enabled=True)) == list(range(7))
+
+
 def test_versione_dichiarata():
     assert tesi_gan.__version__
 

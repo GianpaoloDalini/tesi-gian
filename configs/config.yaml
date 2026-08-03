@@ -16,6 +16,12 @@ defaults:
 seed: 42
 strict_determinism: false
 
+# Barre di avanzamento. `null` = automatico: attive su terminale interattivo,
+# disattivate quando l'output finisce in un file (es. `nohup ... > log.txt`),
+# dove tqdm produrrebbe migliaia di righe illeggibili.
+# Forzabile con `progress=true` o `progress=false` da riga di comando.
+progress: null
+
 training:
   epochs: 50
   batch_size: 64

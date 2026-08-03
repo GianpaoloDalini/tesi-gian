@@ -171,7 +171,9 @@ def prepare(
         copiate = 0
         scartate = 0
 
-        for f in ordine:
+        from tesi_gan.utils.progress import progress
+
+        for f in progress(ordine, description=f"{style:<20}", total=take):
             if copiate >= take:
                 break
             destinazione = dst_dir / f.name

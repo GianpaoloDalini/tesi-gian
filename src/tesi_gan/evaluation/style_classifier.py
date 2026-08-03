@@ -57,6 +57,8 @@ import torch.nn.functional as F
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, Subset
 
+from tesi_gan.utils.progress import progress
+
 log = logging.getLogger(__name__)
 
 _WEIGHTS = "style_classifier.pt"
@@ -254,7 +256,8 @@ def entropy_on_loader(
     correct = seen = 0
     entropy_sum = 0.0
 
-    for i, (images, labels) in enumerate(loader):
+    barra = progress(loader, description="Validazione", total=len(loader))
+    for i, (images, labels) in enumerate(barra):
         if max_batches is not None and i >= max_batches:
             break
         images = images.to(device, non_blocking=True)
@@ -366,7 +369,13 @@ def train_style_classifier(
         classifier.train()
         running = 0.0
         batches = 0
-        for images, labels in train_loader:
+
+        barra = progress(
+            train_loader,
+            description=f"Giudice — epoca {epoch}/{epochs}",
+            total=len(train_loader),
+        )
+        for images, labels in barra:
             images = images.to(device, non_blocking=True)
             labels = labels.to(device, non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
@@ -375,6 +384,8 @@ def train_style_classifier(
             optimizer.step()
             running += float(loss.detach())
             batches += 1
+            if batches % 10 == 0 and hasattr(barra, "set_postfix"):
+                barra.set_postfix(loss=f"{running / batches:.4f}")
 
         accuracy, entropy = entropy_on_loader(classifier, val_loader, device)
         log.info(

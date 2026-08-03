@@ -25,6 +25,7 @@ from torch.utils.data import DataLoader
 
 from tesi_gan.models import Discriminator, Generator
 from tesi_gan.training.losses import discriminator_loss, generator_loss
+from tesi_gan.utils.progress import progress
 
 log = logging.getLogger(__name__)
 
@@ -158,7 +159,13 @@ class Trainer:
             running: dict[str, float] = {}
             batches = 0
 
-            for real, styles in self.dataloader:
+            barra = progress(
+                self.dataloader,
+                description=f"Epoca {epoch + 1}/{epochs}",
+                total=len(self.dataloader),
+                enabled=self.cfg.get("progress"),
+            )
+            for real, styles in barra:
                 metrics = self._step(real, styles)
                 self.state.global_step += 1
                 batches += 1
@@ -166,6 +173,19 @@ class Trainer:
                     running[k] = running.get(k, 0.0) + v
                 if self.tracker is not None:
                     self.tracker.log(metrics, step=self.state.global_step)
+
+                # Loss e probabilita' del discriminatore in tempo reale: se
+                # prob_real -> 1 e prob_fake -> 0 il discriminatore ha vinto e il
+                # generatore non riceve piu' gradiente utile. Vederlo dopo dieci
+                # minuti invece che a fine run e' la differenza fra interrompere e
+                # sprecare un'ora di GPU.
+                if batches % 10 == 0 and hasattr(barra, "set_postfix"):
+                    barra.set_postfix(
+                        G=f"{metrics['G/loss']:.3f}",
+                        D=f"{metrics['D/loss']:.3f}",
+                        Dreal=f"{metrics['D/prob_real']:.2f}",
+                        Dfake=f"{metrics['D/prob_fake']:.2f}",
+                    )
 
             self.state.epoch = epoch + 1
             averaged = {f"epoch/{k}": v / max(batches, 1) for k, v in running.items()}
