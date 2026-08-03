@@ -1,5 +1,6 @@
 """Punto di ingresso unico degli esperimenti.
 
+    python -m tesi_gan.cli train-style-classifier          # una volta sola, prima di tutto
     python -m tesi_gan.cli train model=dcgan
     python -m tesi_gan.cli train model=can
     python -m tesi_gan.cli evaluate --checkpoint experiments/checkpoints/latest.pt
@@ -126,15 +127,89 @@ def cmd_train(cfg, allow_dirty: bool, resume: bool) -> int:
 
 
 # --------------------------------------------------------------------------- #
+#  train-style-classifier
+# --------------------------------------------------------------------------- #
+
+def cmd_train_style_classifier(cfg, force: bool) -> int:
+    """Addestra il giudice terzo dell'ambiguita' stilistica (ADR-0005).
+
+    Va eseguito **una volta sola**, prima dei run dell'impianto. Riaddestrarlo fra
+    un run e l'altro renderebbe le entropie non confrontabili.
+    """
+    from tesi_gan.data import build_dataset, num_styles_of
+    from tesi_gan.evaluation.style_classifier import (
+        save_style_classifier,
+        train_style_classifier,
+    )
+    from tesi_gan.utils import provenance
+    from tesi_gan.utils.seed import set_seed
+
+    directory = Path(cfg.paths.style_judge)
+    if (directory / "style_classifier.pt").exists() and not force:
+        log.error(
+            "Esiste gia' un classificatore in %s.\n"
+            "Riaddestrarlo invaliderebbe il confronto con i run gia' valutati, che "
+            "sono stati misurati da un giudice diverso.\n"
+            "Se e' davvero cio' che vuoi, usa --force e rivaluta TUTTI i checkpoint.",
+            directory,
+        )
+        return 1
+
+    judge_cfg = cfg.style_judge
+    set_seed(int(judge_cfg.seed))
+    device = _device()
+
+    dataset = build_dataset(cfg)
+    num_styles = num_styles_of(dataset)
+    classes = list(getattr(dataset, "classes", []))
+
+    log.info(
+        "Addestramento del giudice — %d immagini, %d stili: %s",
+        len(dataset), num_styles, ", ".join(classes),
+    )
+
+    try:
+        commit = provenance.collect().commit
+    except Exception:  # fuori da git il giudice si addestra comunque
+        commit = None
+
+    classifier, info = train_style_classifier(
+        dataset=dataset,
+        num_styles=num_styles,
+        classes=classes,
+        device=device,
+        epochs=int(judge_cfg.epochs),
+        batch_size=int(judge_cfg.batch_size),
+        lr=float(judge_cfg.lr),
+        val_fraction=float(judge_cfg.val_fraction),
+        seed=int(judge_cfg.seed),
+        num_workers=int(cfg.data.get("num_workers", 4)),
+        commit=commit,
+    )
+    save_style_classifier(classifier, info, directory)
+
+    print(json.dumps(info.as_dict(), indent=2, ensure_ascii=False))
+    log.info(
+        "Riporta accuratezza (%.3f) ed entropia sui reali (%.3f nats) in appendice: "
+        "senza, le entropie sui generati non sono interpretabili.",
+        info.val_accuracy, info.entropy_real,
+    )
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 #  evaluate
 # --------------------------------------------------------------------------- #
 
-def cmd_evaluate(cfg, checkpoint: Path, n_samples: int, output: Path | None) -> int:
+def cmd_evaluate(
+    cfg, checkpoint: Path, n_samples: int, output: Path | None, allow_no_judge: bool = False
+) -> int:
     import torch
     from omegaconf import OmegaConf
 
     from tesi_gan.data import build_dataloader, build_dataset, num_styles_of
     from tesi_gan.evaluation import evaluate
+    from tesi_gan.evaluation.style_classifier import load_style_classifier
     from tesi_gan.models import build_models
     from tesi_gan.utils.seed import set_seed
 
@@ -148,6 +223,27 @@ def cmd_evaluate(cfg, checkpoint: Path, n_samples: int, output: Path | None) -> 
     dataset = build_dataset(cfg)
     if str(cfg.model.name).lower() == "can" and cfg.model.get("num_styles") is None:
         OmegaConf.update(cfg, "model.num_styles", num_styles_of(dataset), force_add=True)
+
+    # Il giudice terzo va caricato prima di valutare: senza, l'ambiguita' non e'
+    # confrontabile fra DCGAN e CAN e la valutazione non risponde alla domanda
+    # dell'impianto (ADR-0005).
+    style_judge = judge_info = None
+    try:
+        style_judge, judge_info = load_style_classifier(
+            Path(cfg.paths.style_judge),
+            device,
+            expected_classes=list(getattr(dataset, "classes", [])) or None,
+        )
+    except FileNotFoundError as err:
+        if not allow_no_judge:
+            log.error("%s", err)
+            log.error(
+                "Valutare senza giudice produce solo FID e IS, due metriche che per "
+                "costruzione penalizzano la CAN. Usa --allow-no-judge solo per "
+                "controlli rapidi, mai per i numeri che finiscono in tesi."
+            )
+            return 1
+        log.warning("Valutazione senza giudice terzo: risultati non confrontabili.")
 
     generator, discriminator = build_models(cfg)
     ckpt = torch.load(checkpoint, map_location=device)
@@ -163,11 +259,14 @@ def cmd_evaluate(cfg, checkpoint: Path, n_samples: int, output: Path | None) -> 
         device=device,
         n_samples=n_samples,
         batch_size=int(cfg.training.batch_size),
+        style_judge=style_judge,
+        judge_info=judge_info,
     )
 
     payload = {
         "checkpoint": str(checkpoint),
         "condizione": str(cfg.model.name),
+        "seed": int(cfg.seed),
         "epoca": int(ckpt.get("epoch", -1)),
         **result.as_dict(),
     }
@@ -214,12 +313,24 @@ def main(argv: list[str] | None = None) -> int:
     p_train.add_argument("--resume", action="store_true",
                          help="Riprende da experiments/checkpoints/latest.pt se esiste")
 
+    p_judge = sub.add_parser(
+        "train-style-classifier",
+        help="Addestra il giudice terzo dell'ambiguita' stilistica (una volta sola)",
+    )
+    p_judge.add_argument(
+        "--force", action="store_true",
+        help="Sovrascrive un giudice esistente. Obbliga a rivalutare TUTTI i checkpoint.",
+    )
+
     p_eval = sub.add_parser("evaluate", help="Calcola le metriche su un checkpoint")
     p_eval.add_argument("--checkpoint", type=Path, required=True)
     p_eval.add_argument("--n-samples", type=int, default=2048,
                         help="Deve restare identico fra le due condizioni")
     p_eval.add_argument("--output", type=Path, default=None,
                         help="File JSON in cui salvare i risultati")
+    p_eval.add_argument("--allow-no-judge", action="store_true",
+                        help="Valuta senza giudice terzo: solo per controlli rapidi, "
+                             "i risultati non sono confrontabili fra condizioni")
 
     p_fig = sub.add_parser("export-figures", help="Rigenera le figure della tesi")
     p_fig.add_argument("--results-dir", type=Path, default=Path("experiments/results"))
@@ -229,8 +340,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "train":
         return cmd_train(cfg, allow_dirty=args.allow_dirty, resume=args.resume)
+    if args.command == "train-style-classifier":
+        return cmd_train_style_classifier(cfg, force=args.force)
     if args.command == "evaluate":
-        return cmd_evaluate(cfg, args.checkpoint, args.n_samples, args.output)
+        return cmd_evaluate(
+            cfg, args.checkpoint, args.n_samples, args.output,
+            allow_no_judge=args.allow_no_judge,
+        )
     if args.command == "export-figures":
         return cmd_export_figures(cfg, args.results_dir)
     return 0

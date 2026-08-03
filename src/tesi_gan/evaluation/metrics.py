@@ -13,13 +13,25 @@ esattamente cio' per cui la CAN e' progettata — si allontana dalla distribuzio
 dati reali e quindi **peggiora il FID**. Un FID peggiore per la CAN non falsifica
 l'ipotesi: mostra che la metrica e l'obiettivo sono in tensione.
 
-Le tre metriche vanno lette insieme, mai isolate:
+Le metriche vanno lette insieme, mai isolate:
 
 | Metrica | Direzione desiderata | Cosa dice davvero |
 |---|---|---|
 | FID | piu' basso e' meglio | quanto i generati assomigliano ai reali |
 | Inception Score | piu' alto e' meglio | quanto sono nitidi e vari secondo ImageNet |
-| Ambiguita' di stile | alta e' l'obiettivo della CAN | quanto D fatica ad attribuire uno stile |
+| Ambiguita' (giudice terzo) | alta e' l'obiettivo della CAN | quanto un classificatore indipendente fatica ad attribuire uno stile |
+| Ambiguita' (testa di D) | — | diagnostica interna, **non** confrontabile fra condizioni |
+
+**Le due misure di ambiguita' non sono intercambiabili.** Quella prodotta dalla testa
+di stile del discriminatore esiste solo nella CAN e proviene da una parte in causa:
+resta utile come diagnostica del training, ma il confronto fra le condizioni si regge
+esclusivamente sul giudice terzo di `style_classifier.py`, che e' addestrato una volta
+sui soli dati reali e poi congelato.
+
+**Il confondimento da non dimenticare:** un generatore collassato produce rumore, e il
+rumore massimizza l'entropia del giudice. Ambiguita' alta con FID pessimo non e'
+creativita', e' un modello che non ha imparato. Le due metriche si riportano sempre
+in coppia.
 """
 
 from __future__ import annotations
@@ -39,9 +51,19 @@ class EvaluationResult:
     fid: float | None
     inception_score_mean: float | None
     inception_score_std: float | None
+    # Ambiguita' secondo la testa di stile del discriminatore: diagnostica interna,
+    # presente solo nella CAN, non confrontabile fra condizioni.
     style_entropy: float | None
     style_entropy_normalized: float | None
     n_samples: int
+    # Ambiguita' secondo il giudice terzo: **la misura su cui si regge il confronto**.
+    # Calcolabile identicamente per DCGAN e CAN.
+    judge_entropy: float | None = None
+    judge_entropy_normalized: float | None = None
+    # Ancore di lettura: senza queste i valori sopra non sono interpretabili.
+    judge_entropy_real: float | None = None
+    judge_entropy_real_normalized: float | None = None
+    judge_val_accuracy: float | None = None
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -108,12 +130,20 @@ def evaluate(
     batch_size: int = 64,
     compute_fid: bool = True,
     compute_is: bool = True,
+    style_judge=None,
+    judge_info=None,
 ) -> EvaluationResult:
     """Calcola le metriche su `n_samples` immagini generate.
 
     `n_samples` va tenuto **identico fra le due condizioni**: il FID e' notoriamente
     sensibile alla numerosita' del campione, e confrontare un FID su 2048 campioni
     con uno su 10000 non ha significato.
+
+    `style_judge` e' il classificatore terzo congelato (vedi `style_classifier.py`).
+    Va passato **lo stesso oggetto** in tutte le valutazioni dell'impianto: e' cio'
+    che rende le entropie confrontabili fra condizioni e fra seed. Se manca, la
+    metrica di ambiguita' indipendente non viene calcolata e resta solo la
+    diagnostica interna della CAN — cioe' nessun confronto.
     """
     from tesi_gan.data.dataset import denormalize
 
@@ -165,7 +195,48 @@ def evaluate(
         device=device,
     )
     if entropy is not None:
-        log.info("Entropia di stile = %.4f nats (normalizzata %.3f)", entropy, entropy_norm)
+        log.info(
+            "[diagnostica interna] Entropia secondo la testa di D = %.4f nats "
+            "(normalizzata %.3f)", entropy, entropy_norm,
+        )
+
+    # --- Giudice terzo: la misura confrontabile fra le condizioni ---------------
+    judge_entropy = judge_entropy_norm = None
+    if style_judge is not None:
+        from tesi_gan.evaluation.style_classifier import entropy_on_generator
+
+        judge_entropy, judge_entropy_norm = entropy_on_generator(
+            classifier=style_judge,
+            generator=generator,
+            n_samples=n_samples,
+            batch_size=batch_size,
+            device=device,
+        )
+        log.info(
+            "Ambiguita' secondo il giudice terzo = %.4f nats (normalizzata %.3f)",
+            judge_entropy, judge_entropy_norm,
+        )
+        if judge_info is not None:
+            log.info(
+                "  riferimenti — reali: %.4f nats (%.3f) | soffitto log(K): %.4f | "
+                "accuratezza del giudice: %.3f",
+                judge_info.entropy_real,
+                judge_info.entropy_real_normalized,
+                judge_info.max_entropy,
+                judge_info.val_accuracy,
+            )
+        if fid_value is not None and judge_entropy_norm > 0.9 and fid_value > 200:
+            log.warning(
+                "Ambiguita' quasi massima (%.3f) con FID pessimo (%.1f): l'ipotesi "
+                "piu' probabile e' un generatore collassato, non ambiguita' "
+                "stilistica. Guarda la griglia di campioni prima di interpretare.",
+                judge_entropy_norm, fid_value,
+            )
+    else:
+        log.warning(
+            "Nessun giudice terzo fornito: l'ambiguita' non e' confrontabile fra "
+            "DCGAN e CAN. Addestralo con `python -m tesi_gan.cli train-style-classifier`."
+        )
 
     return EvaluationResult(
         fid=fid_value,
@@ -174,4 +245,9 @@ def evaluate(
         style_entropy=entropy,
         style_entropy_normalized=entropy_norm,
         n_samples=n_samples,
+        judge_entropy=judge_entropy,
+        judge_entropy_normalized=judge_entropy_norm,
+        judge_entropy_real=judge_info.entropy_real if judge_info else None,
+        judge_entropy_real_normalized=judge_info.entropy_real_normalized if judge_info else None,
+        judge_val_accuracy=judge_info.val_accuracy if judge_info else None,
     )

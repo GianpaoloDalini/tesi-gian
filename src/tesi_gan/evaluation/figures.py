@@ -116,15 +116,132 @@ def plot_comparison(results: list[dict], out_dir: Path) -> Path | None:
     return path
 
 
-def export_all(cfg, results_dir: Path) -> list[Path]:
-    """Rigenera tutte le figure e tabelle ricavabili dai risultati disponibili."""
-    out_dir = Path(cfg.paths.figures)
-    results = _load_results(Path(results_dir))
-    if not results:
-        return []
+def export_figure_stili_reali(cfg) -> Path | None:
+    """Griglia di riferimento degli stili reali: dipende solo dal dataset.
 
-    written: list[Path] = [write_comparison_table(results, out_dir)]
-    plot = plot_comparison(results, out_dir)
-    if plot is not None:
-        written.append(plot)
+    Si puo' produrre prima ancora di aver addestrato qualcosa — e' la figura del
+    capitolo dati, non di quello dei risultati.
+    """
+    from tesi_gan.data import build_dataset
+    from tesi_gan.evaluation.campioni import save_real_styles_grid
+
+    try:
+        dataset = build_dataset(cfg)
+    except (FileNotFoundError, RuntimeError) as err:
+        log.warning("Dataset non disponibile, griglia degli stili non prodotta: %s", err)
+        return None
+    return save_real_styles_grid(dataset, Path(cfg.paths.figures))
+
+
+def export_figure_evoluzione(cfg, device=None) -> Path | None:
+    """Evoluzione a rumore fisso, ricostruita dai checkpoint numerati del run corrente."""
+    import torch
+
+    from tesi_gan.evaluation.campioni import (
+        carica_campioni_da_checkpoint,
+        save_evolution_figure,
+    )
+    from tesi_gan.models import Generator
+
+    device = device or torch.device("cpu")
+    checkpoint_dir = Path(cfg.paths.checkpoints)
+    if not checkpoint_dir.exists():
+        log.warning("Nessun checkpoint in %s: evoluzione non prodotta.", checkpoint_dir)
+        return None
+
+    def build_generator():
+        return Generator(
+            latent_dim=cfg.model.latent_dim,
+            features=cfg.model.generator_features,
+            channels=cfg.model.channels,
+        )
+
+    campioni = carica_campioni_da_checkpoint(checkpoint_dir, build_generator, device)
+    if not campioni:
+        return None
+    return save_evolution_figure(
+        campioni,
+        out_dir=Path(cfg.paths.figures),
+        condizione=str(cfg.model.name).lower(),
+        seed=int(cfg.seed),
+    )
+
+
+def export_figure_annotata(cfg, device=None) -> Path | None:
+    """Campioni annotati dal giudice terzo: la figura chiave del confronto.
+
+    Richiede sia un checkpoint sia il giudice addestrato. Se manca l'uno o l'altro
+    si limita ad avvisare: e' una figura, non un risultato numerico, e non deve
+    bloccare l'export delle altre.
+    """
+    import torch
+
+    from tesi_gan.data import build_dataset
+    from tesi_gan.evaluation.campioni import save_annotated_grid
+    from tesi_gan.evaluation.style_classifier import load_style_classifier
+    from tesi_gan.models import Generator
+
+    device = device or torch.device("cpu")
+    checkpoint = Path(cfg.paths.checkpoints) / "final.pt"
+    if not checkpoint.exists():
+        checkpoint = Path(cfg.paths.checkpoints) / "latest.pt"
+    if not checkpoint.exists():
+        log.warning("Nessun checkpoint finale: figura annotata non prodotta.")
+        return None
+
+    try:
+        dataset = build_dataset(cfg)
+        classes = list(getattr(dataset, "classes", []))
+        judge, _ = load_style_classifier(Path(cfg.paths.style_judge), device, classes or None)
+    except (FileNotFoundError, RuntimeError) as err:
+        log.warning("Giudice non disponibile, figura annotata non prodotta: %s", err)
+        return None
+
+    generator = Generator(
+        latent_dim=cfg.model.latent_dim,
+        features=cfg.model.generator_features,
+        channels=cfg.model.channels,
+    )
+    generator.load_state_dict(torch.load(checkpoint, map_location=device)["generator"])
+    generator.to(device).eval()
+
+    return save_annotated_grid(
+        generator=generator,
+        judge=judge,
+        classes=classes,
+        out_dir=Path(cfg.paths.figures),
+        condizione=str(cfg.model.name).lower(),
+        seed=int(cfg.seed),
+        device=device,
+    )
+
+
+def export_all(cfg, results_dir: Path) -> list[Path]:
+    """Rigenera tutte le figure e tabelle ricavabili da cio' che e' disponibile.
+
+    Ogni figura ha prerequisiti diversi (risultati JSON, checkpoint, giudice,
+    dataset): quelle producibili vengono prodotte, le altre avvisano. Cosi' l'export
+    e' utile fin dalle prime fasi invece di richiedere l'impianto completo.
+    """
+    out_dir = Path(cfg.paths.figures)
+    written: list[Path] = []
+
+    results = _load_results(Path(results_dir))
+    if results:
+        written.append(write_comparison_table(results, out_dir))
+        plot = plot_comparison(results, out_dir)
+        if plot is not None:
+            written.append(plot)
+    else:
+        log.warning("Nessun risultato in %s: tabella e grafico non prodotti.", results_dir)
+
+    for produttore in (export_figure_stili_reali, export_figure_evoluzione, export_figure_annotata):
+        try:
+            path = produttore(cfg)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("%s fallita: %s", produttore.__name__, exc)
+            continue
+        if path is not None:
+            written.append(path)
+
     return written

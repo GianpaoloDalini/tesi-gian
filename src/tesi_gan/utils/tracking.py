@@ -27,7 +27,9 @@ class NullTracker:
     def log(self, metrics: dict[str, Any], step: int | None = None) -> None:  # noqa: ARG002
         return
 
-    def log_samples(self, images: torch.Tensor, step: int | None = None) -> None:  # noqa: ARG002
+    def log_samples(  # noqa: ARG002
+        self, images: torch.Tensor, step: int | None = None, caption: str | None = None
+    ) -> None:
         return
 
     def finish(self) -> None:
@@ -41,11 +43,15 @@ class WandbTracker:
         self._wandb = wandb
         short_commit = provenance.commit[:8] if provenance.commit != "unknown" else "nocommit"
         condition = str(cfg.model.name).lower()
+        seed = int(cfg.seed)
 
+        # Il seed fa parte del nome. Senza, i tre run per condizione (D-010) si
+        # chiamerebbero tutti allo stesso modo e sarebbero indistinguibili nella
+        # dashboard: e' lo stesso errore gia' corretto sui percorsi dei checkpoint.
         self._run = wandb.init(
             project=str(cfg.tracking.project),
             entity=cfg.tracking.get("entity"),
-            name=f"{condition}-{short_commit}",
+            name=f"{condition}-seed{seed}-{short_commit}",
             config={
                 "model": dict(cfg.model),
                 "data": dict(cfg.data),
@@ -53,7 +59,7 @@ class WandbTracker:
                 "seed": cfg.seed,
                 "provenance": provenance.as_dict(),
             },
-            tags=[condition, short_commit],
+            tags=[condition, f"seed{seed}", short_commit],
         )
         self.run_id = self._run.id
         self.run_name = self._run.name
@@ -62,11 +68,20 @@ class WandbTracker:
     def log(self, metrics: dict[str, Any], step: int | None = None) -> None:
         self._wandb.log(metrics, step=step)
 
-    def log_samples(self, images: torch.Tensor, step: int | None = None) -> None:
+    def log_samples(
+        self, images: torch.Tensor, step: int | None = None, caption: str | None = None
+    ) -> None:
+        """Logga la griglia con la didascalia che riporta condizione, seed ed epoca.
+
+        Senza didascalia, nella dashboard W&B lo storico dei campioni e' una sequenza
+        di griglie indistinguibili e non si sa quale epoca si sta guardando.
+        """
         from torchvision.utils import make_grid
 
         grid = make_grid(images.cpu(), nrow=8, padding=2)
-        self._wandb.log({"campioni": self._wandb.Image(grid)}, step=step)
+        self._wandb.log(
+            {"campioni": self._wandb.Image(grid, caption=caption)}, step=step
+        )
 
     def finish(self) -> None:
         self._run.finish()

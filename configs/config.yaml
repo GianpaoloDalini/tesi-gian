@@ -29,16 +29,37 @@ training:
 tracking:
   backend: wandb
   project: tesi-gan-creativita
-  entity: null               # impostare con il proprio username W&B
+  # `entity` e' lo USERNAME W&B (o il nome di un team), non un indirizzo email.
+  # Verificalo su wandb.ai/settings: se non coincide, `wandb.init` fallisce e il
+  # run prosegue NON tracciato (vedi il fallback in utils/tracking.py).
+  entity: gianpaolo-dalini98
   # L'API key va SOLO nella variabile d'ambiente WANDB_API_KEY, mai qui.
+
+# Giudice terzo dell'ambiguita' stilistica (ADR-0005). Si addestra UNA SOLA VOLTA
+# sui dati reali e resta congelato per tutti i run e tutte le condizioni: e' cio'
+# che rende le entropie confrontabili fra DCGAN e CAN.
+style_judge:
+  epochs: 15
+  batch_size: 64
+  lr: 2e-4
+  val_fraction: 0.15
+  # Seed proprio, indipendente da quello dei run: il giudice e' addestrato una
+  # volta e non fa parte delle sei ripetizioni dell'impianto.
+  seed: 1234
 
 paths:
   data: data/processed
+  # Percorso unico: non dipende da model.name ne' da seed, perche' il giudice e'
+  # uno solo per tutto l'impianto.
+  style_judge: experiments/style_judge
   # I checkpoint sono separati per condizione E per seed. Senza, il secondo run
   # sovrascriverebbe il primo: con tre seed per condizione (D-010) si perderebbero
   # cinque run su sei senza accorgersene.
   checkpoints: experiments/checkpoints/${model.name}-seed${seed}
   figures: thesis/figures/generated
+  # PNG dei campioni per epoca. Separati per condizione e seed come i checkpoint,
+  # altrimenti i sei run si sovrascriverebbero a vicenda.
+  samples: experiments/samples/${model.name}-seed${seed}
 
 hydra:
   run:

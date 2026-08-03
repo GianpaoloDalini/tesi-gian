@@ -412,6 +412,88 @@ consumate e costo totale. Vanno nell'appendice sulla riproducibilità.
 
 ---
 
+### D-015 — Classificatore di stile terzo come giudice dell'ambiguità
+**Data:** 2026-08-03 · **Stato:** attiva · **Approfondimento:** [ADR-0005](decisions/0005-giudice-ambiguita.md)
+
+L'ambiguità stilistica si misura con un **classificatore di stile addestrato una volta
+sola sui soli dati reali e poi congelato**, non con la testa di stile del
+discriminatore. Lo stesso identico giudice valuta entrambe le condizioni e tutti i
+seed. Modulo: `src/tesi_gan/evaluation/style_classifier.py`.
+
+**Il problema che risolve.** La metrica precedente aveva due difetti che la rendevano
+inservibile per il confronto di D-010:
+
+1. **Non calcolabile sulla DCGAN**, che la testa di stile non ce l'ha. La condizione di
+   controllo sarebbe rimasta senza misura, e il confronto non sarebbe esistito.
+2. **Non indipendente**: quel discriminatore si è addestrato *contro* quel generatore.
+   Chiedergli se il generatore lo confonde è chiedere a una parte in causa di arbitrare
+   la propria partita.
+
+Senza questa correzione i sei run avrebbero prodotto FID e IS — due metriche che per
+costruzione penalizzano la CAN — e nessuna misura dell'effetto cercato. La lacuna è
+stata trovata rileggendo il codice prima di affittare la GPU.
+
+**Alternative scartate:**
+
+| Alternativa | Perché no |
+|---|---|
+| Tenere solo la testa di stile del discriminatore | Non confrontabile, non indipendente: è il difetto da correggere |
+| ResNet-18 pre-addestrata su ImageNet | Erediterebbe il bias fotografico che la tesi contesta a FID e IS: si muoverebbe un'obiezione e poi la si commetterebbe |
+| Un giudice riaddestrato per ogni run | Introdurrebbe una variabile nascosta e renderebbe le entropie non confrontabili |
+
+**Scelte di dettaglio, tutte motivate dalla validità del confronto:**
+
+- **Stessa famiglia architetturale della backbone del discriminatore.** Un giudice
+  molto più capace misurerebbe un'ambiguità che nel gioco avversario non ha mai avuto
+  un ruolo; molto meno capace, misurerebbe la propria incompetenza.
+- **Addestrato da zero**, non pre-addestrato (vedi tabella sopra).
+- **Split stratificato e seedato**, con accuratezza di validazione registrata. Sotto
+  `MIN_VAL_ACCURACY = 0.60` il modulo avvisa: l'incertezza di un giudice incapace non è
+  informativa.
+- **Seed proprio** (`style_judge.seed`), indipendente dai tre seed dei run: il giudice
+  non fa parte delle ripetizioni dell'impianto.
+- **Si addestra una volta sola.** Il comando rifiuta di sovrascriverne uno esistente
+  senza `--force`, perché riaddestrarlo invaliderebbe i run già valutati.
+- **Il caricamento verifica le classi**: un giudice addestrato su altri stili produce
+  numeri privi di significato, e il fallimento deve essere rumoroso.
+
+**Confondimento da dichiarare in tesi, non aggirabile con il codice.** Un'entropia alta
+significa «il classificatore non sa attribuire uno stile», e ci sono **due** ragioni
+perché accada: l'immagine è pittoricamente sensata ma stilisticamente ibrida (l'effetto
+cercato), oppure è rumore informe (un generatore collassato). **Un generatore fallito
+ottiene ambiguità massima.** L'entropia va quindi sempre letta accanto al FID e alla
+griglia di campioni: alta con FID basso è l'esito interessante, alta con FID pessimo è
+un modello che non ha imparato a dipingere. Il codice emette un avviso quando ricorre
+il secondo caso, ma la dichiarazione in tesi resta obbligatoria.
+
+**Ancore di lettura, calcolate e salvate insieme al giudice:** entropia sulle immagini
+**reali** di validazione (il pavimento) e `log(K)` (il soffitto). Un'entropia
+normalizzata senza il confronto col pavimento è un numero che sembra significare
+qualcosa e non significa niente. Accuratezza ed entropia sui reali vanno in appendice.
+
+---
+
+### D-016 — Figure dei campioni generate dal codice
+**Data:** 2026-08-03 · **Stato:** attiva
+
+Quattro figure prodotte automaticamente, modulo `src/tesi_gan/evaluation/campioni.py`:
+griglia per epoca (con condizione, seed ed epoca nel nome del file), **griglia
+annotata dal giudice terzo**, evoluzione a rumore fisso ricostruita dai checkpoint,
+griglia di riferimento degli stili reali.
+
+**Vincolo concettuale.** Il generatore è **incondizionato**: un'immagine generata non
+ha uno stile vero da stampare in didascalia. L'unica etichetta legittima è la
+*predizione* del giudice, ed è un'affermazione su come un classificatore legge
+l'immagine, non sulla sua natura. Scrivere «Barocco» sotto un campione generato
+sarebbe un errore concettuale — in una tesi su questo tema, non una sfumatura. La
+funzione `didascalia_griglia_annotata()` genera il testo corretto.
+
+**Correzione collaterale:** il nome del run W&B non conteneva il seed, quindi i tre run
+per condizione (D-010) sarebbero stati indistinguibili nella dashboard. È lo stesso
+errore già corretto sui percorsi dei checkpoint, ricomparso altrove.
+
+---
+
 ## 3. Questioni aperte
 
 Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla
@@ -480,6 +562,13 @@ originale prima di dichiarare in tesi quale è stata usata.
 **Ipotesi attesa, da dichiarare prima di vedere i risultati:** la CAN peggiora il FID
 e aumenta l'entropia di stile. Se accade, non è un fallimento ma la dimostrazione
 empirica che fedeltà e ambiguità stilistica sono obiettivi in tensione.
+
+**Aggiornamento del 2026-08-03 — lacuna trovata e chiusa.** L'entropia della posterior
+di stile era calcolabile **solo sulla CAN**, perché prodotta dalla testa di stile del
+discriminatore, che la DCGAN non ha. La metrica su cui si regge il confronto non era
+quindi confrontabile: i sei run avrebbero prodotto FID e IS — due metriche che per
+costruzione penalizzano la CAN — e nessuna misura dell'effetto cercato. Risolta con
+**D-015** (giudice terzo). La vecchia metrica resta come diagnostica interna.
 
 ### Q6 — Studio percettivo con soggetti umani 🔶 riaperta
 **Stato:** **di nuovo aperta dal 2026-08-03** · **Proposta:** D-012
@@ -692,3 +781,4 @@ discussione dei limiti.
 | 2026-07-31 | Intervista iniziale; analisi del template `phd-thesis-tex`; impostazione del monorepo | D-001…D-009 decise; Q1…Q8 aperte; infrastruttura verificata |
 | 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato; ricognizione dei dataset artistici; dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-013 RunPod; D-014 ArtBench-10 supera D-011; Q2, Q4, Q7 chiuse; V-007 documentata; pipeline adattata |
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
+| 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata. **Test scritti ma non eseguiti**: l'ambiente di lavoro non disponeva di PyTorch |

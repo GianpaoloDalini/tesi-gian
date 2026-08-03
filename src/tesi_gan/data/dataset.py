@@ -71,6 +71,9 @@ class SyntheticStyleDataset(Dataset):
         self.image_size = image_size
         self.num_styles = num_styles
         self.classes = [f"stile_sintetico_{i}" for i in range(num_styles)]
+        # Stessa convenzione di ImageFolder: consente lo split stratificato del
+        # classificatore di stile senza caricare le immagini.
+        self.targets = [i % num_styles for i in range(n)]
 
     def __len__(self) -> int:
         return self.n

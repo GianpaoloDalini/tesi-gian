@@ -30,3 +30,4 @@ difendibile, e alimentano direttamente il capitolo di metodologia.
 | 0002 | Toolchain: LaTeX, bibliografia, tracciamento esperimenti | Accettata |
 | 0003 | Impianto sperimentale: confronto controllato DCGAN → CAN | Accettata |
 | 0004 | Dataset: ArtBench-10, sei stili di pubblico dominio | Accettata |
+| 0005 | Come si misura l'ambiguità stilistica: giudice terzo | Accettata |

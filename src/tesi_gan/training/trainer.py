@@ -74,6 +74,13 @@ class Trainer:
         self.checkpoint_dir = Path(cfg.paths.checkpoints)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+        # I PNG dei campioni restano su disco anche se il run W&B non parte: sono
+        # il materiale grezzo delle figure del capitolo dei risultati.
+        self.samples_dir = Path(cfg.paths.get("samples", "experiments/samples"))
+        self.samples_dir.mkdir(parents=True, exist_ok=True)
+        self.condition_name = "can" if discriminator.style_head_enabled else "dcgan"
+        self.seed = int(cfg.get("seed", 0))
+
         # Rumore fisso: gli stessi vettori latenti a ogni epoca, cosi' la griglia di
         # campioni mostra l'evoluzione del generatore e non il caso.
         self.fixed_noise = torch.randn(64, self.generator.latent_dim, 1, 1, device=device)
@@ -170,9 +177,17 @@ class Trainer:
                 averaged.get("epoch/G/loss", float("nan")),
                 averaged.get("epoch/D/loss", float("nan")),
             )
+            campioni = self.sample_grid()
             if self.tracker is not None:
                 self.tracker.log(averaged, step=self.state.global_step)
-                self.tracker.log_samples(self.sample_grid(), step=self.state.global_step)
+                self.tracker.log_samples(
+                    campioni,
+                    step=self.state.global_step,
+                    caption=(
+                        f"{self.condition_name.upper()} · seed {self.seed} · "
+                        f"epoca {self.state.epoch}"
+                    ),
+                )
 
             # Il checkpoint `latest` si aggiorna a ogni epoca a prescindere dalla
             # cadenza: e' l'unica difesa contro una sessione che muore fra due
@@ -180,6 +195,26 @@ class Trainer:
             self.save_checkpoint(_LATEST)
             if self.state.epoch % checkpoint_every == 0:
                 self.save_checkpoint(f"epoch_{self.state.epoch:04d}.pt")
+                self._save_sample_png(campioni)
+
+    def _save_sample_png(self, campioni: torch.Tensor) -> None:
+        """Scrive la griglia su disco con condizione, seed ed epoca nel nome.
+
+        Non deve mai interrompere il training: una figura mancante costa una
+        rigenerazione, un'eccezione qui costerebbe ore di GPU.
+        """
+        try:
+            from tesi_gan.evaluation.campioni import save_sample_grid
+
+            save_sample_grid(
+                images=campioni,
+                out_dir=self.samples_dir,
+                condizione=self.condition_name,
+                seed=self.seed,
+                epoca=self.state.epoch,
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Salvataggio della griglia fallito (training non interrotto): %s", exc)
 
     @torch.no_grad()
     def sample_grid(self) -> torch.Tensor:
