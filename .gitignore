@@ -60,6 +60,7 @@ data/external/*
 # ---------- Esperimenti ----------
 experiments/*
 !experiments/registry.md
+!experiments/giudice-stile.md
 !experiments/.gitkeep
 wandb/
 outputs/

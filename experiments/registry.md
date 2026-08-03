@@ -26,6 +26,13 @@ Il trattino nella riga dell'entropia **non è un dato mancante**: la DCGAN non h
 di stile, quindi la metrica non è definita per quella condizione. Va detto nella
 caption della tabella in tesi, altrimenti sembra un buco nei risultati.
 
+## Registri collegati
+
+- [`giudice-stile.md`](giudice-stile.md) — iterazioni del classificatore terzo
+  (D-015). Nessuna ha raggiunto la soglia dichiarata: il percorso è documentato
+  perché mostra che il limite è stato misurato, non subito, ed è materiale per il
+  capitolo di metodologia e per la sezione sui limiti.
+
 ## Regole
 
 1. **Nessun run senza commit.** Il working tree dev'essere pulito prima del training

@@ -1,0 +1,141 @@
+# Giudice di stile — cronologia delle iterazioni
+
+Registro delle versioni del classificatore terzo (D-015, [ADR-0005](../docs/decisions/0005-giudice-ambiguita.md)),
+la cui entropia sostiene l'intero confronto fra DCGAN e CAN.
+
+> **Perché questo file esiste.** Nessuna di queste iterazioni ha raggiunto la soglia
+> di affidabilità che ci si era dati. Cancellarle e mostrare solo la versione finale
+> darebbe l'impressione di una scelta ovvia presa al primo colpo: non lo è stata, e
+> il percorso è a suo modo un risultato. Documenta che il limite è stato **misurato**
+> e non subito, e alimenta direttamente il capitolo di metodologia e la sezione sui
+> limiti. `CLAUDE.md` §6: un esperimento fallito si documenta, non si cancella.
+
+**Costante in tutte le iterazioni:** 30.000 immagini di addestramento, 6.000 di
+validazione sullo split `test` ufficiale di ArtBench, 64×64, 15 epoche, batch 64,
+Adam lr 2e-4, seed 1234, architettura da zero (nessun pre-addestramento).
+Soglia di affidabilità dichiarata: **0,60**.
+
+---
+
+## Sintesi
+
+| Iter. | Stili | Accuratezza | Entropia sui reali (norm.) | Esito |
+|---|---|---|---|---|
+| **J1** | ukiyo_e, renaissance, baroque, **romanticism**, **realism**, impressionism | 0,527 | 0,811 nats (**0,452**) | sotto soglia |
+| **J2** | ukiyo_e, renaissance, baroque, **art_nouveau**, **expressionism**, impressionism | 0,578 | 0,951 nats (**0,531**) | sotto soglia |
+
+Soffitto teorico in entrambe: `log(6)` = 1,792 nats.
+
+**Il dato che conta non è l'accuratezza.** J2 migliora di 5 punti percentuali ma
+**peggiora il pavimento dell'entropia**, che è la grandezza da cui dipende la
+sensibilità della metrica: se il giudice è già incerto sull'arte vera, resta poco
+spazio per mostrare che le immagini della CAN sono *più* ambigue. J2 è quindi un
+miglioramento apparente e un peggioramento sostanziale.
+
+---
+
+## J1 — insieme cronologico
+
+**Criterio di selezione:** arco cronologico della pittura occidentale
+(Rinascimento → Barocco → Romanticismo → Realismo → Impressionismo) con l'Ukiyo-e
+come contrappunto non occidentale, legato agli impressionisti dal giapponismo.
+Tutti gli stili di pubblico dominio.
+
+**Accuratezza 0,527** · **entropia sui reali 0,811 nats (0,452 normalizzata)**
+
+Matrice di confusione, percentuali di riga (riga = vero, colonna = predetto):
+
+```
+                  baroq  impre  reali  renai  roman  ukiyo
+baroque        |    65%     4%     8%    11%    10%     2%   (65% corrette)
+impressionism  |     7%    59%    15%     7%     8%     4%   (59% corrette)
+realism        |    17%    28%    30%     9%    14%     2%   (30% corrette)
+renaissance    |    33%     8%     6%    45%     6%     3%   (45% corrette)
+romanticism    |    23%    20%    18%    10%    26%     4%   (26% corrette)
+ukiyo_e        |     2%     3%     2%     1%     1%    91%   (91% corrette)
+```
+
+Confusioni più frequenti: `renaissance`→`baroque` 329, `realism`→`impressionism` 276,
+`romanticism`→`baroque` 229, `romanticism`→`impressionism` 195,
+`romanticism`→`realism` 180.
+
+**Lettura.** Il Romanticismo al 26% contro un caso puro del 16,7% è appena 1,6 volte
+il caso, e i suoi errori **non si concentrano su un vicino**: si distribuiscono su
+quattro classi. Non è confusione fra stili adiacenti ma assenza di identità visiva a
+questa risoluzione — coerente col fatto che il Romanticismo è definito più da
+soggetto e atmosfera che da una tecnica riconoscibile. Il Realismo scambiato per
+Impressionismo nel 28% dei casi non era stato previsto.
+
+**Conclusione:** rimossi i due stili più opachi (D-017).
+
+---
+
+## J2 — insieme a massima distanza visiva
+
+**Criterio di selezione:** distanza visiva anziché coerenza storica. Fuori
+`romanticism` e `realism`, dentro `art_nouveau` (linea decorativa, campiture piatte)
+ed `expressionism` (colore violento, forme distorte).
+
+**Ipotesi:** i due stili nuovi si sarebbero comportati come `ukiyo_e` (91% in J1),
+alzando l'accuratezza e **abbassando** il pavimento dell'entropia.
+
+**Accuratezza 0,578** · **entropia sui reali 0,951 nats (0,531 normalizzata)**
+
+```
+                  art_n  baroq  expre  impre  renai  ukiyo
+art_nouveau    |    42%     4%    23%    12%    15%     5%   (42% corrette)
+baroque        |     3%    68%     4%     5%    18%     2%   (68% corrette)
+expressionism  |    19%     6%    42%    15%    13%     5%   (42% corrette)
+impressionism  |     9%    11%    13%    54%    10%     3%   (54% corrette)
+renaissance    |     7%    25%     7%     4%    55%     1%   (55% corrette)
+ukiyo_e        |     5%     1%     5%     1%     2%    87%   (87% corrette)
+```
+
+Confusioni più frequenti: `renaissance`→`baroque` 249,
+`art_nouveau`→`expressionism` 227, `expressionism`→`art_nouveau` 187,
+`baroque`→`renaissance` 182, `expressionism`→`impressionism` 151.
+
+**L'ipotesi è stata falsificata.** I due stili nuovi si fermano al 42% ciascuno — meglio
+dei due rimossi, molto peggio di `ukiyo_e` — e **si confondono reciprocamente**
+(227 e 187 scambi). A 64 pixel «linea decorativa e campiture piatte» e «colore
+violento e forme distorte» collassano entrambi in «immagine chiara, piatta, non
+fotografica». La distanza visiva che li rendeva promettenti esiste alla risoluzione
+originale, non a quella di addestramento.
+
+**L'effetto collaterale è più grave del guadagno.** Entropia e accuratezza misurano
+cose diverse: il classificatore di J2 indovina più spesso ma è meno sicuro anche
+quando ha ragione. Il pavimento sale da 0,452 a 0,531, cioè lo spazio utile per
+misurare l'ambiguità della CAN si **restringe** invece di allargarsi.
+
+**Costo collaterale:** perduto l'arco cronologico che motivava J1, e introdotto uno
+stile non integralmente di pubblico dominio (V-008).
+
+---
+
+## Ciò che le due iterazioni dimostrano insieme
+
+Due insiemi di stili scelti con criteri **opposti** — coerenza storica in J1, massima
+distanza visiva in J2 — si assestano entrambi fra il 52% e il 58%. Il fattore
+limitante non è quindi la selezione degli stili ma **la risoluzione**: lo stile
+pittorico è in larga parte texture e trattamento della superficie, e a 64×64 la
+texture non sopravvive.
+
+È un'osservazione che va in tesi con questi due esperimenti a supporto, perché
+riguarda anche la valutazione delle GAN in generale: **una metrica basata su un
+classificatore non può essere più fine della risoluzione a cui opera.**
+
+## Verifica in sospeso — effetto soffitto
+
+Resta da misurare il rischio che conta di più. Se il giudice trova già quasi massima
+l'entropia sulle immagini della **DCGAN**, la CAN non ha spazio per salire e le due
+condizioni darebbero lo stesso numero — non perché il meccanismo non funzioni ma
+perché la metrica è satura.
+
+Si misura con un run breve di DCGAN e la valutazione dei suoi campioni. Esito da
+riportare qui.
+
+| Riferimento | Entropia normalizzata |
+|---|---|
+| Immagini reali (J2) | 0,531 |
+| DCGAN, 20 epoche | *da misurare* |
+| Soffitto teorico | 1,000 |
