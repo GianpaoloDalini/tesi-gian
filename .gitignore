@@ -48,6 +48,7 @@ env/
 # I dataset si ricreano dal codice, non si versionano (vedi data/README.md)
 data/raw/*
 data/processed/*
+data/processed_test/*
 data/external/*
 !data/**/.gitkeep
 !data/**/README.md
