@@ -14,14 +14,19 @@ stile J2 congelato (accuratezza 0,578, entropia sui reali 0,531).
 tutti i run. Nessuna selezione a posteriori del checkpoint migliore, che sarebbe
 selezione del modello sulla metrica di valutazione.
 
-| Run | FID ↓ | IS ↑ | Ambiguità | Copertura | Note |
-|---|---|---|---|---|---|
-| `dcgan-seed1` | 114,1 | 4,39 | 0,698 | 0,963 | |
-| `dcgan-seed2` | 106,5 | 4,09 | 0,674 | 0,968 | |
-| `dcgan-seed3` | 102,3 | 3,86 | 0,673 | 0,966 | |
-| `can-seed1` | 395,4 | 1,12 | 0,794 | 0,190 | **collassato**, escluso dalle medie |
-| `can-seed2` | 111,3 | 3,99 | 0,740 | 0,953 | |
-| `can-seed3` | 103,3 | 4,11 | 0,759 | 0,982 | |
+| Run | run_id W&B | FID ↓ | IS ↑ | Ambiguità | Copertura | Note |
+|---|---|---|---|---|---|---|
+| `dcgan-seed1` | `fjnrok9x` | 114,1 | 4,39 | 0,698 | 0,963 | |
+| `dcgan-seed2` | `DA COMPILARE` | 106,5 | 4,09 | 0,674 | 0,968 | |
+| `dcgan-seed3` | `DA COMPILARE` | 102,3 | 3,86 | 0,673 | 0,966 | |
+| `can-seed1` | `DA COMPILARE` | 395,4 | 1,12 | 0,794 | 0,190 | **collassato**, escluso dalle medie |
+| `can-seed2` | `DA COMPILARE` | 111,3 | 3,99 | 0,740 | 0,953 | |
+| `can-seed3` | `DA COMPILARE` | 103,3 | 4,11 | 0,759 | 0,982 | |
+
+> **Gli identificativi mancanti si recuperano con `python scripts/raccogli_run_id.py
+> --markdown`.** Senza `run_id`, la catena `commit → run → checkpoint → figura →
+> numero in tesi` si interrompe nell'anello che la commissione può chiedere di
+> verificare (CLAUDE.md §6, punto 3).
 
 ### Confronto fra le condizioni
 
