@@ -218,6 +218,76 @@ def cmd_train_style_classifier(cfg, force: bool) -> int:
 
 
 # --------------------------------------------------------------------------- #
+#  inspect-style-classifier
+# --------------------------------------------------------------------------- #
+
+def cmd_inspect_style_classifier(cfg) -> int:
+    """Diagnostica del giudice gia' addestrato: dove sbaglia, non solo quanto.
+
+    Non riaddestra nulla, quindi si puo' lanciare quante volte si vuole senza
+    invalidare i run gia' valutati.
+    """
+    import torch
+    from torch.utils.data import DataLoader
+
+    from tesi_gan.data import assert_same_classes, build_dataset, build_reference_dataset
+    from tesi_gan.evaluation.style_classifier import (
+        confusion_matrix,
+        format_confusion_matrix,
+        load_style_classifier,
+    )
+
+    device = _device()
+    dataset = build_dataset(cfg)
+    classes = list(getattr(dataset, "classes", []))
+
+    reference = build_reference_dataset(cfg)
+    if reference is not None:
+        assert_same_classes(dataset, reference)
+    valutazione = reference if reference is not None else dataset
+
+    classifier, info = load_style_classifier(
+        Path(cfg.paths.style_judge), device, expected_classes=classes or None
+    )
+
+    loader = DataLoader(
+        valutazione,
+        batch_size=int(cfg.style_judge.get("batch_size", 64)),
+        shuffle=False,
+        num_workers=int(cfg.data.get("num_workers", 4)),
+        pin_memory=torch.cuda.is_available(),
+    )
+    matrice = confusion_matrix(classifier, loader, device)
+
+    print()
+    print(f"Matrice di confusione su {int(matrice.sum())} immagini reali "
+          f"(split {info.validazione}) — riga = stile vero, colonna = predetto")
+    print()
+    print(format_confusion_matrix(matrice, classes))
+    print()
+    print(f"Accuratezza complessiva : {info.val_accuracy:.3f}")
+    print(f"Entropia sui reali      : {info.entropy_real:.3f} nats "
+          f"(normalizzata {info.entropy_real_normalized:.3f})")
+    print(f"Soffitto log(K)         : {info.max_entropy:.3f}")
+    print()
+
+    # La lettura che conta: errori concentrati fra stili vicini oppure sparsi.
+    k = len(classes)
+    fuori_diagonale = matrice.clone()
+    fuori_diagonale.fill_diagonal_(0)
+    if int(fuori_diagonale.sum()) > 0:
+        peggiori = torch.topk(fuori_diagonale.flatten(), k=min(5, k * (k - 1)))
+        print("Confusioni piu' frequenti:")
+        for valore, indice in zip(peggiori.values, peggiori.indices):
+            if int(valore) == 0:
+                continue
+            i, j = divmod(int(indice), k)
+            print(f"  {classes[i]:<16} scambiato per {classes[j]:<16} {int(valore):>5} volte")
+        print()
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 #  evaluate
 # --------------------------------------------------------------------------- #
 
@@ -362,6 +432,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Sovrascrive un giudice esistente. Obbliga a rivalutare TUTTI i checkpoint.",
     )
 
+    sub.add_parser(
+        "inspect-style-classifier",
+        help="Matrice di confusione del giudice gia' addestrato, senza riaddestrarlo",
+    )
+
     p_eval = sub.add_parser("evaluate", help="Calcola le metriche su un checkpoint")
     p_eval.add_argument("--checkpoint", type=Path, required=True)
     p_eval.add_argument("--n-samples", type=int, default=2048,
@@ -382,6 +457,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_train(cfg, allow_dirty=args.allow_dirty, resume=args.resume)
     if args.command == "train-style-classifier":
         return cmd_train_style_classifier(cfg, force=args.force)
+    if args.command == "inspect-style-classifier":
+        return cmd_inspect_style_classifier(cfg)
     if args.command == "evaluate":
         return cmd_evaluate(
             cfg, args.checkpoint, args.n_samples, args.output,

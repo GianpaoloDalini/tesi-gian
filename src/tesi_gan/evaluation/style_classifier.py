@@ -275,6 +275,56 @@ def entropy_on_loader(
 
 
 @torch.no_grad()
+def confusion_matrix(
+    classifier: StyleClassifier,
+    loader: DataLoader,
+    device: torch.device,
+) -> torch.Tensor:
+    """Matrice di confusione sulle immagini reali: riga = vero, colonna = predetto.
+
+    **Un'accuratezza aggregata bassa non dice se il giudice e' inutile o se e'
+    ottimo su alcune classi e cieco su altre.** La differenza e' decisiva: se gli
+    errori si concentrano fra stili notoriamente vicini — la pittura a olio scura di
+    Barocco, Romanticismo e Realismo — allora il giudice distingue bene gli stili
+    lontani e l'entropia misurata sui generati conserva significato. Se invece gli
+    errori fossero sparsi su tutte le classi, il giudice non saprebbe riconoscere
+    nulla e la metrica andrebbe abbandonata.
+
+    In tesi la matrice va riportata: rende concreto un limite che altrimenti
+    resterebbe un numero, e mostra che il limite e' stato misurato invece che
+    subito.
+    """
+    classifier.eval()
+    k = classifier.num_styles
+    matrice = torch.zeros(k, k, dtype=torch.long)
+
+    for images, labels in progress(loader, description="Matrice di confusione",
+                                   total=len(loader)):
+        predette = classifier(images.to(device, non_blocking=True)).argmax(dim=1).cpu()
+        for vero, predetto in zip(labels.view(-1), predette.view(-1)):
+            matrice[int(vero), int(predetto)] += 1
+
+    return matrice
+
+
+def format_confusion_matrix(matrice: torch.Tensor, classes: list[str]) -> str:
+    """Rende la matrice leggibile in percentuale di riga, con l'accuratezza per classe."""
+    larghezza = max(len(c) for c in classes) + 1
+    intestazione = " " * (larghezza + 2) + "".join(f"{c[:5]:>7}" for c in classes)
+    righe = [intestazione, " " * (larghezza + 2) + "-" * (7 * len(classes))]
+
+    for i, nome in enumerate(classes):
+        totale = int(matrice[i].sum())
+        percentuali = "".join(
+            f"{100 * int(matrice[i, j]) / max(totale, 1):>6.0f}%" for j in range(len(classes))
+        )
+        accuratezza = 100 * int(matrice[i, i]) / max(totale, 1)
+        righe.append(f"{nome:<{larghezza}} |{percentuali}   ({accuratezza:.0f}% corrette)")
+
+    return "\n".join(righe)
+
+
+@torch.no_grad()
 def entropy_on_generator(
     classifier: StyleClassifier,
     generator,
