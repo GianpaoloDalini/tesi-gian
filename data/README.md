@@ -78,6 +78,26 @@ dichiarata.
 **La risoluzione finisce nel manifest.** Un `data/processed` a 64px e uno a 256px sono
 indistinguibili a occhio ma producono run non confrontabili.
 
+### Prestazioni: copiare i dati sul disco locale
+
+Misurato il 2026-08-03: leggendo `data/processed` dal Network Volume, un'epoca su
+30.000 immagini richiede **44 secondi**, quindi 100 epoche fanno 73 minuti e i sei
+run dell'impianto circa 7 ore.
+
+Il collo di bottiglia non è la GPU ma il filesystem di rete, che deve servire 30.000
+file piccoli a ogni epoca. Il sottoinsieme preparato pesa meno di 200 MB e sta
+comodamente sul disco locale del container:
+
+```bash
+cp -r data/processed data/processed_test /dev/shm/     # oppure /root/
+python -m tesi_gan.cli train experiment=e1-dcgan-baseline \
+    data.root=/dev/shm/processed data.reference_root=/dev/shm/processed_test
+```
+
+Il disco del container è **effimero**: si svuota quando il pod viene fermato, e i dati
+vanno ricopiati a ogni sessione. È una copia, non uno spostamento: l'originale resta
+sul volume persistente.
+
 La struttura attesa in `data/raw/` è una sottocartella per stile:
 
 ```

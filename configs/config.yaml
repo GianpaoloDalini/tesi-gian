@@ -36,9 +36,13 @@ tracking:
   backend: wandb
   project: tesi-gan-creativita
   # `entity` e' lo USERNAME W&B (o il nome di un team), non un indirizzo email.
-  # Verificalo su wandb.ai/settings: se non coincide, `wandb.init` fallisce e il
-  # run prosegue NON tracciato (vedi il fallback in utils/tracking.py).
-  entity: gianpaolo-dalini98
+  # Lasciato a `null`, W&B usa l'entity predefinita associata alla API key: e' la
+  # configurazione robusta, perche' non richiede di indovinare il nome.
+  #
+  # Verificato il 2026-08-03: con `gianpaolo-dalini98` wandb.init fallisce
+  # ("entity not found during upsertBucket") e il run prosegue NON tracciato, quindi
+  # non citabile in tesi (CLAUDE.md §6). Compilare solo per scrivere su un team.
+  entity: null
   # L'API key va SOLO nella variabile d'ambiente WANDB_API_KEY, mai qui.
 
 # Giudice terzo dell'ambiguita' stilistica (ADR-0005). Si addestra UNA SOLA VOLTA

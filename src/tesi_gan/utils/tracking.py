@@ -100,4 +100,10 @@ def build_tracker(cfg, provenance):
             "non sono citabili in tesi (CLAUDE.md §6).",
             exc,
         )
+        if "entity" in str(exc).lower():
+            log.warning(
+                "L'errore riguarda l'entity. `tracking.entity` deve essere lo "
+                "USERNAME W&B, non un'email: verificalo su wandb.ai/settings, "
+                "oppure lascialo a null per usare quella predefinita della API key."
+            )
         return NullTracker()
