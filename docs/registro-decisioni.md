@@ -896,6 +896,58 @@ comando: `source .venv/bin/activate`.
 
 ---
 
+## 5-bis. Punto di ripresa — 2026-08-03, sessione interrotta
+
+Stato esatto al momento dell'interruzione, per non doverlo ricostruire a memoria.
+
+### Pronto e verificato
+
+| Componente | Stato |
+|---|---|
+| Pod RunPod | `tesi-gan`, RTX 4090, EU-RO-1, Network Volume `tesi-gan` 30 GB su `/workspace` — **fermato** |
+| Repository sul pod | `/workspace/tesi-gian`, allineato a `f19e368` |
+| Dataset | `data/processed` 30.000 img · `data/processed_test` 6.000 · sei stili · 64px |
+| Giudice di stile | `experiments/style_judge/` — J2, accuratezza 0,578, entropia reali 0,531 |
+| W&B | funzionante, entity di ateneo ricavata in automatico con `entity: null` |
+| Test superati | 45 in locale + smoke test su GPU |
+
+### Il prossimo comando
+
+```bash
+# sul pod, dopo averlo riavviato
+cd /workspace/tesi-gian && git pull
+bash scripts/run_impianto.sh        # ~40 minuti
+bash scripts/valuta_impianto.sh     # poi la valutazione
+```
+
+`/dev/shm` sarà vuoto dopo il riavvio: lo script ricopia da solo. Se il pod non
+ripartisse (Community Cloud non garantisce la disponibilità della GPU), se ne crea
+uno nuovo agganciando lo stesso volume: va rifatto solo `bootstrap_remote.sh`.
+
+### Decisione da prendere prima di leggere i risultati
+
+**Quale epoca riportare in tesi.** Con `checkpoint_every: 10` su 100 epoche ci saranno
+dieci checkpoint per run. Le GAN non migliorano in modo monotono: la tentazione, a
+risultati visti, sarà di riportare per ciascuna condizione l'epoca col FID migliore.
+È model selection sulla metrica di valutazione, ed è un rilievo facile in discussione.
+
+Va fissato **prima**: o si riporta l'epoca 100 per entrambe mostrando la curva
+completa, o si dichiara un criterio di selezione stabilito in anticipo e applicato
+identicamente alle due condizioni. Non è ancora stato deciso.
+
+### Aperto e non risolto
+
+- **V-008** — l'espressionismo non è integralmente di pubblico dominio: da dichiarare
+  in tesi, e la formula «tutti gli stili sono di pubblico dominio» va corretta ovunque.
+- **Giudice sotto soglia** — 0,578 contro lo 0,60 dichiarato. Due iterazioni con
+  criteri opposti danno lo stesso esito: il limite è la risoluzione, non la scelta
+  degli stili. Documentato in `experiments/giudice-stile.md`, da riportare in tesi come
+  limite misurato.
+- **Q8** — le domande di ricerca non sono ancora formulate.
+- **Q3** — peso fra componente tecnica ed etica, dipende dal relatore.
+
+---
+
 ## 6. Prossimi passi
 
 Ordinati per **scadenza**, non per dipendenza logica: da oggi il calendario comanda.
