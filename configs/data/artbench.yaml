@@ -4,12 +4,17 @@
 # Bilanciato per costruzione: 5.000 immagini di training per stile, quindi 30.000
 # in totale sui sei selezionati. Nessun sottocampionamento necessario.
 #
-# Preparazione:
+# Preparazione (sul pod, dentro il Network Volume — vedi data/README.md):
 #   1. scarica la versione ImageFolder con split da
 #      https://artbench.eecs.berkeley.edu/files/artbench-10-imagefolder-split.tar
 #   2. scompattala in data/raw/
 #   3. python -m tesi_gan.data.download --stili ukiyo_e renaissance baroque \
-#          romanticism realism impressionism --per-style 5000 --licenza-verificata
+#          romanticism realism impressionism --per-style 5000 --resize 64 \
+#          --licenza-verificata
+#
+# --resize 64 scrive le immagini gia' alla risoluzione di addestramento: ArtBench e'
+# distribuito a 256x256 e senza ridimensionamento ogni epoca decodificherebbe JPEG
+# quattro volte piu' grandi del necessario.
 name: artbench
 root: data/processed
 image_size: 64

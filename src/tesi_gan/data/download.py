@@ -42,6 +42,32 @@ def _count_by_style(raw: Path) -> Counter:
     return counts
 
 
+def _resize_and_save(src: Path, dst: Path, size: int) -> None:
+    """Ridimensiona un'immagine al lato `size` e la salva.
+
+    Stessa geometria del dataloader (`data/dataset.py::build_transform`): resize del
+    lato corto seguito da ritaglio centrale. Se le due divergessero, il modello
+    vedrebbe in addestramento inquadrature diverse da quelle preparate qui, e il
+    ritaglio diventerebbe una variabile non dichiarata.
+    """
+    from PIL import Image
+
+    with Image.open(src) as img:
+        img = img.convert("RGB")
+        larghezza, altezza = img.size
+        lato_corto = min(larghezza, altezza)
+        nuova = (
+            round(larghezza * size / lato_corto),
+            round(altezza * size / lato_corto),
+        )
+        img = img.resize(nuova, Image.BICUBIC)
+
+        sinistra = (img.width - size) // 2
+        alto = (img.height - size) // 2
+        img = img.crop((sinistra, alto, sinistra + size, alto + size))
+        img.save(dst, quality=95)
+
+
 def prepare(
     raw: Path,
     processed: Path,
@@ -50,6 +76,7 @@ def prepare(
     seed: int,
     min_per_style: int,
     stili: list[str] | None = None,
+    resize: int | None = None,
 ) -> dict:
     """Costruisce il sottoinsieme bilanciato a partire dai dati grezzi.
 
@@ -67,6 +94,12 @@ def prepare(
     l'entropia della posterior — cioe' la metrica su cui si regge il confronto —
     diventa ininterpretabile. Il campionamento e' seedato: due preparazioni con lo
     stesso seed producono lo stesso sottoinsieme.
+
+    `resize` scrive le immagini gia' alla risoluzione di addestramento. ArtBench e' a
+    256x256 e l'esperimento gira a 64x64: senza ridimensionamento il dataloader
+    decodifica un JPEG a 256px a ogni accesso per scartarne il 94% dei pixel, su sei
+    run da un centinaio di epoche ciascuno. Riduce anche `processed` da alcuni GB a
+    meno di cento megabyte, il che lo rende trasportabile fra macchine.
     """
     if not raw.exists():
         raise FileNotFoundError(f"Cartella dei dati grezzi inesistente: {raw}")
@@ -125,12 +158,53 @@ def prepare(
 
         files = sorted(f for f in src_dir.iterdir() if f.suffix.lower() in _IMAGE_SUFFIXES)
         take = min(per_style, len(files))
-        chosen = rng.sample(files, take)
-        for f in chosen:
-            shutil.copy2(f, dst_dir / f.name)
 
-        manifest_styles[style] = {"disponibili": available, "copiate": take}
-        log.info("%-24s %5d immagini copiate (su %d disponibili)", style, take, available)
+        # Si scorre l'INTERA lista mescolata e ci si ferma a `take` successi, invece
+        # di estrarne esattamente `take` e sperare che siano tutte leggibili.
+        #
+        # Motivo: un'immagine corrotta scartata senza rimpiazzo abbasserebbe solo la
+        # sua classe, rompendo il bilanciamento — cioe' la proprieta' su cui si regge
+        # l'interpretabilita' dell'entropia di stile (ADR-0004). Il guasto sarebbe
+        # silenzioso: 4.999 immagini invece di 5.000 non si notano guardando le
+        # cartelle. Pescando un rimpiazzo dalla coda, le classi restano allineate.
+        ordine = rng.sample(files, len(files))
+        copiate = 0
+        scartate = 0
+
+        for f in ordine:
+            if copiate >= take:
+                break
+            destinazione = dst_dir / f.name
+            try:
+                if resize is None:
+                    shutil.copy2(f, destinazione)
+                else:
+                    _resize_and_save(f, destinazione, resize)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Immagine illeggibile, sostituita: %s (%s)", f.name, exc)
+                destinazione.unlink(missing_ok=True)  # niente file troncati
+                scartate += 1
+                continue
+            copiate += 1
+
+        if copiate < take:
+            raise RuntimeError(
+                f"Stile {style!r}: richieste {take} immagini ma solo {copiate} "
+                f"leggibili ({scartate} scartate su {len(files)} file). Il "
+                f"sottoinsieme non sarebbe bilanciato. Verifica l'integrita' dei "
+                f"dati grezzi prima di procedere."
+            )
+
+        manifest_styles[style] = {"disponibili": available, "copiate": copiate}
+        if scartate:
+            manifest_styles[style]["scartate_e_sostituite"] = scartate
+        log.info(
+            "%-24s %5d immagini %s (su %d disponibili)%s",
+            style, copiate,
+            f"ridimensionate a {resize}px" if resize else "copiate",
+            available,
+            f" — {scartate} illeggibili sostituite" if scartate else "",
+        )
 
     manifest = {
         "data_preparazione": date.today().isoformat(),
@@ -139,6 +213,9 @@ def prepare(
         "seed": seed,
         "num_styles": len(selected),
         "per_style_effettive": per_style,
+        # La risoluzione su disco va registrata: un `processed` a 64px e uno a 256px
+        # producono run non confrontabili, e a occhio i due sono indistinguibili.
+        "risoluzione": resize if resize else "originale",
         "selezione": "esplicita" if stili else "per numerosita'",
         "stili": manifest_styles,
         "totale_immagini": sum(v["copiate"] for v in manifest_styles.values()),
@@ -175,6 +252,10 @@ def main(argv: list[str] | None = None) -> int:
                              "disponibile per non rompere il bilanciamento")
     parser.add_argument("--min-per-style", type=int, default=500,
                         help="Soglia minima perche' uno stile sia ammissibile")
+    parser.add_argument("--resize", type=int, default=None, metavar="PX",
+                        help="Ridimensiona alla risoluzione di addestramento (es. 64). "
+                             "Senza, le immagini vengono copiate alla risoluzione "
+                             "originale: piu' pesante e piu' lento a ogni epoca.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--ispeziona", action="store_true",
                         help="Mostra solo il conteggio per stile, senza copiare nulla")
@@ -215,6 +296,7 @@ def main(argv: list[str] | None = None) -> int:
         seed=args.seed,
         min_per_style=args.min_per_style,
         stili=args.stili,
+        resize=args.resize,
     )
     return 0
 

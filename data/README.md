@@ -27,21 +27,47 @@ Stili selezionati: `ukiyo_e`, `renaissance`, `baroque`, `romanticism`, `realism`
 `impressionism`. Tutti di pubblico dominio; escluso il Surrealismo, l'unico dei
 dieci ancora sotto copyright.
 
+### Dove si scarica
+
+**Sul pod RunPod, dentro un Network Volume**, non in locale. Il volume sopravvive
+alla distruzione del pod e si riattacca a pod nuovi: il dataset si scarica **una
+volta sola** e lo riusano il classificatore di stile e tutti e sei i run.
+
+La rete di un datacenter scarica in minuti quello che una linea domestica impiega
+un'ora, e il costo del pod acceso durante il download è nell'ordine dei centesimi.
+
 ### Preparazione
 
-```bash
-# 1. scarica ArtBench nella versione ImageFolder con split
-curl -O https://artbench.eecs.berkeley.edu/files/artbench-10-imagefolder-split.tar
-tar -xf artbench-10-imagefolder-split.tar -C data/raw/
+Dal pod, con il Network Volume montato (per convenzione su `/workspace`):
 
-# 2. ispeziona cosa c'e', senza copiare nulla
-python -m tesi_gan.data.download --ispeziona
+```bash
+cd /workspace
+
+# 1. scarica ArtBench nella versione ImageFolder con split (256x256)
+curl -O https://artbench.eecs.berkeley.edu/files/artbench-10-imagefolder-split.tar
+mkdir -p data/raw && tar -xf artbench-10-imagefolder-split.tar -C data/raw/
+
+# 2. ispeziona cosa c'e', senza copiare nulla e senza bisogno di --licenza-verificata
+python -m tesi_gan.data.download --ispeziona --raw data/raw
 
 # 3. costruisci il sottoinsieme (solo dopo aver chiuso V-007)
 python -m tesi_gan.data.download \
     --stili ukiyo_e renaissance baroque romanticism realism impressionism \
-    --per-style 5000 --seed 42 --licenza-verificata
+    --per-style 5000 --resize 64 --seed 42 --licenza-verificata
 ```
+
+**`--resize 64` non è opzionale nella pratica.** ArtBench è distribuito a 256×256 e
+l'esperimento gira a 64×64: senza, il dataloader decodifica un JPEG a 256px a ogni
+accesso per scartarne il 94% dei pixel, su sei run da un centinaio di epoche. Con il
+ridimensionamento `data/processed` scende sotto i 100 MB, contro alcuni GB.
+
+Il ritaglio applicato qui (resize del lato corto + ritaglio centrale) è **lo stesso**
+di `build_transform` in `src/tesi_gan/data/dataset.py`. Se uno dei due cambia va
+cambiato anche l'altro, altrimenti l'inquadratura diventa una variabile non
+dichiarata.
+
+**La risoluzione finisce nel manifest.** Un `data/processed` a 64px e uno a 256px sono
+indistinguibili a occhio ma producono run non confrontabili.
 
 La struttura attesa in `data/raw/` è una sottocartella per stile:
 

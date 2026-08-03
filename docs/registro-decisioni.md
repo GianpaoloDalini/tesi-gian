@@ -655,8 +655,83 @@ etichette non hanno licenza limpida. Non è una coincidenza.
 dominio, il che riduce molto l'esposizione a prescindere da come si qualifichi la
 licenza del dataset.
 
-**Resta da fare:** leggere i termini alla fonte e verificare che l'uso previsto vi
-rientri. Questa verifica la fa Gian, non l'assistente.
+---
+
+### Lettura diretta delle fonti — 2026-08-03
+
+Testo verificato alla fonte, non parafrasato. Restano da **valutare**, non più da
+reperire: la responsabilità della dichiarazione è di Gian.
+
+**1. `LICENSE` del repository ArtBench** ([liaopeiyuan/artbench](https://github.com/liaopeiyuan/artbench/blob/main/LICENSE)), testualmente:
+
+> The data sources of ArtBench-10 is released under a Fair Use license, as requested
+> by WikiArt, Ukiyo-e.org database and The Surrealism Website. […] Other artifacts
+> are released under a MIT license.
+
+Quindi: **codice MIT, immagini «fair use»**, con rinvio a tre fonti a monte.
+
+**2. WikiArt, *Terms and conditions*** (ultimo aggiornamento 5 ottobre 2016), sezione
+*Copyright Policy*. WikiArt dichiara di ospitare sia opere di pubblico dominio sia
+opere protette, e che **le seconde** sono esposte in base al principio di fair use in
+quanto storicamente significative, usate a fini informativi ed educativi, già
+ampiamente disponibili in rete e in copie a bassa risoluzione inadatte all'uso
+commerciale.
+
+Tre osservazioni che contano:
+
+- La distinzione è esplicita fra **opere di pubblico dominio** e **opere protette**:
+  il fair use è invocato solo per le seconde. I sei stili di D-014 ricadono nelle
+  prime.
+- I termini regolano l'uso **del sito** («the Service»), non la costituzione di
+  dataset né l'addestramento di modelli. Non autorizzano e non vietano: **non
+  prevedono il caso**.
+- Legge applicabile dichiarata: **Ucraina**. Non è un dettaglio da ignorare quando si
+  ragiona di eccezioni al diritto d'autore.
+
+**3. Ukiyo-e.org, pagina *About*.** Non contiene alcuna clausola di licenza: descrive
+un database aggregato da oltre 24 istituzioni (musei, università, biblioteche, case
+d'asta). I termini effettivi sono quindi **quelli delle singole istituzioni a monte**,
+non del sito aggregatore. Chi volesse risalire deve passare da `ukiyo-e.org/sources`.
+
+**4. The Surrealism Website.** Non consultata, e **irrilevante**: il Surrealismo è
+l'unico dei dieci stili di ArtBench escluso da D-014, ed è anche l'unico ancora sotto
+copyright. La fonte più problematica delle tre non tocca il sottoinsieme scelto.
+
+### Cosa cambia rispetto a stamattina
+
+Il quadro è più solido di quanto la sola dicitura «fair use» lasciasse pensare:
+
+- la catena delle dichiarazioni è ora **tracciata fino alla fonte primaria** e
+  citabile in tesi con testo verificato;
+- l'unica fonte con un problema di copyright conclamato riguarda uno stile escluso;
+- WikiArt distingue esplicitamente pubblico dominio e opere protette, e il
+  sottoinsieme scelto sta dalla parte non problematica.
+
+### Cosa resta aperto, e non è un cavillo
+
+**«Fair use» è dottrina statunitense.** Gian scrive una tesi in Italia. La
+qualificazione rilevante nell'ordinamento europeo è un'altra, e va verificata con una
+fonte competente — quanto segue è **informazione, non consulenza legale**:
+
+- **Direttiva UE 2019/790, art. 3** — eccezione per il *text and data mining* a fini
+  di **ricerca scientifica** da parte di organismi di ricerca. È la disposizione che
+  più direttamente riguarda una tesi universitaria, e non prevede opt-out del titolare
+  (a differenza dell'art. 4, di portata generale).
+- **Direttiva UE 2019/790, art. 14** — le riproduzioni di opere d'arte visiva il cui
+  termine di protezione è scaduto non sono a loro volta protette, salvo originalità
+  propria. Toglie l'obiezione «la fotografia del quadro è comunque protetta».
+- **Codice dei beni culturali, artt. 107-108** — canoni per la riproduzione di beni
+  culturali italiani. Peculiarità nazionale molto discussa: per questa tesi è
+  materiale di merito, non un ostacolo.
+
+**Verifica suggerita:** una domanda al relatore, la cui area include l'informatica
+etica, o all'ufficio competente dell'ateneo. Un paragrafo di tesi che cita la
+direttiva e distingue fair use da eccezione TDM vale più di uno che dice «licenza
+fair use» e passa oltre.
+
+**Uso previsto da dichiarare:** addestramento di modelli generativi a fini di ricerca
+accademica, **senza ridistribuzione** né delle immagini né dei pesi, su un
+sottoinsieme di sole opere di pubblico dominio.
 
 Due elementi giuridici da approfondire, **non sono consulenza legale** e vanno
 verificati con una fonte competente:
