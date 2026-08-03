@@ -119,6 +119,83 @@ def test_misura_riproducibile_a_parita_di_seed():
 #  Split stratificato
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+#  Copertura degli stili: distingue fusione da collasso
+# --------------------------------------------------------------------------- #
+
+def test_copertura_uniforme_da_entropia_marginale_massima():
+    """Un generatore che coprisse gli stili in modo uniforme darebbe marginale
+    piatta, cioè entropia normalizzata vicina a 1."""
+    from tesi_gan.evaluation.style_classifier import style_coverage
+
+    classifier = StyleClassifier(num_styles=4).eval()
+
+    class GeneratoreFinto:
+        """Restituisce immagini che il classificatore, truccato, classifica a giro."""
+
+        def __init__(self): self.i = 0
+        def sample(self, n, device):
+            return torch.randn(n, 3, 64, 64)
+
+    # Sostituisco la testa con una che assegna le classi ciclicamente, cosi' la
+    # marginale e' uniforme per costruzione e il test verifica il conteggio, non
+    # il comportamento di una rete non addestrata.
+    class TestaCiclica(torch.nn.Module):
+        def __init__(self, k): super().__init__(); self.k = k; self.n = 0
+        def forward(self, x):
+            b = x.size(0)
+            idx = (torch.arange(b) + self.n) % self.k
+            self.n += b
+            return torch.nn.functional.one_hot(idx, self.k).float() * 10
+
+    classifier.forward = TestaCiclica(4).forward  # type: ignore[method-assign]
+    conteggi, _, normalizzata = style_coverage(
+        classifier, GeneratoreFinto(), n_samples=64, batch_size=16, device=CPU
+    )
+    assert int(conteggi.sum()) == 64
+    assert normalizzata > 0.99, f"marginale non uniforme: {conteggi.tolist()}"
+
+
+def test_copertura_concentrata_da_entropia_marginale_bassa():
+    """**Il caso che questa metrica esiste per scoprire.**
+
+    Un generatore collassato su una zona generica produce immagini che il giudice
+    attribuisce quasi sempre alla stessa classe: l'entropia per immagine puo' essere
+    alta, ma la marginale e' concentrata. Senza questo controllo, collasso e fusione
+    stilistica sarebbero indistinguibili.
+    """
+    from tesi_gan.evaluation.style_classifier import style_coverage
+
+    classifier = StyleClassifier(num_styles=4).eval()
+
+    class TestaFissa(torch.nn.Module):
+        def forward(self, x):
+            logits = torch.full((x.size(0), 4), -10.0)
+            logits[:, 1] = 10.0  # sempre la stessa classe
+            return logits
+
+    classifier.forward = TestaFissa().forward  # type: ignore[method-assign]
+
+    class GeneratoreFinto:
+        def sample(self, n, device): return torch.randn(n, 3, 64, 64)
+
+    conteggi, entropia, normalizzata = style_coverage(
+        classifier, GeneratoreFinto(), n_samples=32, batch_size=8, device=CPU
+    )
+    assert int(conteggi[1]) == 32
+    assert entropia == pytest.approx(0.0, abs=1e-6)
+    assert normalizzata < 0.01
+
+
+def test_formattazione_copertura_mostra_scarto_dall_atteso():
+    from tesi_gan.evaluation.style_classifier import format_style_coverage
+
+    testo = format_style_coverage(torch.tensor([50, 25, 25, 0]), ["a", "b", "c", "d"])
+    assert "50.0%" in testo
+    assert "25.0" in testo  # scarto atteso per la classe dominante
+    assert "d" in testo     # anche una classe mai predetta va mostrata
+
+
 def test_split_preserva_le_proporzioni_di_classe():
     dataset = SyntheticStyleDataset(n=120, num_styles=6)
     train, val = stratified_split(dataset, val_fraction=0.25, seed=0)

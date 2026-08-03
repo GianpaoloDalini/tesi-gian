@@ -325,6 +325,76 @@ def format_confusion_matrix(matrice: torch.Tensor, classes: list[str]) -> str:
 
 
 @torch.no_grad()
+def style_coverage(
+    classifier: StyleClassifier,
+    generator,
+    n_samples: int,
+    batch_size: int,
+    device: torch.device,
+) -> tuple[torch.Tensor, float, float]:
+    """Distribuzione **marginale** degli stili predetti sulle immagini generate.
+
+    ## Perche' l'entropia da sola non basta
+
+    `entropy_on_generator` misura quanto il giudice e' incerto **su ciascuna
+    immagine**. E' la grandezza che interessa alla CAN, ma non distingue due
+    situazioni molto diverse:
+
+    1. **Fusione stilistica** — il generatore copre tutti gli stili e produce
+       immagini che ne mescolano i tratti. E' l'effetto cercato.
+    2. **Collasso di stile** — il generatore ha imparato un sottoinsieme degli stili
+       e produce immagini tutte nella stessa zona, che il classificatore fatica ad
+       attribuire perche' e' una zona generica.
+
+    In entrambi i casi l'entropia per immagine e' alta. Ma nel primo la
+    distribuzione marginale delle classi predette e' vicina all'uniforme, nel secondo
+    e' concentrata su poche classi. **La marginale separa i due casi; l'entropia no.**
+
+    E' un controllo che va fatto: un'ispezione visiva dei campioni ha suggerito che i
+    generatori gravitino verso la pittura a olio scura ignorando Ukiyo-e e Art
+    Nouveau. Se fosse vero, l'ambiguita' misurata sarebbe in parte un artefatto della
+    copertura incompleta e non l'effetto del meccanismo.
+
+    Restituisce `(conteggi_per_classe, entropia_marginale, entropia_marginale_norm)`.
+    L'entropia della marginale vale `log(K)` se il generatore copre gli stili in modo
+    uniforme, e tende a 0 se li concentra tutti su una classe.
+    """
+    classifier.eval()
+    conteggi = torch.zeros(classifier.num_styles, dtype=torch.long)
+    seen = 0
+
+    while seen < n_samples:
+        n = min(batch_size, n_samples - seen)
+        predette = classifier(generator.sample(n, device)).argmax(dim=1).cpu()
+        conteggi += torch.bincount(predette, minlength=classifier.num_styles)
+        seen += n
+
+    p = conteggi.float() / max(int(conteggi.sum()), 1)
+    non_nulle = p[p > 0]
+    entropia = float(-(non_nulle * non_nulle.log()).sum())
+    return conteggi, entropia, entropia / math.log(classifier.num_styles)
+
+
+def format_style_coverage(conteggi: torch.Tensor, classes: list[str]) -> str:
+    """Rende leggibile la copertura, con la percentuale attesa come riferimento."""
+    totale = max(int(conteggi.sum()), 1)
+    attesa = 100.0 / len(classes)
+    larghezza = max(len(c) for c in classes) + 1
+    righe = []
+
+    for i, nome in enumerate(classes):
+        percentuale = 100 * int(conteggi[i]) / totale
+        barra = "#" * int(round(percentuale / 2))
+        scarto = percentuale - attesa
+        righe.append(
+            f"  {nome:<{larghezza}} {percentuale:>5.1f}%  {barra:<25} "
+            f"({scarto:+.1f} rispetto al {attesa:.1f}% atteso)"
+        )
+
+    return "\n".join(righe)
+
+
+@torch.no_grad()
 def entropy_on_generator(
     classifier: StyleClassifier,
     generator,

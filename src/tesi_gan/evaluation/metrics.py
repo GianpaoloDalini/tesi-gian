@@ -64,6 +64,14 @@ class EvaluationResult:
     judge_entropy_real: float | None = None
     judge_entropy_real_normalized: float | None = None
     judge_val_accuracy: float | None = None
+    # Copertura degli stili: distribuzione MARGINALE delle classi predette.
+    # Distingue la fusione stilistica (marginale uniforme, e' l'effetto cercato) dal
+    # collasso di stile (marginale concentrata su poche classi), che l'entropia per
+    # immagine da sola non separa.
+    style_coverage_counts: list[int] | None = None
+    style_coverage_classes: list[str] | None = None
+    style_coverage_entropy: float | None = None
+    style_coverage_entropy_normalized: float | None = None
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -202,8 +210,15 @@ def evaluate(
 
     # --- Giudice terzo: la misura confrontabile fra le condizioni ---------------
     judge_entropy = judge_entropy_norm = None
+    coverage_counts = coverage_classes = None
+    coverage_entropy = coverage_entropy_norm = None
+
     if style_judge is not None:
-        from tesi_gan.evaluation.style_classifier import entropy_on_generator
+        from tesi_gan.evaluation.style_classifier import (
+            entropy_on_generator,
+            format_style_coverage,
+            style_coverage,
+        )
 
         judge_entropy, judge_entropy_norm = entropy_on_generator(
             classifier=style_judge,
@@ -216,6 +231,33 @@ def evaluate(
             "Ambiguita' secondo il giudice terzo = %.4f nats (normalizzata %.3f)",
             judge_entropy, judge_entropy_norm,
         )
+
+        # Copertura degli stili: senza, un'entropia alta e' ambigua fra fusione
+        # stilistica e collasso su una zona generica.
+        conteggi, coverage_entropy, coverage_entropy_norm = style_coverage(
+            classifier=style_judge,
+            generator=generator,
+            n_samples=n_samples,
+            batch_size=batch_size,
+            device=device,
+        )
+        coverage_counts = [int(x) for x in conteggi]
+        coverage_classes = list(judge_info.classes) if judge_info else None
+
+        log.info(
+            "Copertura degli stili (marginale delle classi predette) = %.3f normalizzata",
+            coverage_entropy_norm,
+        )
+        if coverage_classes:
+            log.info("\n%s", format_style_coverage(conteggi, coverage_classes))
+        if coverage_entropy_norm < 0.85:
+            log.warning(
+                "Copertura degli stili disomogenea (%.3f): il generatore privilegia "
+                "alcuni stili e ne ignora altri. Parte dell'ambiguita' misurata "
+                "potrebbe essere collasso su una zona generica invece che fusione "
+                "stilistica. Va dichiarato in tesi.",
+                coverage_entropy_norm,
+            )
         if judge_info is not None:
             log.info(
                 "  riferimenti — reali: %.4f nats (%.3f) | soffitto log(K): %.4f | "
@@ -250,4 +292,8 @@ def evaluate(
         judge_entropy_real=judge_info.entropy_real if judge_info else None,
         judge_entropy_real_normalized=judge_info.entropy_real_normalized if judge_info else None,
         judge_val_accuracy=judge_info.val_accuracy if judge_info else None,
+        style_coverage_counts=coverage_counts,
+        style_coverage_classes=coverage_classes,
+        style_coverage_entropy=coverage_entropy,
+        style_coverage_entropy_normalized=coverage_entropy_norm,
     )
