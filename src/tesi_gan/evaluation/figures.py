@@ -207,7 +207,8 @@ def export_figure_annotata(cfg, device=None) -> Path | None:
     )
     generator.to(device).eval()
 
-    return save_annotated_grid(
+    figure = []
+    annotata = save_annotated_grid(
         generator=generator,
         judge=judge,
         classes=classes,
@@ -216,6 +217,28 @@ def export_figure_annotata(cfg, device=None) -> Path | None:
         seed=int(cfg.seed),
         device=device,
     )
+    if annotata is not None:
+        figure.append(annotata)
+
+    # Confronto reali / generate, una riga per stile: mostra dove il modello
+    # fallisce invece di aggregarlo in un numero solo, e rende visibili gli stili
+    # che non produce affatto.
+    from tesi_gan.evaluation.campioni import save_real_vs_generated
+
+    confronto = save_real_vs_generated(
+        generator=generator,
+        judge=judge,
+        dataset=dataset,
+        classes=classes,
+        out_dir=Path(cfg.paths.figures),
+        condizione=str(cfg.model.name).lower(),
+        seed=int(cfg.seed),
+        device=device,
+    )
+    if confronto is not None:
+        figure.append(confronto)
+
+    return figure[0] if figure else None
 
 
 def export_all(cfg, results_dir: Path) -> list[Path]:

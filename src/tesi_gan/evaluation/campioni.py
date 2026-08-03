@@ -22,6 +22,7 @@ generata sta affermando una cosa falsa.
 | `save_annotated_grid` | `campioni-annotati-{cond}-seed{N}.png` | **mostra l'effetto CAN a colpo d'occhio** |
 | `save_evolution_figure` | `evoluzione-{cond}-seed{N}.png` | progressione dell'addestramento |
 | `save_real_styles_grid` | `stili-reali.png` | figura di riferimento del capitolo dati |
+| `save_real_vs_generated` | `reali-vs-generate-{cond}-seed{N}.png` | **quanto le generate si discostano dalle reali, stile per stile** |
 
 Tutte scrivono in `thesis/figures/generated/` e **non vanno ritoccate a mano**
 (CLAUDE.md §6): si rigenerano.
@@ -284,6 +285,138 @@ def carica_campioni_da_checkpoint(
 # --------------------------------------------------------------------------- #
 #  4. Griglia di riferimento degli stili reali
 # --------------------------------------------------------------------------- #
+
+@torch.no_grad()
+def save_real_vs_generated(
+    generator,
+    judge,
+    dataset,
+    classes: list[str],
+    out_dir: Path,
+    condizione: str,
+    seed: int,
+    device: torch.device,
+    n_per_style: int = 3,
+    n_candidati: int = 512,
+    seed_selezione: int = 42,
+) -> Path | None:
+    """Confronto affiancato reali / generate, **una riga per stile**.
+
+    Per ciascuno stile la riga mostra `n_per_style` dipinti veri e, accanto,
+    altrettante immagini generate **che il giudice terzo attribuisce a quello
+    stile**. Il generatore e' incondizionato e non sa nulla degli stili: e' il
+    classificatore a smistare i campioni, e la figura mostra il risultato di quello
+    smistamento.
+
+    ## Perche' questa figura dice piu' di una griglia di campioni
+
+    Risponde a due domande diverse nella stessa immagine:
+
+    1. **Quanto le generate si discostano dalle reali**, stile per stile invece che
+       in aggregato. Un FID e' un numero solo; qui si vede *dove* il modello
+       fallisce.
+    2. **Se il generatore copre davvero tutti gli stili.** Una riga con poche o
+       nessuna immagine generata significa che il modello quello stile non lo produce
+       — o che il giudice non ce lo riconosce. In entrambi i casi la copertura e'
+       incompleta, e va dichiarata: parte dell'ambiguita' misurata sarebbe collasso
+       su una zona generica, non fusione stilistica.
+
+    Le righe rimaste scoperte vengono etichettate esplicitamente invece di essere
+    lasciate vuote: una casella bianca in una figura di tesi sembra un errore di
+    composizione, mentre qui e' il risultato.
+    """
+    import random
+
+    import torch.nn.functional as F
+
+    plt = _matplotlib()
+    if plt is None:
+        return None
+
+    targets = getattr(dataset, "targets", None)
+    if targets is None:
+        log.warning("Il dataset non espone `targets`: confronto non prodotto.")
+        return None
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"reali-vs-generate-{condizione}-seed{seed}.png"
+
+    # --- generate, smistate per classe predetta dal giudice --------------------
+    generator.eval()
+    judge.eval()
+    per_classe: dict[int, list] = {i: [] for i in range(len(classes))}
+    confidenze: dict[int, list] = {i: [] for i in range(len(classes))}
+
+    visti = 0
+    while visti < n_candidati and any(len(v) < n_per_style for v in per_classe.values()):
+        n = min(64, n_candidati - visti)
+        immagini = generator.sample(n, device)
+        probabilita = F.softmax(judge(immagini), dim=1)
+        predette = probabilita.argmax(dim=1)
+        for j in range(n):
+            c = int(predette[j])
+            if len(per_classe[c]) < n_per_style:
+                per_classe[c].append(immagini[j].cpu())
+                confidenze[c].append(float(probabilita[j, c]))
+        visti += n
+
+    # --- reali, campionate con seed fisso -------------------------------------
+    indici_per_classe: dict[int, list[int]] = {}
+    for indice, etichetta in enumerate(targets):
+        indici_per_classe.setdefault(int(etichetta), []).append(indice)
+    rng = random.Random(seed_selezione)
+
+    # --- composizione ---------------------------------------------------------
+    colonne = n_per_style * 2
+    fig, axes = plt.subplots(
+        len(classes), colonne,
+        figsize=(1.45 * colonne + 1.2, 1.7 * len(classes)), squeeze=False,
+    )
+
+    for riga, nome in enumerate(classes):
+        disponibili = indici_per_classe.get(riga, [])
+        reali = rng.sample(disponibili, min(n_per_style, len(disponibili)))
+
+        for k in range(n_per_style):
+            ax = axes[riga][k]
+            ax.axis("off")
+            if k < len(reali):
+                ax.imshow(_to_numpy_image(dataset[reali[k]][0]))
+            if k == 0:
+                ax.text(
+                    -0.12, 0.5, nome.replace("_", " "), transform=ax.transAxes,
+                    ha="right", va="center", fontsize=9, rotation=0,
+                )
+
+        generate = per_classe[riga]
+        for k in range(n_per_style):
+            ax = axes[riga][n_per_style + k]
+            ax.axis("off")
+            if k < len(generate):
+                ax.imshow(_to_numpy_image(generate[k]))
+                ax.set_title(f"{confidenze[riga][k] * 100:.0f}%", fontsize=7, pad=2)
+            elif k == 0:
+                # Riga scoperta: si dichiara invece di lasciare il bianco.
+                ax.text(
+                    0.5, 0.5, f"nessuna\nsu {visti}", transform=ax.transAxes,
+                    ha="center", va="center", fontsize=7, color="#b00020",
+                )
+
+    axes[0][0].set_title("REALI", fontsize=10, loc="left", pad=12)
+    axes[0][n_per_style].set_title("GENERATE", fontsize=10, loc="left", pad=12)
+
+    fig.suptitle(
+        f"{condizione.upper()} — seed {seed} — reali a confronto con le generate\n"
+        f"attribuite a ciascuno stile dal giudice terzo ({visti} campioni esaminati)",
+        fontsize=11,
+    )
+    fig.tight_layout()
+    fig.savefig(path, dpi=160, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Confronto reali/generate scritto: %s", path)
+    return path
+
 
 def save_real_styles_grid(
     dataset,
