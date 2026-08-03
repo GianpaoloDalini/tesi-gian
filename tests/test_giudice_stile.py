@@ -154,6 +154,21 @@ def test_split_rifiuta_frazioni_fuori_range():
 #  Persistenza e controlli di coerenza
 # --------------------------------------------------------------------------- #
 
+def test_metadati_costruibili_senza_argomenti_opzionali():
+    """La dataclass deve essere istanziabile con i soli campi obbligatori.
+
+    Aggiungere un campo con valore predefinito in mezzo a quelli senza rompe
+    l'import dell'intero modulo, non solo questa classe: e' successo davvero.
+    """
+    info = StyleClassifierInfo(
+        num_styles=6, classes=list("abcdef"), val_accuracy=0.7,
+        train_size=100, val_size=20, epochs=1, seed=42,
+        entropy_real=0.5, entropy_real_normalized=0.28, max_entropy=math.log(6),
+    )
+    assert info.validazione == "interno"
+    assert info.commit is None
+
+
 def _info(classes: list[str]) -> StyleClassifierInfo:
     return StyleClassifierInfo(
         num_styles=len(classes), classes=classes, val_accuracy=0.8,

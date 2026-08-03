@@ -156,13 +156,15 @@ class StyleClassifierInfo:
     val_size: int
     epochs: int
     seed: int
-    # "esterno" = split ufficiale del dataset (test di ArtBench), quindi accuratezza
-    # confrontabile con la letteratura; "interno" = ritagliato dal training set.
-    validazione: str = "interno"
     entropy_real: float
     entropy_real_normalized: float
     max_entropy: float
     commit: str | None = None
+    # "esterno" = split ufficiale del dataset (test di ArtBench), quindi accuratezza
+    # confrontabile con la letteratura; "interno" = ritagliato dal training set.
+    # Va in fondo: in una dataclass i campi con valore predefinito seguono quelli
+    # senza, altrimenti il modulo non si importa nemmeno.
+    validazione: str = "interno"
 
     def as_dict(self) -> dict:
         return asdict(self)
