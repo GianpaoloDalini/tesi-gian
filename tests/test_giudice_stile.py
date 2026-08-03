@@ -45,6 +45,46 @@ def test_classificatore_rifiuta_meno_di_due_stili():
         StyleClassifier(num_styles=1)
 
 
+@pytest.mark.parametrize("image_size", [64, 128])
+def test_classificatore_accetta_la_risoluzione_richiesta(image_size):
+    """Il giudice deve essere costruito per la risoluzione delle immagini che valuta.
+
+    Non e' teoria: la prima versione parametrizzava la classe ma non chi la
+    costruiva, quindi `train_style_classifier` creava un giudice da 64 e gli dava
+    immagini da 128. L'errore era chiaro (32768 contro 8192 attesi) ma arrivava solo
+    a dati preparati e training avviato.
+    """
+    classifier = StyleClassifier(num_styles=6, features=8, image_size=image_size)
+    logits = classifier(torch.randn(2, 3, image_size, image_size))
+    assert logits.shape == (2, 6)
+
+
+def test_classificatore_rifiuta_immagini_di_risoluzione_sbagliata():
+    """Meglio un errore rumoroso che una valutazione su dati ridimensionati in
+    silenzio: le entropie sarebbero plausibili e prive di significato."""
+    classifier = StyleClassifier(num_styles=6, features=8, image_size=64)
+    with pytest.raises(RuntimeError):
+        classifier(torch.randn(2, 3, 128, 128))
+
+
+def test_risoluzione_conservata_nel_salvataggio(tmp_path):
+    """Se la risoluzione non finisse nel file, ricaricare un giudice a 128
+    produrrebbe una rete da 64 e un errore di forma alla prima valutazione."""
+    classes = ["a", "b", "c"]
+    save_style_classifier(
+        StyleClassifier(num_styles=3, image_size=128),
+        StyleClassifierInfo(
+            num_styles=3, classes=classes, val_accuracy=0.7, train_size=10,
+            val_size=2, epochs=1, seed=1, entropy_real=0.5,
+            entropy_real_normalized=0.4, max_entropy=math.log(3),
+        ),
+        tmp_path,
+    )
+    caricato, _ = load_style_classifier(tmp_path, CPU, expected_classes=classes)
+    assert caricato.image_size == 128
+    assert caricato(torch.randn(1, 3, 128, 128)).shape == (1, 3)
+
+
 def test_classificatore_non_e_pre_addestrato_su_imagenet():
     """Nessun peso scaricato: il giudice non eredita il bias fotografico di ImageNet,
     che e' esattamente la critica che la tesi muove a FID e IS."""

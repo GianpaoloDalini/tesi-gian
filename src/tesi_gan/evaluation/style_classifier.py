@@ -449,6 +449,7 @@ def train_style_classifier(
     num_workers: int = 4,
     commit: str | None = None,
     val_dataset: Dataset | None = None,
+    image_size: int = 64,
 ) -> tuple[StyleClassifier, StyleClassifierInfo]:
     """Addestra il giudice sui dati reali e ne misura l'attendibilita'.
 
@@ -488,7 +489,7 @@ def train_style_classifier(
         num_workers=num_workers, pin_memory=torch.cuda.is_available(),
     )
 
-    classifier = StyleClassifier(num_styles=num_styles).to(device)
+    classifier = StyleClassifier(num_styles=num_styles, image_size=image_size).to(device)
     optimizer = torch.optim.Adam(classifier.parameters(), lr=lr, betas=(0.5, 0.999))
     criterion = nn.CrossEntropyLoss()
 

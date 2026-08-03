@@ -205,6 +205,10 @@ def cmd_train_style_classifier(cfg, force: bool) -> int:
         num_workers=int(cfg.data.get("num_workers", 4)),
         commit=commit,
         val_dataset=reference,
+        # La risoluzione viene dalla configurazione dei dati, come per le reti
+        # dell'impianto: un giudice costruito per una risoluzione diversa da quella
+        # delle immagini fallisce con un errore di forma.
+        image_size=int(cfg.data.image_size),
     )
     save_style_classifier(classifier, info, directory)
 
