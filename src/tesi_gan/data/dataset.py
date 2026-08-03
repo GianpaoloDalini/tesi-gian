@@ -115,6 +115,69 @@ def build_dataset(cfg) -> Dataset:
     return dataset
 
 
+def build_reference_dataset(cfg) -> Dataset | None:
+    """Dataset di **riferimento**, indipendente da quello di addestramento.
+
+    Corrisponde allo split `test` ufficiale di ArtBench (1.000 immagini per stile).
+    Serve a due cose distinte, entrambe di credibilita' e non di prestazioni:
+
+    1. **Validazione del giudice di stile** (ADR-0005). L'accuratezza misurata su
+       dati mai visti, e per giunta sullo split ufficiale del dataset, e' un numero
+       confrontabile con i benchmark pubblicati. Misurata su una porzione ritagliata
+       dal training set sarebbe soltanto un numero interno.
+    2. **Distribuzione di riferimento per il FID.** Calcolare il FID contro le stesse
+       immagini su cui il generatore si e' addestrato premia la memorizzazione: un
+       modello che riproducesse i dati di addestramento otterrebbe un FID eccellente
+       senza aver imparato nulla di generalizzabile.
+
+    Restituisce `None` se `data.reference_root` non e' configurato: in quel caso il
+    giudice ricade sullo split interno e il FID si calcola contro il training set.
+    E' una configurazione ammissibile — il confronto fra le due condizioni resta
+    valido perche' il bias e' identico per entrambe — ma va dichiarata.
+
+    **Nessuna augmentation sul riferimento.** Il flip orizzontale ha senso quando si
+    addestra, non quando si misura: una distribuzione di riferimento aumentata non e'
+    piu' la distribuzione dei dati reali.
+    """
+    reference_root = cfg.data.get("reference_root")
+    if not reference_root:
+        return None
+
+    root = Path(reference_root)
+    if not root.exists():
+        raise FileNotFoundError(
+            f"Riferimento configurato ma inesistente: {root}. Prepara lo split di "
+            f"riferimento oppure rimuovi `data.reference_root` dalla configurazione."
+        )
+
+    dataset = ImageFolder(
+        root=str(root),
+        transform=build_transform(int(cfg.data.image_size), augment=False),
+    )
+    if len(dataset) == 0:
+        raise RuntimeError(f"Nessuna immagine trovata sotto {root}.")
+    return dataset
+
+
+def assert_same_classes(training: Dataset, reference: Dataset) -> None:
+    """Verifica che i due dataset espongano le stesse classi **nello stesso ordine**.
+
+    `ImageFolder` assegna gli indici in ordine alfabetico delle cartelle. Se il
+    riferimento contenesse un sottoinsieme diverso di stili, gli indici slitterebbero
+    e il giudice verrebbe validato confrontando le sue predizioni con etichette che
+    significano altro. Il guasto sarebbe silenzioso e i numeri sembrerebbero
+    plausibili: per questo si controlla invece di fidarsi.
+    """
+    classi_training = list(getattr(training, "classes", []))
+    classi_riferimento = list(getattr(reference, "classes", []))
+    if classi_training != classi_riferimento:
+        raise RuntimeError(
+            f"Le classi del set di addestramento {classi_training} non coincidono "
+            f"con quelle del riferimento {classi_riferimento}. Gli indici di classe "
+            f"slitterebbero e le etichette non significherebbero piu' la stessa cosa."
+        )
+
+
 def num_styles_of(dataset: Dataset) -> int:
     """Numero di classi di stile effettivamente presenti nel dataset."""
     classes = getattr(dataset, "classes", None)

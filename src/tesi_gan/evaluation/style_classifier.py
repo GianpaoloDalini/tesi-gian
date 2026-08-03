@@ -154,6 +154,9 @@ class StyleClassifierInfo:
     val_size: int
     epochs: int
     seed: int
+    # "esterno" = split ufficiale del dataset (test di ArtBench), quindi accuratezza
+    # confrontabile con la letteratura; "interno" = ritagliato dal training set.
+    validazione: str = "interno"
     entropy_real: float
     entropy_real_normalized: float
     max_entropy: float
@@ -312,6 +315,7 @@ def train_style_classifier(
     seed: int = 42,
     num_workers: int = 4,
     commit: str | None = None,
+    val_dataset: Dataset | None = None,
 ) -> tuple[StyleClassifier, StyleClassifierInfo]:
     """Addestra il giudice sui dati reali e ne misura l'attendibilita'.
 
@@ -320,12 +324,27 @@ def train_style_classifier(
     l'altro introdurrebbe una variabile nascosta e renderebbe le entropie non
     confrontabili, che e' precisamente il difetto che questo modulo esiste per
     eliminare.
+
+    `val_dataset`, se fornito, e' lo split di validazione **ufficiale** del dataset
+    (il `test` di ArtBench). In quel caso si addestra sull'intero `dataset` e non si
+    ritaglia nulla: l'accuratezza risultante e' misurata su dati mai visti e sullo
+    split pubblicato, quindi confrontabile con i benchmark di letteratura invece che
+    essere un numero interno.
     """
-    train_set, val_set = stratified_split(dataset, val_fraction, seed)
-    log.info(
-        "Split stratificato: %d immagini di addestramento, %d di validazione",
-        len(train_set), len(val_set),
-    )
+    if val_dataset is not None:
+        train_set: Dataset = dataset
+        val_set: Dataset = val_dataset
+        log.info(
+            "Validazione su split esterno: %d immagini di addestramento, %d di "
+            "validazione (nessun ritaglio dal training set)",
+            len(train_set), len(val_set),
+        )
+    else:
+        train_set, val_set = stratified_split(dataset, val_fraction, seed)
+        log.info(
+            "Split stratificato interno: %d immagini di addestramento, %d di validazione",
+            len(train_set), len(val_set),
+        )
 
     train_loader = DataLoader(
         train_set, batch_size=batch_size, shuffle=True,
@@ -398,6 +417,7 @@ def train_style_classifier(
         entropy_real_normalized=entropy_real / max_entropy,
         max_entropy=max_entropy,
         commit=commit,
+        validazione="esterno" if val_dataset is not None else "interno",
     )
     log.info(
         "Giudice pronto — accuratezza %.3f | entropia sui reali %.3f nats "

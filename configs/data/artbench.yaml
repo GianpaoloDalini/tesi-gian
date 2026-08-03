@@ -21,6 +21,18 @@ image_size: 64
 num_workers: 4
 augment: true          # solo flip orizzontale: vedi la nota in data/dataset.py
 
+# Split di RIFERIMENTO: il `test` ufficiale di ArtBench (1.000 immagini per stile),
+# preparato separatamente in data/processed_test. Non si addestra mai su queste
+# immagini. Serve a due cose:
+#   - validare il giudice di stile su dati mai visti e sullo split pubblicato,
+#     rendendo la sua accuratezza confrontabile con la letteratura;
+#   - fornire la distribuzione di riferimento per il FID. Calcolarlo contro i dati
+#     di addestramento premierebbe la memorizzazione: un generatore che riproducesse
+#     il training set otterrebbe un FID ottimo senza generalizzare.
+# Sul riferimento non si applica augmentation: una distribuzione aumentata non e'
+# piu' la distribuzione dei dati reali.
+reference_root: data/processed_test
+
 # I sei stili di ADR-0004. Servono a `data.download` per selezionarli
 # esplicitamente: con un dataset bilanciato non ha senso prendere "i piu'
 # popolati", perche' sono tutti uguali.

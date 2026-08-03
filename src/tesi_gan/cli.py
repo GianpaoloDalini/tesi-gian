@@ -136,7 +136,12 @@ def cmd_train_style_classifier(cfg, force: bool) -> int:
     Va eseguito **una volta sola**, prima dei run dell'impianto. Riaddestrarlo fra
     un run e l'altro renderebbe le entropie non confrontabili.
     """
-    from tesi_gan.data import build_dataset, num_styles_of
+    from tesi_gan.data import (
+        assert_same_classes,
+        build_dataset,
+        build_reference_dataset,
+        num_styles_of,
+    )
     from tesi_gan.evaluation.style_classifier import (
         save_style_classifier,
         train_style_classifier,
@@ -163,10 +168,24 @@ def cmd_train_style_classifier(cfg, force: bool) -> int:
     num_styles = num_styles_of(dataset)
     classes = list(getattr(dataset, "classes", []))
 
+    # Split di riferimento, se configurato: l'accuratezza del giudice viene misurata
+    # su dati mai visti invece che su una porzione ritagliata dal training set.
+    reference = build_reference_dataset(cfg)
+    if reference is not None:
+        assert_same_classes(dataset, reference)
+
     log.info(
         "Addestramento del giudice — %d immagini, %d stili: %s",
         len(dataset), num_styles, ", ".join(classes),
     )
+    if reference is not None:
+        log.info("Validazione sullo split esterno: %d immagini", len(reference))
+    else:
+        log.warning(
+            "Nessuno split di riferimento configurato (`data.reference_root`): "
+            "l'accuratezza sara' misurata su una porzione del training set. "
+            "Ammissibile, ma va dichiarato in tesi."
+        )
 
     try:
         commit = provenance.collect().commit
@@ -185,6 +204,7 @@ def cmd_train_style_classifier(cfg, force: bool) -> int:
         seed=int(judge_cfg.seed),
         num_workers=int(cfg.data.get("num_workers", 4)),
         commit=commit,
+        val_dataset=reference,
     )
     save_style_classifier(classifier, info, directory)
 
@@ -207,7 +227,13 @@ def cmd_evaluate(
     import torch
     from omegaconf import OmegaConf
 
-    from tesi_gan.data import build_dataloader, build_dataset, num_styles_of
+    from tesi_gan.data import (
+        assert_same_classes,
+        build_dataloader,
+        build_dataset,
+        build_reference_dataset,
+        num_styles_of,
+    )
     from tesi_gan.evaluation import evaluate
     from tesi_gan.evaluation.style_classifier import load_style_classifier
     from tesi_gan.models import build_models
@@ -252,10 +278,23 @@ def cmd_evaluate(
     generator.to(device).eval()
     discriminator.to(device).eval()
 
+    # Il FID si calcola contro il RIFERIMENTO, non contro i dati di addestramento:
+    # misurarlo sulle stesse immagini che il generatore ha visto premia la
+    # memorizzazione invece della generalizzazione.
+    reference = build_reference_dataset(cfg)
+    if reference is not None:
+        assert_same_classes(dataset, reference)
+        log.info("FID calcolato contro lo split di riferimento (%d immagini)", len(reference))
+    else:
+        log.warning(
+            "Nessuno split di riferimento: il FID e' calcolato contro i dati di "
+            "addestramento. Va dichiarato in tesi — favorisce la memorizzazione."
+        )
+
     result = evaluate(
         generator=generator,
         discriminator=discriminator,
-        real_loader=build_dataloader(cfg, dataset),
+        real_loader=build_dataloader(cfg, reference if reference is not None else dataset),
         device=device,
         n_samples=n_samples,
         batch_size=int(cfg.training.batch_size),
@@ -268,6 +307,7 @@ def cmd_evaluate(
         "condizione": str(cfg.model.name),
         "seed": int(cfg.seed),
         "epoca": int(ckpt.get("epoch", -1)),
+        "riferimento_fid": "split esterno" if reference is not None else "training set",
         **result.as_dict(),
     }
     print(json.dumps(payload, indent=2, ensure_ascii=False))

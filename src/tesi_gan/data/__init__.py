@@ -3,8 +3,10 @@ addestrabile (ADR-0003)."""
 
 from tesi_gan.data.dataset import (
     SyntheticStyleDataset,
+    assert_same_classes,
     build_dataloader,
     build_dataset,
+    build_reference_dataset,
     build_transform,
     denormalize,
     num_styles_of,
@@ -12,8 +14,10 @@ from tesi_gan.data.dataset import (
 
 __all__ = [
     "SyntheticStyleDataset",
+    "assert_same_classes",
     "build_dataloader",
     "build_dataset",
+    "build_reference_dataset",
     "build_transform",
     "denormalize",
     "num_styles_of",
