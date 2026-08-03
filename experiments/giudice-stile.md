@@ -124,18 +124,38 @@ texture non sopravvive.
 riguarda anche la valutazione delle GAN in generale: **una metrica basata su un
 classificatore non può essere più fine della risoluzione a cui opera.**
 
-## Verifica in sospeso — effetto soffitto
+## Verifica dell'effetto soffitto — superata
 
-Resta da misurare il rischio che conta di più. Se il giudice trova già quasi massima
-l'entropia sulle immagini della **DCGAN**, la CAN non ha spazio per salire e le due
-condizioni darebbero lo stesso numero — non perché il meccanismo non funzioni ma
-perché la metrica è satura.
+Il rischio da escludere prima di spendere il calcolo: se il giudice trovasse già
+quasi massima l'entropia sulle immagini della **DCGAN**, la CAN non avrebbe spazio
+per salire e le due condizioni darebbero lo stesso numero — non perché il meccanismo
+non funzioni ma perché la metrica è satura.
 
-Si misura con un run breve di DCGAN e la valutazione dei suoi campioni. Esito da
-riportare qui.
+**Misurato il 2026-08-03** con un run DCGAN di 20 epoche (`e1-dcgan-baseline`,
+seed 1, commit `66f91f2`), valutato su 1.024 campioni.
 
 | Riferimento | Entropia normalizzata |
 |---|---|
-| Immagini reali (J2) | 0,531 |
-| DCGAN, 20 epoche | *da misurare* |
-| Soffitto teorico | 1,000 |
+| Immagini reali (split esterno) | 0,531 |
+| **DCGAN, 20 epoche** | **0,601** |
+| Soffitto teorico `log(6)` | 1,000 |
+
+**La metrica non è satura.** La condizione di controllo si colloca 0,07 sopra il
+pavimento dell'arte vera e 0,40 sotto il soffitto: lo spazio per osservare un
+innalzamento dovuto al meccanismo di ambiguità c'è tutto.
+
+**Il confondimento «generatore scarso = entropia massima» non morde**, ed è la
+notizia migliore. Questo modello ha **FID 191,3**, cioè immagini visibilmente brutte
+dopo sole 20 epoche, e il giudice le attribuisce comunque con una certa sicurezza. Se
+il rumore informe bastasse a massimizzare l'entropia, qui si sarebbe visto.
+
+**Attesa per il run completo:** a 100 epoche la DCGAN produrrà immagini più
+attribuibili, quindi la sua entropia dovrebbe **scendere** verso 0,53, allargando la
+forbice disponibile. Se invece salisse, andrebbe indagato.
+
+Altre metriche del run di controllo, utili come riferimento per i run completi:
+FID 191,3 · Inception Score 2,627 ± 0,175 · 1.024 campioni · FID calcolato contro lo
+split esterno.
+
+`style_entropy` risulta `null`: è la vecchia metrica basata sulla testa di stile del
+discriminatore, non definita per la DCGAN. È il buco che ha motivato ADR-0005.
