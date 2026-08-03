@@ -725,13 +725,20 @@ Verificato il 2026-07-31.
 | Makefile | funzionante | 9 target documentati |
 | `.gitignore` | attivo | nessun artefatto di build versionato |
 
-**Anomalia nota:** nella cartella `.git` sono rimasti file di lock (`HEAD.lock`) non
-rimovibili dall'ambiente in cui ho lavorato. Bloccano i commit finché non vengono
-eliminati manualmente:
+**Anomalia ricorrente:** nella cartella `.git` compaiono file di lock (`HEAD.lock`,
+`index.lock`) che bloccano i commit finché non vengono eliminati:
 
 ```bash
 cd "/Users/gian/Documents/Tesi Gian" && rm -f .git/HEAD.lock .git/index.lock
 ```
+
+Si è ripresentata il 2026-08-03, insieme alla comparsa di un ADR-0005 duplicato
+(`0005-giudice-stile.md`, poi eliminato) scritto nello stesso minuto di quello
+prodotto in sessione. **Ipotesi:** due sessioni assistite aperte contemporaneamente
+sulla stessa cartella. Conviene tenerne aperta una sola per volta.
+
+**Ambiente Python:** virtualenv in `.venv/` (ignorato da git). Prima di qualsiasi
+comando: `source .venv/bin/activate`.
 
 ---
 
@@ -781,4 +788,4 @@ discussione dei limiti.
 | 2026-07-31 | Intervista iniziale; analisi del template `phd-thesis-tex`; impostazione del monorepo | D-001…D-009 decise; Q1…Q8 aperte; infrastruttura verificata |
 | 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato; ricognizione dei dataset artistici; dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-013 RunPod; D-014 ArtBench-10 supera D-011; Q2, Q4, Q7 chiuse; V-007 documentata; pipeline adattata |
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
-| 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata. **Test scritti ma non eseguiti**: l'ambiente di lavoro non disponeva di PyTorch |
+| 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
