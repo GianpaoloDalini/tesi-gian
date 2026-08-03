@@ -269,7 +269,11 @@ class Trainer:
 
     def load_checkpoint(self, path: str | Path) -> None:
         path = Path(path)
-        ckpt = torch.load(path, map_location=self.device)
+        # weights_only=True: i nostri checkpoint contengono solo tensori, interi e
+        # booleani, quindi non serve deserializzare oggetti arbitrari. E' anche il
+        # default che PyTorch adottera' in futuro: dichiararlo ora evita che i
+        # checkpoint smettano di caricarsi al primo aggiornamento della libreria.
+        ckpt = torch.load(path, map_location=self.device, weights_only=True)
 
         if bool(ckpt.get("is_can", False)) != self.is_can:
             raise RuntimeError(

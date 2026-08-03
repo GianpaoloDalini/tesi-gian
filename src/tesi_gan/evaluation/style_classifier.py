@@ -548,7 +548,7 @@ def load_style_classifier(
             f"sarebbero confrontabili: riaddestra il giudice sul dataset corretto."
         )
 
-    payload = torch.load(weights_path, map_location=device)
+    payload = torch.load(weights_path, map_location=device, weights_only=True)
     classifier = StyleClassifier(num_styles=int(payload["num_styles"]))
     classifier.load_state_dict(payload["state_dict"])
     classifier.to(device).eval()

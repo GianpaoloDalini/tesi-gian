@@ -202,7 +202,9 @@ def export_figure_annotata(cfg, device=None) -> Path | None:
         features=cfg.model.generator_features,
         channels=cfg.model.channels,
     )
-    generator.load_state_dict(torch.load(checkpoint, map_location=device)["generator"])
+    generator.load_state_dict(
+        torch.load(checkpoint, map_location=device, weights_only=True)["generator"]
+    )
     generator.to(device).eval()
 
     return save_annotated_grid(

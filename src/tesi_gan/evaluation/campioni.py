@@ -268,7 +268,7 @@ def carica_campioni_da_checkpoint(
     fuori: dict[int, torch.Tensor] = {}
 
     for path in sorted(checkpoint_dir.glob("epoch_*.pt")):
-        ckpt = torch.load(path, map_location=device)
+        ckpt = torch.load(path, map_location=device, weights_only=True)
         generator = build_generator()
         generator.load_state_dict(ckpt["generator"])
         generator.to(device).eval()

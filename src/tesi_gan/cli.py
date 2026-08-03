@@ -342,7 +342,7 @@ def cmd_evaluate(
         log.warning("Valutazione senza giudice terzo: risultati non confrontabili.")
 
     generator, discriminator = build_models(cfg)
-    ckpt = torch.load(checkpoint, map_location=device)
+    ckpt = torch.load(checkpoint, map_location=device, weights_only=True)
     generator.load_state_dict(ckpt["generator"])
     discriminator.load_state_dict(ckpt["discriminator"])
     generator.to(device).eval()

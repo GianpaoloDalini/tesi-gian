@@ -17,7 +17,10 @@ dependencies = [
   "hydra-core>=1.3",       # configurazioni componibili, niente iperparametri hardcoded
   "omegaconf>=2.3",
   "wandb>=0.16",           # tracciamento esperimenti
-  "torchmetrics>=1.3",     # FID, Inception Score
+  # L'extra [image] tira dentro torch-fidelity, senza il quale
+  # FrechetInceptionDistance solleva ModuleNotFoundError al primo uso: la
+  # dipendenza non e' opzionale per questo progetto, il FID e' una metrica centrale.
+  "torchmetrics[image]>=1.3",   # FID, Inception Score
   "tqdm>=4.66",
   "matplotlib>=3.8",
   "pandas>=2.2",
