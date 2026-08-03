@@ -1,0 +1,30 @@
+# @package _global_
+#
+# E3 — Condizione di CONTROLLO a 128x128.
+#
+#   python -m tesi_gan.cli train experiment=e3-dcgan-128 seed=1
+#
+# Replica esatta di e1-dcgan-baseline con la sola risoluzione cambiata: e' la
+# variabile che si vuole isolare. Batch dimezzato a 64 perche' a 128 le attivazioni
+# occupano quattro volte la memoria; e' l'unico altro parametro toccato, e va
+# dichiarato perche' il batch influisce sulle statistiche di BatchNorm.
+#
+# **I risultati a 128 non sono confrontabili con quelli a 64 nella stessa tabella.**
+# Cambiano rete, dati, giudice e riferimenti di entropia. Sono due impianti
+# paralleli, e il confronto fra loro riguarda l'effetto della risoluzione sulla
+# misurabilita' dello stile, non l'effetto della CAN.
+defaults:
+  - override /model: dcgan
+  - override /data: artbench128
+
+seed: 1
+
+training:
+  epochs: 100
+  batch_size: 64
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 10
+  label_smoothing: 0.1

@@ -24,21 +24,86 @@ from tesi_gan.training.losses import (  # noqa: E402
 BATCH = 4
 NUM_STYLES = 5
 
+# Le risoluzioni su cui l'invariante va verificato. Aggiungerne una qui basta a
+# estendere a essa tutti i controlli di validita' del disegno sperimentale.
+RISOLUZIONI = [64, 128]
 
-def _generatori():
+
+def _generatori(image_size: int = 64):
     torch.manual_seed(0)
-    g_dcgan = Generator()
+    g_dcgan = Generator(image_size=image_size)
     torch.manual_seed(0)
-    g_can = Generator()
+    g_can = Generator(image_size=image_size)
     return g_dcgan, g_can
 
 
-def _discriminatori():
+def _discriminatori(image_size: int = 64):
     torch.manual_seed(0)
-    d_dcgan = Discriminator(style_head=False)
+    d_dcgan = Discriminator(style_head=False, image_size=image_size)
     torch.manual_seed(0)
-    d_can = Discriminator(style_head=True, num_styles=NUM_STYLES)
+    d_can = Discriminator(style_head=True, num_styles=NUM_STYLES, image_size=image_size)
     return d_dcgan, d_can
+
+
+# --------------------------------------------------------------------------- #
+#  L'invariante deve valere a OGNI risoluzione
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("image_size", RISOLUZIONI)
+def test_generatore_identico_a_ogni_risoluzione(image_size):
+    """Generalizzare le reti sulla risoluzione non deve rompere ADR-0003.
+
+    La tentazione, passando a 128, era scrivere una seconda coppia di classi. Questo
+    test verifica che l'invariante — stessa classe, un solo booleano di differenza —
+    valga su tutte le risoluzioni supportate.
+    """
+    g1, g2 = _generatori(image_size)
+    for (n1, p1), (n2, p2) in zip(g1.named_parameters(), g2.named_parameters()):
+        assert n1 == n2 and torch.equal(p1, p2)
+
+
+@pytest.mark.parametrize("image_size", RISOLUZIONI)
+def test_backbone_identica_a_ogni_risoluzione(image_size):
+    d1, d2 = _discriminatori(image_size)
+    for (n1, p1), (n2, p2) in zip(
+        d1.backbone.named_parameters(), d2.backbone.named_parameters()
+    ):
+        assert n1 == n2 and torch.equal(p1, p2)
+
+
+@pytest.mark.parametrize("image_size", RISOLUZIONI)
+def test_generatore_produce_la_risoluzione_richiesta(image_size):
+    g = Generator(latent_dim=16, features=8, image_size=image_size)
+    uscita = g(torch.randn(2, 16, 1, 1))
+    assert uscita.shape == (2, 3, image_size, image_size)
+    assert uscita.min() >= -1.0 and uscita.max() <= 1.0
+
+
+@pytest.mark.parametrize("image_size", RISOLUZIONI)
+def test_discriminatore_accetta_la_risoluzione_richiesta(image_size):
+    d = Discriminator(features=8, style_head=True, num_styles=NUM_STYLES,
+                      image_size=image_size)
+    adv, stile = d(torch.randn(2, 3, image_size, image_size))
+    assert adv.shape == (2,)
+    assert stile.shape == (2, NUM_STYLES)
+
+
+@pytest.mark.parametrize("image_size", [12, 100, 7, 0])
+def test_risoluzioni_non_supportate_falliscono_esplicitamente(image_size):
+    """L'architettura raddoppia da 4x4: una risoluzione che non sia potenza di due
+    non e' rappresentabile e deve fallire subito, non produrre forme sbagliate."""
+    with pytest.raises(ValueError, match="potenza di due"):
+        Generator(image_size=image_size)
+
+
+def test_risoluzioni_diverse_danno_reti_diverse():
+    """Controllo di sanita': se 64 e 128 producessero la stessa rete, il parametro
+    non starebbe facendo nulla e i run a 128 sarebbero run a 64 travestiti."""
+    g64 = Generator(latent_dim=16, features=8, image_size=64)
+    g128 = Generator(latent_dim=16, features=8, image_size=128)
+    n64 = sum(p.numel() for p in g64.parameters())
+    n128 = sum(p.numel() for p in g128.parameters())
+    assert n128 > n64
 
 
 # --------------------------------------------------------------------------- #

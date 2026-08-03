@@ -59,17 +59,20 @@ style_judge:
 
 paths:
   data: data/processed
-  # Percorso unico: non dipende da model.name ne' da seed, perche' il giudice e'
-  # uno solo per tutto l'impianto.
-  style_judge: experiments/style_judge
-  # I checkpoint sono separati per condizione E per seed. Senza, il secondo run
-  # sovrascriverebbe il primo: con tre seed per condizione (D-010) si perderebbero
-  # cinque run su sei senza accorgersene.
-  checkpoints: experiments/checkpoints/${model.name}-seed${seed}
+
+  # ATTENZIONE: ogni percorso di output include la RISOLUZIONE, oltre a condizione
+  # e seed. Senza, un impianto a 128 sovrascriverebbe quello a 64 senza errori e
+  # senza avvisi, e la perdita si scoprirebbe settimane dopo davanti a una figura
+  # che non torna. E' la stessa classe di errore gia' corretta due volte: prima sui
+  # checkpoint per seed, poi sui nomi dei run W&B.
+  #
+  # Il giudice e' uno solo PER RISOLUZIONE. Entropie prodotte da classificatori
+  # diversi non vanno nella stessa tabella (ADR-0005), e un giudice addestrato a
+  # 64 non e' nemmeno applicabile a immagini 128.
+  style_judge: experiments/style_judge-${data.image_size}
+  checkpoints: experiments/checkpoints/${model.name}-${data.image_size}-seed${seed}
+  samples: experiments/samples/${model.name}-${data.image_size}-seed${seed}
   figures: thesis/figures/generated
-  # PNG dei campioni per epoca. Separati per condizione e seed come i checkpoint,
-  # altrimenti i sei run si sovrascriverebbero a vicenda.
-  samples: experiments/samples/${model.name}-seed${seed}
 
 hydra:
   run:

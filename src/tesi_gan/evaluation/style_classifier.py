@@ -100,6 +100,7 @@ class StyleClassifier(nn.Module):
         features: int = 64,
         channels: int = 3,
         dropout: float = 0.3,
+        image_size: int = 64,
     ) -> None:
         super().__init__()
         if num_styles < 2:
@@ -108,6 +109,13 @@ class StyleClassifier(nn.Module):
                 f"classificazione — e quindi l'entropia — abbia senso."
             )
         self.num_styles = num_styles
+        self.image_size = image_size
+
+        # Stessa profondita' del discriminatore alla stessa risoluzione: il giudice
+        # deve restare comparabile per capacita' (vedi il docstring della classe).
+        from tesi_gan.models.networks import _stadi
+
+        stadi = _stadi(image_size)
 
         def block(in_c: int, out_c: int, batchnorm: bool = True) -> nn.Sequential:
             layers: list[nn.Module] = [nn.Conv2d(in_c, out_c, 4, 2, 1, bias=False)]
@@ -116,16 +124,16 @@ class StyleClassifier(nn.Module):
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return nn.Sequential(*layers)
 
-        self.backbone = nn.Sequential(
-            block(channels, features, batchnorm=False),  # 64 -> 32
-            block(features, features * 2),               # 32 -> 16
-            block(features * 2, features * 4),           # 16 -> 8
-            block(features * 4, features * 8),           # 8  -> 4
-        )
+        larghezze = [features * 2**i for i in range(stadi)]
+        strati: list[nn.Module] = [block(channels, larghezze[0], batchnorm=False)]
+        for i in range(stadi - 1):
+            strati.append(block(larghezze[i], larghezze[i + 1]))
+        self.backbone = nn.Sequential(*strati)
+
         self.head = nn.Sequential(
             nn.Flatten(),
             nn.Dropout(dropout),
-            nn.Linear(features * 8 * 4 * 4, 512),
+            nn.Linear(larghezze[-1] * 4 * 4, 512),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Dropout(dropout),
             nn.Linear(512, num_styles),
@@ -575,7 +583,14 @@ def save_style_classifier(
 
     weights_path = directory / _WEIGHTS
     tmp = weights_path.with_suffix(weights_path.suffix + ".tmp")
-    torch.save({"state_dict": classifier.state_dict(), "num_styles": classifier.num_styles}, tmp)
+    torch.save(
+        {
+            "state_dict": classifier.state_dict(),
+            "num_styles": classifier.num_styles,
+            "image_size": classifier.image_size,
+        },
+        tmp,
+    )
     tmp.replace(weights_path)  # atomica, come i checkpoint del trainer
 
     metadata_path = directory / _METADATA
@@ -619,7 +634,12 @@ def load_style_classifier(
         )
 
     payload = torch.load(weights_path, map_location=device, weights_only=True)
-    classifier = StyleClassifier(num_styles=int(payload["num_styles"]))
+    classifier = StyleClassifier(
+        num_styles=int(payload["num_styles"]),
+        # I giudici salvati prima dell'introduzione delle risoluzioni multiple non
+        # hanno il campo: erano tutti a 64.
+        image_size=int(payload.get("image_size", 64)),
+    )
     classifier.load_state_dict(payload["state_dict"])
     classifier.to(device).eval()
 

@@ -1,0 +1,30 @@
+# @package _global_
+#
+# E4 — Condizione SPERIMENTALE a 128x128.
+#
+#   python -m tesi_gan.cli train experiment=e4-can-128 seed=1
+#
+# Identico a e3-dcgan-128 tranne il modello, esattamente come e2 lo e' rispetto a
+# e1. Ogni parametro qui sotto deve coincidere con e3-dcgan-128: se ne cambi uno,
+# cambialo in entrambi, altrimenti il confronto non isola piu' la funzione di
+# perdita.
+#
+# Avvertenza dai run a 64: due repliche su quattro della CAN sono degenerate,
+# contro una su quattro della DCGAN. A 128 le GAN sono notoriamente meno stabili,
+# quindi va messo in conto un tasso di fallimento almeno pari. Un run degenerato si
+# documenta e si esclude con criterio dichiarato, non si cancella.
+defaults:
+  - override /model: can
+  - override /data: artbench128
+
+seed: 1
+
+training:
+  epochs: 100
+  batch_size: 64
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 10
+  label_smoothing: 0.1

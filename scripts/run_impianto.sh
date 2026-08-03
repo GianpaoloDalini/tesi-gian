@@ -21,8 +21,22 @@ cd "$REPO_ROOT"
 
 SEEDS="${SEEDS:-1 2 3}"
 FAST_DIR="${FAST_DIR:-/dev/shm}"
-TRAIN_SRC="${TRAIN_SRC:-data/processed}"
-REF_SRC="${REF_SRC:-data/processed_test}"
+
+# Risoluzione dell'impianto. I due impianti convivono: percorsi, dati e giudice
+# sono separati, quindi lanciare il 128 non tocca nulla del 64.
+#   RES=64  -> e1-dcgan-baseline / e2-can-confronto
+#   RES=128 -> e3-dcgan-128      / e4-can-128
+RES="${RES:-64}"
+
+case "$RES" in
+  64)  ESPERIMENTI="e1-dcgan-baseline e2-can-confronto"
+       TRAIN_SRC="${TRAIN_SRC:-data/processed}"
+       REF_SRC="${REF_SRC:-data/processed_test}" ;;
+  128) ESPERIMENTI="e3-dcgan-128 e4-can-128"
+       TRAIN_SRC="${TRAIN_SRC:-data/processed_128}"
+       REF_SRC="${REF_SRC:-data/processed_test_128}" ;;
+  *)   echo "!!! RES=$RES non prevista. Valori ammessi: 64, 128."; exit 1 ;;
+esac
 
 TRAIN_DIR="$FAST_DIR/$(basename "$TRAIN_SRC")"
 REF_DIR="$FAST_DIR/$(basename "$REF_SRC")"
@@ -61,10 +75,17 @@ for sorgente in "$TRAIN_SRC" "$REF_SRC"; do
   fi
 done
 
-if [[ ! -f experiments/style_judge/style_classifier.pt ]]; then
-  echo "!!! Giudice di stile assente: senza, l'ambiguita' non e' confrontabile"
-  echo "!!! fra DCGAN e CAN (ADR-0005). Addestralo con:"
-  echo "!!!   python -m tesi_gan.cli train-style-classifier data=artbench"
+GIUDICE="experiments/style_judge-$RES/style_classifier.pt"
+if [[ ! -f "$GIUDICE" ]]; then
+  echo "!!! Giudice di stile assente per $RES px: $GIUDICE"
+  echo "!!! Senza, l'ambiguita' non e' confrontabile fra DCGAN e CAN (ADR-0005)."
+  echo "!!! Ogni risoluzione ha il suo giudice: entropie prodotte da classificatori"
+  echo "!!! diversi non vanno nella stessa tabella. Addestralo con:"
+  if [[ "$RES" == "64" ]]; then
+    echo "!!!   python -m tesi_gan.cli train-style-classifier data=artbench"
+  else
+    echo "!!!   python -m tesi_gan.cli train-style-classifier data=artbench$RES"
+  fi
   exit 1
 fi
 
@@ -116,10 +137,10 @@ OVERRIDES=(
 INIZIO=$(date +%s)
 
 for seed in $SEEDS; do
-  for esperimento in e1-dcgan-baseline e2-can-confronto; do
+  for esperimento in $ESPERIMENTI; do
     echo
     echo "============================================================"
-    echo "  $esperimento — seed $seed"
+    echo "  $esperimento — seed $seed — ${RES}px"
     echo "============================================================"
     python -m tesi_gan.cli train \
       "experiment=$esperimento" \

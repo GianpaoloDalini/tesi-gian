@@ -1,0 +1,35 @@
+# ArtBench-10 a 128x128, stessi sei stili della configurazione a 64 (D-017).
+#
+# Esiste per rispondere a una domanda precisa: **il limite del giudice di stile e'
+# la risoluzione o la scelta degli stili?** Due iterazioni con criteri di selezione
+# opposti si sono fermate entrambe fra il 52% e il 58% di accuratezza
+# (experiments/giudice-stile.md), il che indica la risoluzione. A 64 pixel la
+# pennellata non sopravvive, e lo stile pittorico e' in larga parte texture.
+#
+# **Non sostituisce la configurazione a 64: la affianca.** I percorsi di output
+# includono la risoluzione, quindi i due impianti convivono senza sovrascriversi.
+#
+# Preparazione (sul pod, da data/raw gia' estratto):
+#   python -m tesi_gan.data.download \
+#       --raw data/raw/artbench-10-imagefolder-split/train \
+#       --processed data/processed_128 \
+#       --stili ukiyo_e renaissance baroque art_nouveau expressionism impressionism \
+#       --per-style 5000 --resize 128 --seed 42 --licenza-verificata
+#   (e lo stesso su .../test -> data/processed_test_128 con --per-style 1000)
+#
+# Attenzione: a 128 il sottoinsieme pesa circa quattro volte quello a 64, quindi
+# intorno ai 400 MB. Sta ancora comodamente in /dev/shm.
+name: artbench128
+root: data/processed_128
+reference_root: data/processed_test_128
+image_size: 128
+num_workers: 4
+augment: true
+
+stili:
+  - ukiyo_e
+  - renaissance
+  - baroque
+  - art_nouveau
+  - expressionism
+  - impressionism

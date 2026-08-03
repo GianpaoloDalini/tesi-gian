@@ -18,8 +18,31 @@ Il discriminatore emette **logit**, non probabilita': le loss usano le varianti
 
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import nn
+
+
+def _stadi(image_size: int) -> int:
+    """Numero di raddoppi spaziali fra 4x4 e `image_size`.
+
+    Il generatore parte da 4x4 e raddoppia fino alla risoluzione richiesta; il
+    discriminatore fa il percorso inverso. A 64x64 servono quattro raddoppi
+    (4-8-16-32-64), a 128x128 cinque.
+
+    **La risoluzione e' un parametro, non una variante del codice.** La tentazione,
+    passando a 128, sarebbe scrivere una seconda coppia di classi: distruggerebbe
+    l'invariante di ADR-0003, perche' DCGAN e CAN devono restare la stessa classe con
+    un solo booleano di differenza. Generalizzare mantiene un'implementazione sola per
+    tutte le risoluzioni, e i test dell'impianto la verificano su ciascuna.
+    """
+    if image_size < 8 or image_size & (image_size - 1) != 0:
+        raise ValueError(
+            f"image_size={image_size}: serve una potenza di due >= 8. "
+            f"L'architettura raddoppia la risoluzione a ogni stadio a partire da 4x4."
+        )
+    return int(math.log2(image_size)) - 2
 
 
 def _init_weights(module: nn.Module) -> None:
@@ -52,9 +75,12 @@ class Generator(nn.Module):
         latent_dim: int = 100,
         features: int = 64,
         channels: int = 3,
+        image_size: int = 64,
     ) -> None:
         super().__init__()
         self.latent_dim = latent_dim
+        self.image_size = image_size
+        stadi = _stadi(image_size)
 
         def block(in_c: int, out_c: int, stride: int, padding: int) -> nn.Sequential:
             return nn.Sequential(
@@ -63,14 +89,20 @@ class Generator(nn.Module):
                 nn.ReLU(inplace=True),
             )
 
-        self.net = nn.Sequential(
-            block(latent_dim, features * 8, 1, 0),      # -> 4x4
-            block(features * 8, features * 4, 2, 1),    # -> 8x8
-            block(features * 4, features * 2, 2, 1),    # -> 16x16
-            block(features * 2, features, 2, 1),        # -> 32x32
-            nn.ConvTranspose2d(features, channels, 4, 2, 1, bias=False),  # -> 64x64
+        # I canali si dimezzano a ogni raddoppio spaziale, partendo da
+        # features * 2^(stadi-1). A 64x64 la progressione e' 512-256-128-64, la
+        # stessa di Radford et al. (2016); a 128x128 diventa 1024-512-256-128-64.
+        larghezze = [features * 2 ** (stadi - 1 - i) for i in range(stadi)]
+
+        strati: list[nn.Module] = [block(latent_dim, larghezze[0], 1, 0)]  # -> 4x4
+        for i in range(stadi - 1):
+            strati.append(block(larghezze[i], larghezze[i + 1], 2, 1))     # raddoppia
+        strati += [
+            nn.ConvTranspose2d(larghezze[-1], channels, 4, 2, 1, bias=False),
             nn.Tanh(),
-        )
+        ]
+
+        self.net = nn.Sequential(*strati)
         self.apply(_init_weights)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -113,8 +145,11 @@ class Discriminator(nn.Module):
         channels: int = 3,
         style_head: bool = False,
         num_styles: int | None = None,
+        image_size: int = 64,
     ) -> None:
         super().__init__()
+        self.image_size = image_size
+        stadi = _stadi(image_size)
 
         if style_head and not num_styles:
             raise ValueError(
@@ -133,17 +168,19 @@ class Discriminator(nn.Module):
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return nn.Sequential(*layers)
 
-        # Backbone condivisa: 64x64 -> 4x4. Nessuna batchnorm sul primo blocco,
-        # come prescritto da Radford et al. (2016).
-        self.backbone = nn.Sequential(
-            block(channels, features, batchnorm=False),  # -> 32x32
-            block(features, features * 2),               # -> 16x16
-            block(features * 2, features * 4),           # -> 8x8
-            block(features * 4, features * 8),           # -> 4x4
-        )
+        # Backbone condivisa: image_size -> 4x4, dimezzando a ogni stadio e
+        # raddoppiando i canali. Nessuna batchnorm sul primo blocco, come prescritto
+        # da Radford et al. (2016).
+        larghezze = [features * 2**i for i in range(stadi)]
+        strati: list[nn.Module] = [block(channels, larghezze[0], batchnorm=False)]
+        for i in range(stadi - 1):
+            strati.append(block(larghezze[i], larghezze[i + 1]))
+        self.backbone = nn.Sequential(*strati)
+
+        self.features_finali = larghezze[-1]
 
         # Testa reale/falso: presente in entrambe le condizioni.
-        self.adv_head = nn.Conv2d(features * 8, 1, 4, 1, 0, bias=False)
+        self.adv_head = nn.Conv2d(self.features_finali, 1, 4, 1, 0, bias=False)
 
         # ATTENZIONE ALL'ORDINE. L'inizializzazione va applicata a backbone e testa
         # avversaria **prima** di costruire la testa di stile, non con un solo
@@ -167,12 +204,13 @@ class Discriminator(nn.Module):
         # la rappresentazione stilistica non sia forzata a coincidere con quella
         # usata per reale/falso.
         if style_head:
+            f = self.features_finali
             self.style_head = nn.Sequential(
-                nn.Conv2d(features * 8, features * 8, 3, 1, 1, bias=False),
-                nn.BatchNorm2d(features * 8),
+                nn.Conv2d(f, f, 3, 1, 1, bias=False),
+                nn.BatchNorm2d(f),
                 nn.LeakyReLU(0.2, inplace=True),
                 nn.Flatten(),
-                nn.Linear(features * 8 * 4 * 4, 512),
+                nn.Linear(f * 4 * 4, 512),
                 nn.LeakyReLU(0.2, inplace=True),
                 nn.Linear(512, num_styles),
             )
@@ -195,15 +233,23 @@ def build_models(cfg) -> tuple[Generator, Discriminator]:
     """
     is_can = str(cfg.model.name).lower() == "can"
 
+    # La risoluzione viene dalla configurazione DEI DATI, non da quella del modello:
+    # una rete costruita per una risoluzione diversa da quella delle immagini
+    # fallirebbe con un errore di forma, oppure — peggio — girerebbe su dati
+    # ridimensionati in silenzio.
+    image_size = int(cfg.data.image_size)
+
     generator = Generator(
         latent_dim=cfg.model.latent_dim,
         features=cfg.model.generator_features,
         channels=cfg.model.channels,
+        image_size=image_size,
     )
     discriminator = Discriminator(
         features=cfg.model.discriminator_features,
         channels=cfg.model.channels,
         style_head=is_can,
         num_styles=cfg.model.get("num_styles") if is_can else None,
+        image_size=image_size,
     )
     return generator, discriminator

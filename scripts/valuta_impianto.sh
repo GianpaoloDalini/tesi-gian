@@ -19,30 +19,42 @@ cd "$REPO_ROOT"
 
 SEEDS="${SEEDS:-1 2 3}"
 N_SAMPLES="${N_SAMPLES:-2048}"
-RESULTS_DIR="${RESULTS_DIR:-experiments/results}"
+RES="${RES:-64}"
+RESULTS_DIR="${RESULTS_DIR:-experiments/results-$RES}"
 FAST_DIR="${FAST_DIR:-/dev/shm}"
 
-TRAIN_DIR="$FAST_DIR/processed"
-REF_DIR="$FAST_DIR/processed_test"
+case "$RES" in
+  64)  COPPIE="e1-dcgan-baseline:dcgan e2-can-confronto:can"
+       TRAIN_DIR="$FAST_DIR/processed"
+       REF_DIR="$FAST_DIR/processed_test"
+       SRC_TRAIN="data/processed"; SRC_REF="data/processed_test" ;;
+  128) COPPIE="e3-dcgan-128:dcgan e4-can-128:can"
+       TRAIN_DIR="$FAST_DIR/processed_128"
+       REF_DIR="$FAST_DIR/processed_test_128"
+       SRC_TRAIN="data/processed_128"; SRC_REF="data/processed_test_128" ;;
+  *)   echo "!!! RES=$RES non prevista. Valori ammessi: 64, 128."; exit 1 ;;
+esac
 
 # Se il disco veloce e' stato svuotato (il pod e' stato riavviato), si ricade
 # sul volume persistente: piu' lento ma corretto.
 if [[ ! -d "$TRAIN_DIR" ]]; then
   echo "==> $TRAIN_DIR assente, uso il volume persistente"
-  TRAIN_DIR="data/processed"
-  REF_DIR="data/processed_test"
+  TRAIN_DIR="$SRC_TRAIN"
+  REF_DIR="$SRC_REF"
 fi
 
 mkdir -p "$RESULTS_DIR"
 
+echo "==> Risoluzione: ${RES}px"
 echo "==> Valutazione con --n-samples $N_SAMPLES (identico per tutti i run)"
-echo "==> Giudice: experiments/style_judge"
+echo "==> Giudice: experiments/style_judge-$RES"
+echo "==> Risultati: $RESULTS_DIR"
 
 for seed in $SEEDS; do
-  for coppia in "e1-dcgan-baseline:dcgan" "e2-can-confronto:can"; do
+  for coppia in $COPPIE; do
     esperimento="${coppia%%:*}"
     condizione="${coppia##*:}"
-    checkpoint="experiments/checkpoints/${condizione}-seed${seed}/final.pt"
+    checkpoint="experiments/checkpoints/${condizione}-${RES}-seed${seed}/final.pt"
 
     if [[ ! -f "$checkpoint" ]]; then
       echo "!!! Manca $checkpoint — run non eseguito? Salto."
