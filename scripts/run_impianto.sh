@@ -75,6 +75,34 @@ for sorgente in "$TRAIN_SRC" "$REF_SRC"; do
   fi
 done
 
+# --- Spazio su disco ---------------------------------------------------------
+# Un checkpoint salva generatore, discriminatore E lo stato dei due ottimizzatori
+# Adam, che triplica lo spazio dei soli pesi. A 128px le reti hanno quattro volte i
+# parametri di 64px, quindi un checkpoint passa da ~80 MB a ~290 MB e i sei run
+# dell'impianto da ~11 GB a ~22 GB.
+#
+# Questo controllo esiste perche' il 2026-08-03 il volume si e' riempito a meta'
+# dell'impianto a 128: un run completo, uno troncato, quattro mai partiti. Il
+# fabbisogno era stato calcolato sui numeri di 64px e non ricalcolato al cambio di
+# risoluzione. Meglio saperlo adesso che dopo venti minuti di GPU.
+if [[ "$RES" == "128" ]]; then
+  RICHIESTI_GB=24
+else
+  RICHIESTI_GB=12
+fi
+
+DISPONIBILI_GB=$(df -BG --output=avail . 2>/dev/null | tail -1 | tr -dc '0-9')
+if [[ -n "$DISPONIBILI_GB" && "$DISPONIBILI_GB" -lt "$RICHIESTI_GB" ]]; then
+  echo "!!! Spazio insufficiente: ${DISPONIBILI_GB} GB liberi, ne servono ~${RICHIESTI_GB}"
+  echo "!!! per i checkpoint dei sei run a ${RES}px."
+  echo "!!!"
+  echo "!!! Ingrandisci il Network Volume, oppure libera spazio: il tar di ArtBench e"
+  echo "!!! data/raw non servono piu' una volta preparati i dati."
+  echo "!!! Per procedere comunque: SALTA_CONTROLLO_DISCO=1"
+  [[ "${SALTA_CONTROLLO_DISCO:-0}" == "1" ]] || exit 1
+fi
+echo "==> Spazio disponibile: ${DISPONIBILI_GB:-?} GB (stimati necessari: ${RICHIESTI_GB} GB)"
+
 GIUDICE="experiments/style_judge-$RES/style_classifier.pt"
 if [[ ! -f "$GIUDICE" ]]; then
   echo "!!! Giudice di stile assente per $RES px: $GIUDICE"
@@ -138,6 +166,24 @@ INIZIO=$(date +%s)
 
 for seed in $SEEDS; do
   for esperimento in $ESPERIMENTI; do
+    # La condizione si ricava dal nome dell'esperimento: e1/e3 sono DCGAN, e2/e4 CAN.
+    case "$esperimento" in
+      *dcgan*) condizione="dcgan" ;;
+      *can*)   condizione="can" ;;
+      *)       echo "!!! Esperimento non riconosciuto: $esperimento"; exit 1 ;;
+    esac
+    cartella="experiments/checkpoints/${condizione}-${RES}-seed${seed}"
+
+    # Un run gia' concluso non si rifa'. Serve a riprendere un impianto interrotto
+    # — per disco pieno, sessione caduta, GPU riassegnata — senza buttare le ore
+    # gia' spese. `final.pt` esiste solo a training concluso, quindi un run
+    # troncato viene correttamente rilanciato.
+    if [[ -f "$cartella/final.pt" && "${FORZA:-0}" != "1" ]]; then
+      echo
+      echo "==> $esperimento seed $seed gia' completo, salto. (FORZA=1 per rifarlo)"
+      continue
+    fi
+
     echo
     echo "============================================================"
     echo "  $esperimento — seed $seed — ${RES}px"
