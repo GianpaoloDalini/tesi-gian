@@ -4,6 +4,69 @@ Ogni run che produce un numero o una figura citati nella tesi va registrato qui.
 È il ponte tra `experiments/` (ignorato da git) e il testo dell'elaborato: senza,
 tra tre mesi non saprai da quale run proviene la Figura 6.2.
 
+## Revisione del criterio di selezione del checkpoint — 2026-08-03, sera
+
+> **Questa sezione documenta un cambio di criterio avvenuto dopo aver visto dei
+> risultati.** È esattamente la situazione in cui una revisione può diventare
+> disonesta, quindi va scritta per intero: cosa era stato dichiarato prima, cosa è
+> emerso, perché il criterio è cambiato e come è stato reso non arbitrario.
+
+### Cosa era stato dichiarato
+
+Prima di lanciare l'impianto a 64px: **si riporta l'epoca 100 per tutti i run**,
+senza selezione a posteriori del checkpoint migliore, che sarebbe stata selezione del
+modello sulla metrica di valutazione.
+
+### Cosa è emerso
+
+Osservando i campioni per epoca dei run a **128px**, `dcgan-seed1` mostra:
+
+- **epoca 90 e 97:** immagini di qualità nettamente superiore a qualunque risultato a
+  64px — figure riconoscibili, paesaggi, materia pittorica;
+- **epoca 98:** collasso completo in un motivo a scacchiera ripetuto, la firma tipica
+  degli artefatti di `ConvTranspose2d` quando l'addestramento diverge;
+- **epoca 100:** stato degenerato, ed è il checkpoint che il criterio pre-registrato
+  avrebbe imposto di riportare.
+
+Il criterio non prevedeva che il collasso potesse arrivare **a fine corsa**. Applicarlo
+alla lettera significherebbe presentare come risultato un modello degenerato mentre
+otto epoche prima era il miglior esito dell'intero progetto.
+
+### Il criterio nuovo
+
+**Si valutano tutti i checkpoint salvati di ogni run, si pubblica la traiettoria
+completa, e il numero di sintesi è quello del checkpoint con FID minimo.**
+
+Tre condizioni lo rendono difendibile, e vanno tutte soddisfatte:
+
+1. **La regola è identica** per ogni run e per entrambe le condizioni.
+2. **La traiettoria completa è pubblicata**, non solo il punto scelto: si vede quando e
+   come ciascun run migliora o degenera.
+3. **L'adozione è datata e motivata**, cioè questa sezione.
+
+**La selezione avviene sul FID, non sull'ambiguità**, ed è il punto metodologico
+centrale. Selezionare sull'ambiguità significherebbe scegliere il checkpoint che
+favorisce l'ipotesi: sarebbe circolare. Il FID è indipendente da ciò che si vuole
+dimostrare, e semmai *sfavorevole* all'ipotesi — ci si attendeva che l'ambiguità
+crescesse al peggiorare della fedeltà, quindi scegliere il punto di fedeltà massima
+tende a selezionare il punto di ambiguità **minima**.
+
+### Cosa resta valido del criterio vecchio
+
+I risultati a 64px restano riportati anche all'epoca 100, come pre-registrato. Il
+confronto fra i due criteri sullo stesso impianto è a sua volta informativo: se
+coincidono, la revisione non ha spostato nulla; se divergono, la differenza va
+discussa.
+
+### Conseguenza operativa emersa
+
+Con `checkpoint_every: 10` l'epoca 97 **non è stata salvata**: su disco esistono solo
+90 e 100. Le immagini che hanno rivelato il collasso vengono da W&B, che registra ogni
+epoca. Per impianti futuri conviene una cadenza più fitta nelle ultime epoche, oppure
+salvare anche il checkpoint con la metrica migliore mentre il training procede.
+
+---
+
 ## Impianto principale — 2026-08-03
 
 Commit `b207c045` · 100 epoche · batch 128 · label smoothing 0,1 · ArtBench-10 sei
