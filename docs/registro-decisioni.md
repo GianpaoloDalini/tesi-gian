@@ -896,6 +896,63 @@ comando: `source .venv/bin/activate`.
 
 ---
 
+## 5-ter. Punto di ripresa — 2026-08-03, fine giornata
+
+Sostituisce il punto di ripresa precedente. Pod **fermato**, Network Volume intatto.
+
+### Fatto oggi
+
+| | |
+|---|---|
+| Impianto a 64px | **completo**: 8 run (4 seed × 2 condizioni), valutati, a registro con `run_id` |
+| Risultato principale | ambiguità 0,682 → 0,750 senza variazione di FID, IS o copertura |
+| Giudice | tre iterazioni documentate in `experiments/giudice-stile.md` |
+| Impianto a 128px | dati pronti (30.000 + 6.000), giudice J3 addestrato, **run non lanciati** |
+| Test | 71 superati, invariante di ADR-0003 verificato a 64 e 128 |
+
+### Il prossimo comando
+
+```bash
+# sul pod riavviato
+cd /workspace/tesi-gian && git pull
+cp -r data/processed_128 data/processed_test_128 /dev/shm/
+python -m tesi_gan.cli train experiment=e3-dcgan-128 training.epochs=2 seed=99 \
+  data.root=/dev/shm/processed_128 data.reference_root=/dev/shm/processed_test_128
+```
+
+Misura il tempo per epoca delle GAN a 128. **Da quel numero dipende se rifare
+l'impianto a quella risoluzione**, e la decisione diventa aritmetica invece che
+congettura.
+
+Poi, se si procede: `RES=128 bash scripts/run_impianto.sh`.
+
+### Avvertenze operative apprese oggi
+
+- **Il terminale web di RunPod cade spesso.** Ogni comando lungo va lanciato con
+  `nohup ... > log 2>&1 &`, altrimenti la disconnessione uccide il processo. In
+  alternativa `tmux`, che conserva anche le barre di avanzamento.
+- **Il riavvio del pod non è garantito** su questo tipo di macchina: se la GPU è stata
+  presa, si crea un pod nuovo agganciando lo stesso volume e si rifà solo il
+  bootstrap.
+- **Le variabili d'ambiente non stanno sul volume.** `WANDB_API_KEY` va reimpostata a
+  ogni pod nuovo, e `export` va rifatto a ogni terminale nuovo.
+- **`/dev/shm` si svuota** allo spegnimento: i dati vanno ricopiati, e lo script lo fa
+  da solo verificando il conteggio dei file.
+
+### Decisioni ancora aperte
+
+1. **Se rifare l'impianto a 128.** Dipende dal tempo per epoca, ancora da misurare.
+2. **Criterio di esclusione dei run degenerati.** Serve una soglia dichiarata e
+   applicata identicamente alle due condizioni: il candidato è Inception Score < 2,0,
+   che cattura `can-seed1` (1,12) e `can-seed4` (1,77) senza toccare `dcgan-seed4`
+   (3,04). Escludere a occhio i run che disturbano sarebbe selezione mascherata.
+3. **Q8, le domande di ricerca.** Restano non formulate, ed è la cosa che dovrebbe
+   stare a monte di tutto il resto: determina quali risultati servono e quante
+   repliche.
+4. **V-008**, l'espressionismo non integralmente di pubblico dominio.
+
+---
+
 ## 5-bis. Punto di ripresa — 2026-08-03, sessione interrotta
 
 Stato esatto al momento dell'interruzione, per non doverlo ricostruire a memoria.
