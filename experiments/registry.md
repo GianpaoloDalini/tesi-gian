@@ -14,19 +14,42 @@ stile J2 congelato (accuratezza 0,578, entropia sui reali 0,531).
 tutti i run. Nessuna selezione a posteriori del checkpoint migliore, che sarebbe
 selezione del modello sulla metrica di valutazione.
 
-| Run | run_id W&B | FID ↓ | IS ↑ | Ambiguità | Copertura | Note |
-|---|---|---|---|---|---|---|
-| `dcgan-seed1` | `fjnrok9x` | 114,1 | 4,39 | 0,698 | 0,963 | |
-| `dcgan-seed2` | `DA COMPILARE` | 106,5 | 4,09 | 0,674 | 0,968 | |
-| `dcgan-seed3` | `DA COMPILARE` | 102,3 | 3,86 | 0,673 | 0,966 | |
-| `can-seed1` | `DA COMPILARE` | 395,4 | 1,12 | 0,794 | 0,190 | **collassato**, escluso dalle medie |
-| `can-seed2` | `DA COMPILARE` | 111,3 | 3,99 | 0,740 | 0,953 | |
-| `can-seed3` | `DA COMPILARE` | 103,3 | 4,11 | 0,759 | 0,982 | |
+| Run | run_id W&B | Commit | FID ↓ | IS ↑ | Ambiguità | Copertura | Note |
+|---|---|---|---|---|---|---|---|
+| `dcgan-seed1` | `fjnrok9x` | `b207c045` | 114,1 | 4,39 | 0,698 | 0,963 | |
+| `dcgan-seed2` | `py2pdu4d` | `b207c045` | 106,5 | 4,09 | 0,674 | 0,968 | |
+| `dcgan-seed3` | `uzzts94t` | `b207c045` | 102,3 | 3,86 | 0,673 | 0,966 | |
+| `dcgan-seed4` | `j8pv11cf` | `cebbf574` | | | | | replica aggiuntiva |
+| `can-seed1` | `39p77bfu` | `b207c045` | 395,4 | 1,12 | 0,794 | 0,190 | **collassato**, escluso dalle medie |
+| `can-seed2` | `0w895qua` | `b207c045` | 111,3 | 3,99 | 0,740 | 0,953 | |
+| `can-seed3` | `dx3j6xf4` | `b207c045` | 103,3 | 4,11 | 0,759 | 0,982 | |
+| `can-seed4` | `pq4wsp6y` | `cebbf574` | | | | | replica aggiuntiva |
 
-> **Gli identificativi mancanti si recuperano con `python scripts/raccogli_run_id.py
-> --markdown`.** Senza `run_id`, la catena `commit → run → checkpoint → figura →
-> numero in tesi` si interrompe nell'anello che la commissione può chiedere di
-> verificare (CLAUDE.md §6, punto 3).
+Run accessori, **non citabili** e tenuti solo per tracciabilità:
+
+| Run | run_id | Commit | Scopo |
+|---|---|---|---|
+| `dcgan-seed99` | `nzwype85` | `026d1ddf` | 2 epoche, misura dello speedup da `/dev/shm` |
+
+### Sulla differenza di commit fra seed 1-3 e seed 4
+
+I seed 1-3 girano su `b207c045`, il seed 4 su `cebbf574`. **La differenza non tocca
+l'addestramento**, ed è stato verificato invece che assunto:
+
+```bash
+git diff --stat b207c045 cebbf574 -- src/tesi_gan/models src/tesi_gan/training \
+    src/tesi_gan/data configs/model configs/experiment configs/data
+# output vuoto
+```
+
+Le modifiche fra i due commit riguardano `evaluation/`, `scripts/`, `tests/` e la
+documentazione: metrica di copertura, figure e strumenti di lettura dei risultati.
+Modelli, funzioni di perdita, ciclo di addestramento, dataloader e configurazioni
+degli esperimenti sono identici, quindi le otto repliche sono confrontabili.
+
+**Se un giorno un commit toccasse `models/` o `training/` fra due repliche della
+stessa condizione, quelle repliche non sarebbero più confrontabili** e andrebbero
+rifatte. È il motivo per cui il commit sta in tabella accanto al `run_id`.
 
 ### Confronto fra le condizioni
 
