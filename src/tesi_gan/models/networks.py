@@ -225,6 +225,26 @@ class Discriminator(nn.Module):
         return adv_logit, style_logits
 
 
+def build_generator(cfg) -> Generator:
+    """Costruisce il solo generatore dalla configurazione.
+
+    **Esiste per evitare una classe di errori, non per comodita'.** Costruire la rete
+    a mano in piu' punti significa che ognuno puo' dimenticare un parametro: e'
+    successo due volte il 2026-08-03, prima sul classificatore di stile e poi sulle
+    figure, in entrambi i casi omettendo `image_size` e ottenendo una rete da 64 in
+    cui si tentava di caricare pesi da 128.
+
+    Chi ha bisogno di un generatore a partire da una configurazione **deve passare da
+    qui**, cosi' un parametro nuovo si aggiunge in un posto solo.
+    """
+    return Generator(
+        latent_dim=cfg.model.latent_dim,
+        features=cfg.model.generator_features,
+        channels=cfg.model.channels,
+        image_size=int(cfg.data.image_size),
+    )
+
+
 def build_models(cfg) -> tuple[Generator, Discriminator]:
     """Costruisce la coppia (generatore, discriminatore) dalla configurazione Hydra.
 
@@ -239,12 +259,7 @@ def build_models(cfg) -> tuple[Generator, Discriminator]:
     # ridimensionati in silenzio.
     image_size = int(cfg.data.image_size)
 
-    generator = Generator(
-        latent_dim=cfg.model.latent_dim,
-        features=cfg.model.generator_features,
-        channels=cfg.model.channels,
-        image_size=image_size,
-    )
+    generator = build_generator(cfg)
     discriminator = Discriminator(
         features=cfg.model.discriminator_features,
         channels=cfg.model.channels,

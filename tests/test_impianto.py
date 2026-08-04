@@ -96,6 +96,41 @@ def test_risoluzioni_non_supportate_falliscono_esplicitamente(image_size):
         Generator(image_size=image_size)
 
 
+@pytest.mark.parametrize("image_size", RISOLUZIONI)
+def test_build_generator_rispetta_la_risoluzione_della_configurazione(image_size):
+    """**Il costruttore unico deve leggere `data.image_size`.**
+
+    Non e' teoria: il 2026-08-03 due punti diversi costruivano la rete a mano
+    dimenticando `image_size`, e caricare un checkpoint da 128 in una rete da 64
+    produceva una cascata di size mismatch. `build_generator` esiste per avere un
+    solo posto dove quel parametro puo' essere dimenticato, e questo test lo
+    presidia.
+    """
+    from omegaconf import OmegaConf
+
+    from tesi_gan.models import build_generator
+
+    cfg = OmegaConf.create({
+        "model": {"latent_dim": 16, "generator_features": 8, "channels": 3},
+        "data": {"image_size": image_size},
+    })
+    generatore = build_generator(cfg)
+    assert generatore.image_size == image_size
+    assert generatore(torch.randn(1, 16, 1, 1)).shape == (1, 3, image_size, image_size)
+
+
+def test_generatore_ricaricabile_alla_stessa_risoluzione():
+    """Un checkpoint prodotto a una risoluzione deve ricaricarsi in una rete
+    costruita per quella stessa risoluzione, e fallire per un'altra."""
+    g128 = Generator(latent_dim=16, features=8, image_size=128)
+    stato = g128.state_dict()
+
+    Generator(latent_dim=16, features=8, image_size=128).load_state_dict(stato)
+
+    with pytest.raises(RuntimeError):
+        Generator(latent_dim=16, features=8, image_size=64).load_state_dict(stato)
+
+
 def test_risoluzioni_diverse_danno_reti_diverse():
     """Controllo di sanita': se 64 e 128 producessero la stessa rete, il parametro
     non starebbe facendo nulla e i run a 128 sarebbero run a 64 travestiti."""

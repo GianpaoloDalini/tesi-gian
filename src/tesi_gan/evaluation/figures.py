@@ -141,7 +141,7 @@ def export_figure_evoluzione(cfg, device=None) -> Path | None:
         carica_campioni_da_checkpoint,
         save_evolution_figure,
     )
-    from tesi_gan.models import Generator
+    from tesi_gan.models import build_generator
 
     device = device or torch.device("cpu")
     checkpoint_dir = Path(cfg.paths.checkpoints)
@@ -149,14 +149,9 @@ def export_figure_evoluzione(cfg, device=None) -> Path | None:
         log.warning("Nessun checkpoint in %s: evoluzione non prodotta.", checkpoint_dir)
         return None
 
-    def build_generator():
-        return Generator(
-            latent_dim=cfg.model.latent_dim,
-            features=cfg.model.generator_features,
-            channels=cfg.model.channels,
-        )
-
-    campioni = carica_campioni_da_checkpoint(checkpoint_dir, build_generator, device)
+    campioni = carica_campioni_da_checkpoint(
+        checkpoint_dir, lambda: build_generator(cfg), device
+    )
     if not campioni:
         return None
     return save_evolution_figure(
@@ -179,7 +174,7 @@ def export_figure_annotata(cfg, device=None, checkpoint: Path | None = None) -> 
     from tesi_gan.data import build_dataset
     from tesi_gan.evaluation.campioni import save_annotated_grid
     from tesi_gan.evaluation.style_classifier import load_style_classifier
-    from tesi_gan.models import Generator
+    from tesi_gan.models import build_generator
 
     device = device or torch.device("cpu")
 
@@ -206,11 +201,7 @@ def export_figure_annotata(cfg, device=None, checkpoint: Path | None = None) -> 
         log.warning("Giudice non disponibile, figura annotata non prodotta: %s", err)
         return None
 
-    generator = Generator(
-        latent_dim=cfg.model.latent_dim,
-        features=cfg.model.generator_features,
-        channels=cfg.model.channels,
-    )
+    generator = build_generator(cfg)
     generator.load_state_dict(
         torch.load(checkpoint, map_location=device, weights_only=True)["generator"]
     )
