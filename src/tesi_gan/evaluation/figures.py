@@ -167,7 +167,7 @@ def export_figure_evoluzione(cfg, device=None) -> Path | None:
     )
 
 
-def export_figure_annotata(cfg, device=None) -> Path | None:
+def export_figure_annotata(cfg, device=None, checkpoint: Path | None = None) -> Path | None:
     """Campioni annotati dal giudice terzo: la figura chiave del confronto.
 
     Richiede sia un checkpoint sia il giudice addestrato. Se manca l'uno o l'altro
@@ -182,12 +182,21 @@ def export_figure_annotata(cfg, device=None) -> Path | None:
     from tesi_gan.models import Generator
 
     device = device or torch.device("cpu")
-    checkpoint = Path(cfg.paths.checkpoints) / "final.pt"
+
+    # Il checkpoint si puo' scegliere. Non e' un vezzo: a 128px `dcgan-seed1`
+    # collassa fra l'epoca 97 e la 98, quindi `final.pt` contiene un modello
+    # degenerato. Una figura di tesi prodotta da quel checkpoint mostrerebbe
+    # artefatti a scacchiera invece del comportamento del modello, ed e' bene poter
+    # puntare a un'epoca precedente — dichiarando quale, nella didascalia.
+    if checkpoint is None:
+        checkpoint = Path(cfg.paths.checkpoints) / "final.pt"
+        if not checkpoint.exists():
+            checkpoint = Path(cfg.paths.checkpoints) / "latest.pt"
+    checkpoint = Path(checkpoint)
     if not checkpoint.exists():
-        checkpoint = Path(cfg.paths.checkpoints) / "latest.pt"
-    if not checkpoint.exists():
-        log.warning("Nessun checkpoint finale: figura annotata non prodotta.")
+        log.warning("Checkpoint inesistente (%s): figura annotata non prodotta.", checkpoint)
         return None
+    log.info("Figure generate dal checkpoint %s", checkpoint)
 
     try:
         dataset = build_dataset(cfg)
@@ -241,7 +250,7 @@ def export_figure_annotata(cfg, device=None) -> Path | None:
     return figure[0] if figure else None
 
 
-def export_all(cfg, results_dir: Path) -> list[Path]:
+def export_all(cfg, results_dir: Path, checkpoint: Path | None = None) -> list[Path]:
     """Rigenera tutte le figure e tabelle ricavabili da cio' che e' disponibile.
 
     Ogni figura ha prerequisiti diversi (risultati JSON, checkpoint, giudice,
@@ -262,7 +271,10 @@ def export_all(cfg, results_dir: Path) -> list[Path]:
 
     for produttore in (export_figure_stili_reali, export_figure_evoluzione, export_figure_annotata):
         try:
-            path = produttore(cfg)
+            if produttore is export_figure_annotata:
+                path = produttore(cfg, checkpoint=checkpoint)
+            else:
+                path = produttore(cfg)
         except Exception as exc:  # noqa: BLE001
             log.warning("%s fallita: %s", produttore.__name__, exc)
             continue

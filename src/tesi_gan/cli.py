@@ -397,10 +397,10 @@ def cmd_evaluate(
 #  export-figures
 # --------------------------------------------------------------------------- #
 
-def cmd_export_figures(cfg, results_dir: Path) -> int:
+def cmd_export_figures(cfg, results_dir: Path, checkpoint: Path | None = None) -> int:
     from tesi_gan.evaluation.figures import export_all
 
-    written = export_all(cfg, results_dir)
+    written = export_all(cfg, results_dir, checkpoint=checkpoint)
     if not written:
         log.warning(
             "Nessuna figura prodotta: non ci sono ancora risultati in %s. "
@@ -453,6 +453,11 @@ def main(argv: list[str] | None = None) -> int:
 
     p_fig = sub.add_parser("export-figures", help="Rigenera le figure della tesi")
     p_fig.add_argument("--results-dir", type=Path, default=Path("experiments/results"))
+    p_fig.add_argument("--checkpoint", type=Path, default=None,
+                       help="Checkpoint da cui generare i campioni. Senza, usa final.pt "
+                            "— che pero' puo' contenere un modello degenerato se il run "
+                            "e' collassato nelle ultime epoche. L'epoca scelta va "
+                            "dichiarata nella didascalia della figura.")
 
     args, overrides = parser.parse_known_args(argv)
     cfg = load_config(overrides)
@@ -469,7 +474,7 @@ def main(argv: list[str] | None = None) -> int:
             allow_no_judge=args.allow_no_judge,
         )
     if args.command == "export-figures":
-        return cmd_export_figures(cfg, args.results_dir)
+        return cmd_export_figures(cfg, args.results_dir, checkpoint=args.checkpoint)
     return 0
 
 
