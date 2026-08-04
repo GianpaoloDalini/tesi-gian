@@ -19,7 +19,7 @@
 > una riga qui nello stesso commit che la applica. Una decisione superata non si
 > cancella: si marca `superata` e si indica da cosa.
 
-**Ultimo aggiornamento:** 2026-08-03
+**Ultimo aggiornamento:** 2026-08-04
 
 ---
 
@@ -549,6 +549,121 @@ confrontabili con quelli successivi.
 
 ---
 
+### D-018 — Impianto a 128px affiancato a quello a 64px
+**Data:** 2026-08-03 · **Stato:** attiva · **Modifica:** D-010 (che resta valida a 64px)
+
+Il confronto DCGAN/CAN viene replicato a **128×128**, senza sostituire l'impianto a
+64px: i due convivono, con dati, giudice, checkpoint e risultati separati.
+
+**Perché.** Tre iterazioni del giudice di stile (`experiments/giudice-stile.md`)
+avevano isolato la risoluzione come fattore limitante: due insiemi di stili scelti con
+criteri opposti si erano fermati entrambi fra il 52% e il 58% di accuratezza. A 128px
+il giudice J3 raggiunge 0,623, ma soprattutto **abbassa l'entropia sui reali da 0,531
+a 0,401**, allargando del 28% lo spazio in cui l'effetto della CAN può manifestarsi.
+
+**Nota su un errore di impostazione.** La soglia dichiarata prima della verifica era
+sull'**accuratezza** (sopra 0,70 si procede). Il guadagno si è invece manifestato sul
+**pavimento dell'entropia**, che è la grandezza da cui dipende la sensibilità della
+metrica. La soglia era sulla variabile sbagliata: va riportato, perché mostra che la
+metrica di controllo va motivata quanto quella di risultato.
+
+**Conseguenze sul codice:**
+
+- Le architetture derivano il numero di stadi da `data.image_size` invece di averlo
+  cablato. **Non è una seconda coppia di classi:** quella avrebbe distrutto
+  l'invariante di ADR-0003. A 64px l'architettura risultante è identica a prima, quindi
+  i checkpoint esistenti restano caricabili.
+- I test dell'impianto sono parametrizzati su `[64, 128]`: l'invariante è verificato a
+  ogni risoluzione.
+- **Tutti i percorsi di output includono la risoluzione.** Senza, il 128 avrebbe
+  sovrascritto il 64 in silenzio.
+- `build_generator(cfg)` è l'unico modo di costruire un generatore da configurazione,
+  dopo che lo stesso errore — dimenticare `image_size` — si è presentato tre volte in
+  punti diversi.
+
+**I due impianti non sono confrontabili nella stessa tabella:** cambiano rete, dati,
+giudice e riferimenti di entropia. Il loro confronto riguarda l'effetto della
+risoluzione sulla misurabilità dello stile, non l'effetto della CAN.
+
+---
+
+### D-019 — Criterio di selezione del checkpoint: FID minimo
+**Data:** 2026-08-03, sera · **Stato:** attiva · **Sostituisce:** il criterio
+pre-registrato «epoca 100 per tutti»
+**Approfondimento:** `experiments/registry.md`, sezione sulla revisione del criterio
+
+Si valutano **tutti** i checkpoint salvati di ogni run, si pubblica la traiettoria
+completa, e il numero di sintesi è quello del checkpoint con **FID minimo**.
+
+**Perché il criterio è cambiato.** A 128px `dcgan-seed1` produce immagini di ottima
+qualità all'epoca 97 e **collassa all'epoca 98**, con gli artefatti a scacchiera tipici
+di `ConvTranspose2d` in divergenza. Il criterio pre-registrato avrebbe imposto di
+riportare l'epoca 100, cioè un modello degenerato, mentre otto epoche prima era il
+miglior esito del progetto. Il criterio non prevedeva che il collasso potesse arrivare
+a fine corsa.
+
+**Perché non è cherry-picking.** Tre condizioni, tutte necessarie e tutte soddisfatte:
+la regola è identica per ogni run e per entrambe le condizioni; la traiettoria completa
+viene pubblicata; l'adozione è datata e motivata invece che silenziosa.
+
+**Il punto metodologico centrale: si seleziona sul FID, non sull'ambiguità.**
+Selezionare sull'ambiguità significherebbe scegliere il punto che favorisce l'ipotesi,
+ed è circolare. Il FID è indipendente da ciò che si vuole dimostrare, e semmai
+sfavorevole: se fedeltà e ambiguità sono in tensione come atteso, prendere il punto di
+fedeltà massima tende a prendere quello di ambiguità **minima**.
+
+**I risultati a 64px restano riportati anche all'epoca 100**, come pre-registrato. Il
+confronto fra i due criteri sullo stesso impianto è a sua volta informativo.
+
+---
+
+### D-020 — Criterio di esclusione dei run degenerati: IS < 2,0
+**Data:** 2026-08-03, sera · **Stato:** attiva
+
+Un run con **Inception Score inferiore a 2,0** è marcato degenerato ed escluso dalle
+medie. Resta in tabella, marcato, e il criterio è stampato sotto ogni riassunto.
+
+**Perché serviva.** Con `can-seed1` (IS 1,12) e `can-seed4` (1,77) a 64px, escludere
+«i run che non funzionano» a occhio sarebbe stata selezione mascherata. Serviva una
+soglia dichiarata e applicata identicamente alle due condizioni.
+
+**Perché 2,0 e perché l'IS.** L'Inception Score misura **diversità**, e vale 1,0 quando
+tutti i campioni sono identici — il minimo assoluto, la firma del mode collapse. I run
+sani stanno sopra 4,0. Una soglia a 2,0 separa nettamente le due popolazioni e non
+tocca run semplicemente mediocri: `dcgan-seed4`, degradato con FID 203, ha IS 3,04 e
+**resta incluso**. È una soglia di diversità minima, non di qualità: escludere sul FID
+significherebbe escludere i run che generano peggio, che è cosa diversa dall'escludere
+quelli che non generano affatto.
+
+**Il tasso di degenerazione è a sua volta un risultato**, non solo un problema di
+igiene: a 64px due run su quattro della CAN degenerano contro uno su quattro della
+DCGAN. Il meccanismo di ambiguità rende l'addestramento fragile, e la letteratura sulle
+CAN non è generosa su questo punto.
+
+---
+
+### D-021 — Figure di confronto generate alla stessa epoca per tutti i run
+**Data:** 2026-08-03, sera · **Stato:** attiva
+
+Le figure di confronto reali/generate si producono con `scripts/figure_confronti.sh`,
+che impone **la stessa epoca a tutti i run** di una condizione.
+
+**Motivazione:** figure prodotte da epoche diverse non sono confrontabili fra loro, e
+sceglierla run per run — magari quella che rende meglio — sarebbe selezione mascherata
+sul materiale visivo, meno visibile di quella sui numeri e altrettanto scorretta.
+L'epoca usata va dichiarata nella didascalia.
+
+A 128px si usa l'**epoca 90** e non `final`, perché almeno un run è collassato nelle
+ultime epoche (D-019).
+
+**Vincolo concettuale, già in D-016 e qui riaffermato:** il generatore è
+incondizionato, quindi un'immagine generata non ha uno stile vero. Nelle figure di
+confronto è il **giudice terzo** a smistare i campioni per stile predetto, e la
+didascalia deve dire che si tratta di una predizione, non di una proprietà
+dell'immagine.
+
+---
+
 ## 3. Questioni aperte
 
 Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla
@@ -617,6 +732,26 @@ originale prima di dichiarare in tesi quale è stata usata.
 **Ipotesi attesa, da dichiarare prima di vedere i risultati:** la CAN peggiora il FID
 e aumenta l'entropia di stile. Se accade, non è un fallimento ma la dimostrazione
 empirica che fedeltà e ambiguità stilistica sono obiettivi in tensione.
+
+**Esito del 2026-08-03 — l'ipotesi è stata FALSIFICATA a metà.** L'ambiguità sale come
+previsto (0,682 → 0,750, gruppi non sovrapposti), ma **il FID non peggiora**: 107,7
+contro 107,3, indistinguibili. Fedeltà e ambiguità stilistica non risultano in tensione
+a questa scala. Un'ipotesi pre-registrata e smentita vale più di una confermata, e va
+riportata come tale.
+
+**Seconda previsione smentita:** era stato scritto che l'ambiguità della DCGAN sarebbe
+scesa proseguendo l'addestramento. È salita, da 0,601 a 20 epoche a 0,682 a 100. La
+lettura: **una GAN incondizionata addestrata su sei stili modella la miscela**, quindi
+più impara più produce immagini stilisticamente ibride. L'ambiguità della CAN è una
+spinta *ulteriore* sopra quella che una GAN produce già da sola — più sottile e più
+difendibile di «la CAN rende ambiguo, la GAN no».
+
+**Metrica aggiunta strada facendo:** la *copertura degli stili*, cioè la distribuzione
+marginale delle classi predette. Serve a distinguere la fusione stilistica (marginale
+piatta, l'effetto cercato) dal collasso su una zona generica (marginale concentrata),
+che l'entropia per immagine da sola non separa. È risultata identica nelle due
+condizioni (0,966 contro 0,967), il che **esclude la spiegazione alternativa** con una
+misura invece che con un argomento.
 
 **Aggiornamento del 2026-08-03 — lacuna trovata e chiusa.** L'entropia della posterior
 di stile era calcolabile **solo sulla CAN**, perché prodotta dalla testa di stile del
@@ -896,35 +1031,65 @@ comando: `source .venv/bin/activate`.
 
 ---
 
-## 5-ter. Punto di ripresa — 2026-08-03, fine giornata
+## 5-ter. Punto di ripresa — 2026-08-04
 
-Sostituisce il punto di ripresa precedente. Pod **fermato**, Network Volume intatto.
+Sostituisce i punti di ripresa precedenti.
 
-### Fatto oggi
+### Stato
 
 | | |
 |---|---|
-| Impianto a 64px | **completo**: 8 run (4 seed × 2 condizioni), valutati, a registro con `run_id` |
-| Risultato principale | ambiguità 0,682 → 0,750 senza variazione di FID, IS o copertura |
-| Giudice | tre iterazioni documentate in `experiments/giudice-stile.md` |
-| Impianto a 128px | dati pronti (30.000 + 6.000), giudice J3 addestrato, **run non lanciati** |
-| Test | 71 superati, invariante di ADR-0003 verificato a 64 e 128 |
+| Impianto a 64px | **completo**: 8 run, valutati, a registro con `run_id` |
+| Risultato principale a 64px | ambiguità 0,682 → 0,750 senza variazione di FID, IS o copertura |
+| Impianto a 128px | **6 run completati**; traiettoria in valutazione |
+| Giudice | tre iterazioni documentate in `experiments/giudice-stile.md` (J1, J2 a 64px; J3 a 128px) |
+| Figure | prodotte per `dcgan-128-seed1` all'epoca 90 |
+| Test | 78 superati, invariante di ADR-0003 verificato a 64 e 128 |
+| Volume | ampliato a 60 GB dopo il riempimento a metà impianto |
 
-### Il prossimo comando
+### I prossimi comandi
 
 ```bash
-# sul pod riavviato
 cd /workspace/tesi-gian && git pull
-cp -r data/processed_128 data/processed_test_128 /dev/shm/
-python -m tesi_gan.cli train experiment=e3-dcgan-128 training.epochs=2 seed=99 \
-  data.root=/dev/shm/processed_128 data.reference_root=/dev/shm/processed_test_128
+
+# se la valutazione della traiettoria non è finita
+tail -f /workspace/traj128.log
+
+# sintesi compatta, in una schermata, più il grafico per la tesi
+python scripts/sintesi.py experiments/traiettoria-128
+
+# figure di confronto per tutti i run, stessa epoca per tutti
+CONDIZIONI=dcgan RES=128 EPOCA=0090 bash scripts/figure_confronti.sh
 ```
 
-Misura il tempo per epoca delle GAN a 128. **Da quel numero dipende se rifare
-l'impianto a quella risoluzione**, e la decisione diventa aritmetica invece che
-congettura.
+### Strumenti disponibili
 
-Poi, se si procede: `RES=128 bash scripts/run_impianto.sh`.
+| Script | A cosa serve |
+|---|---|
+| `run_impianto.sh` | i sei run; `RES=64\|128`; salta quelli già conclusi |
+| `valuta_impianto.sh` | valuta i soli `final.pt` |
+| `valuta_traiettoria.sh` | valuta **tutti** i checkpoint |
+| `sintesi.py` | riassunto compatto + grafico delle traiettorie |
+| `figure_confronti.sh` | confronto reali/generate per tutti i run |
+| `raccogli_run_id.py` | recupera gli identificativi W&B per il registro |
+| `migra_percorsi_64.sh` | migrazione una tantum dei percorsi (già eseguita) |
+
+### Avvertenze operative apprese
+
+- **Il terminale web di RunPod cade spesso.** Ogni comando lungo va lanciato con
+  `nohup ... > log 2>&1 &`. `nohup` restituisce subito il prompt: sembra che il
+  comando sia terminato, ma sta girando in background.
+- **Ogni pod nuovo richiede** `bootstrap_remote.sh`, `pip install -e ".[dev]"
+  "torchmetrics[image]"` e la ricopia dei dati in `/dev/shm`. Solo il volume
+  sopravvive.
+- **`WANDB_API_KEY` non sta sul volume:** va nella configurazione del pod, o
+  riesportata a ogni terminale.
+- **Leggere i dati da `/dev/shm` invece che dal volume** porta un'epoca da 44 a 3,6
+  secondi a 64px. Non è un'ottimizzazione facoltativa.
+- **`rm -rf` su cartelle di `data/` cancella i `.gitkeep` tracciati** e sporca il
+  working tree, bloccando i training. Si ripristina con `git restore`.
+- **Il fabbisogno di disco va ricalcolato al cambio di risoluzione:** a 128px un
+  checkpoint pesa ~290 MB contro ~80 MB, e i sei run passano da 11 a 22 GB.
 
 ### Avvertenze operative apprese oggi
 
@@ -1052,3 +1217,4 @@ discussione dei limiti.
 | 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato; ricognizione dei dataset artistici; dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-013 RunPod; D-014 ArtBench-10 supera D-011; Q2, Q4, Q7 chiuse; V-007 documentata; pipeline adattata |
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
 | 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
+| 2026-08-03 (3ª sessione) | Infrastruttura RunPod completata; impianto a 64px eseguito e valutato; estensione a 128px | Dataset preparato (D-017 stili rivisti); giudici J1-J3; **8 run a 64px** con ambiguità 0,682 → 0,750 a parità di FID, IS e copertura; due ipotesi pre-registrate falsificate; **D-018** impianto a 128px; **D-019** criterio del FID minimo dopo aver osservato il collasso a fine corsa; **D-020** soglia IS < 2,0 per i run degenerati; **D-021** figure alla stessa epoca; **V-008** aperta. 78 test superati |
