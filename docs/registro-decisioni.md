@@ -760,6 +760,19 @@ quindi confrontabile: i sei run avrebbero prodotto FID e IS — due metriche che
 costruzione penalizzano la CAN — e nessuna misura dell'effetto cercato. Risolta con
 **D-015** (giudice terzo). La vecchia metrica resta come diagnostica interna.
 
+**Esito del 2026-08-04 — impianto 128px (D-018), criterio FID minimo (D-019).**
+A questa risoluzione l'ipotesi **non è più falsificata**: FID 183,4 (CAN) contro
+117,8 (DCGAN), +55%, con ambiguità che sale di un'entità simile a quella osservata a
+64px (+0,089 contro +0,068). A 64px fedeltà e ambiguità non risultavano in tensione;
+a 128px lo sono. Il dettaglio non è solo quantitativo: i tre seed CAN raggiungono
+tutti il loro FID minimo alla stessa epoca (20 su 100) e poi degradano quasi
+monotonicamente, mentre i tre DCGAN raggiungono il minimo fra le epoche 80 e 100.
+Non è uno squilibrio del criterio di selezione — la regola è identica per entrambe
+le condizioni (D-019) — è la traiettoria stessa del CAN a esaurirsi presto. Dettagli
+e tabella completa in `experiments/registry.md`, sezione «Impianto 128px».
+**Resta da stabilire se questo sia lo stesso tipo di instabilità del mode collapse
+già visto a 64px o un fenomeno diverso**: vedi V-008.
+
 ### Q6 — Studio percettivo con soggetti umani 🔶 riaperta
 **Stato:** **di nuovo aperta dal 2026-08-03** · **Proposta:** D-012
 
@@ -971,6 +984,29 @@ stili su sei lo sono; il sesto è incluso con la stessa qualificazione giuridica
 la tesi analizza criticamente — il che, dichiarato, è materiale di merito più che un
 difetto.
 
+### V-009 — Natura del degrado del CAN dopo l'epoca 20 a 128px 🟠
+**Stato:** aperta, emersa il 2026-08-04 · **Origine:** impianto 128px, `experiments/registry.md`
+
+I tre seed CAN a 128px toccano il FID minimo tutti all'epoca 20 e poi degradano
+quasi monotonicamente fino a fine training (dettagli e tabella in
+`experiments/registry.md`, sezione «Impianto 128px»). La copertura degli stili non
+crolla come nel mode collapse già documentato a 64px (`can-seed1`, copertura 0,190):
+qui resta nell'intervallo 0,6-0,9, quindi non è chiaramente lo stesso fenomeno.
+
+**Da fare prima di scrivere il risultato in tesi:** ispezionare visivamente i
+campioni salvati (o quelli su W&B) dei tre seed CAN a epoca 20 e a epoca 100, per
+stabilire se il degrado è mode collapse su un sottoinsieme ristretto di output,
+artefatti tipo checkerboard (come `dcgan-seed1`, D-019), o un peggioramento diffuso
+della qualità senza una firma riconoscibile. La caratterizzazione cambia cosa si può
+affermare: «il CAN collassa a 128px» è una frase diversa da «il CAN degrada
+progressivamente a 128px», e solo l'ispezione visiva permette di scegliere quella
+corretta.
+
+**Perché conta.** Se confermato, è il contrasto più forte con l'impianto a 64px
+(dove il vantaggio di ambiguità del CAN non costava nulla in fedeltà) e il
+candidato più solido per il capitolo di discussione: l'instabilità del meccanismo
+di ambiguità sembra scalare con la risoluzione.
+
 ### V-001 — Frontespizio ufficiale per la laurea magistrale 🔴
 Il frontespizio attuale è un adattamento di quello di una tesi di **dottorato**.
 Verificare in segreteria UniBg il modello ufficiale per la LM-32.
@@ -1041,7 +1077,7 @@ Sostituisce i punti di ripresa precedenti.
 |---|---|
 | Impianto a 64px | **completo**: 8 run, valutati, a registro con `run_id` |
 | Risultato principale a 64px | ambiguità 0,682 → 0,750 senza variazione di FID, IS o copertura |
-| Impianto a 128px | **6 run completati**; traiettoria in valutazione |
+| Impianto a 128px | **6 run completati, traiettoria valutata**: FID 183,4 (CAN) vs 117,8 (DCGAN), +55% — vedi V-009 |
 | Giudice | tre iterazioni documentate in `experiments/giudice-stile.md` (J1, J2 a 64px; J3 a 128px) |
 | Figure | prodotte per `dcgan-128-seed1` all'epoca 90 |
 | Test | 78 superati, invariante di ADR-0003 verificato a 64 e 128 |
@@ -1115,6 +1151,8 @@ CONDIZIONI=dcgan RES=128 EPOCA=0090 bash scripts/figure_confronti.sh
    stare a monte di tutto il resto: determina quali risultati servono e quante
    repliche.
 4. **V-008**, l'espressionismo non integralmente di pubblico dominio.
+5. **V-009**, natura del degrado del CAN dopo l'epoca 20 a 128px — richiede ispezione
+   visiva dei campioni prima di poter scrivere il risultato in tesi.
 
 ---
 

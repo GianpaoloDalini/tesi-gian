@@ -176,6 +176,73 @@ le condizioni**, non solo alla CAN: aggiungere repliche solo alla condizione che
 avuto il problema significherebbe trattare le due in modo diverso, ed è esattamente
 l'asimmetria che verrebbe contestata in discussione.
 
+## Impianto 128px — 2026-08-04
+
+Risoluzione 128×128 · ArtBench-10 sei stili (D-014/D-017) · valutazione su 2.048
+campioni, identica per tutti i run · giudice di stile J3 congelato (accuratezza
+0,623, entropia sui reali 0,401 — **giudice e riferimento diversi da quelli usati a
+64px** (0,531): i due impianti non sono confrontabili sulla scala assoluta di
+ambiguità, solo sull'effetto relativo CAN−DCGAN, vedi D-018).
+
+**Criterio di selezione: FID minimo su tutta la traiettoria** (D-019), non l'epoca
+100 fissa. Traiettoria completa in `experiments/traiettoria-128/` (66 checkpoint
+valutati, 11 per run), script `scripts/traiettoria.py` e `scripts/sintesi.py`.
+
+TODO[DATA]: commit hash e run_id W&B dei sei run — recuperarli dalla dashboard W&B
+del pod RunPod e completare la tabella prima di citare questi numeri in tesi.
+
+| Run | run_id W&B | Commit | Epoca selezionata | FID ↓ | IS ↑ | Ambiguità | Copertura | Note |
+|---|---|---|---|---|---|---|---|---|
+| `can-seed1` | TODO | TODO | 20 | 171,4 | 3,05 | 0,625 | 0,680 | picco poi degrado fino a FID 305,7 a epoca 100 |
+| `can-seed2` | TODO | TODO | 20 | 201,4 | 3,27 | 0,633 | 0,851 | picco poi degrado fino a FID 268,0 a epoca 100 |
+| `can-seed3` | TODO | TODO | 20 | 177,5 | 3,02 | 0,650 | 0,896 | picco poi degrado fino a FID 305,2 a epoca 100 |
+| `dcgan-seed1` | TODO | TODO | 80 | 109,9 | 3,57 | 0,544 | 0,898 | collassa a epoca 100 (FID 248,3): stesso fenomeno a scacchiera che ha motivato D-019 |
+| `dcgan-seed2` | TODO | TODO | 100 | 117,6 | 3,73 | 0,528 | 0,911 | |
+| `dcgan-seed3` | TODO | TODO | 90 | 126,0 | 3,87 | 0,570 | 0,964 | |
+
+Nessuno dei sei checkpoint selezionati ha IS < 2,0: il criterio D-020 non esclude
+alcun run da questo impianto.
+
+### Confronto fra le condizioni
+
+| Metrica | DCGAN (n=3) | CAN (n=3) | Atteso | Esito |
+|---|---|---|---|---|
+| FID ↓ | 117,8 ± 8,0 | 183,4 ± 15,8 | CAN peggiore o pari | **CAN nettamente peggiore (+55%)** |
+| Inception Score ↑ | 3,72 ± 0,15 | 3,12 ± 0,14 | incerto | DCGAN migliore |
+| Ambiguità (giudice terzo) | 0,547 ± 0,021 | 0,636 ± 0,013 | CAN alta | confermato |
+| Copertura degli stili | 0,924 ± 0,035 | 0,809 ± 0,114 | controllo | CAN più bassa e più dispersa |
+
+Riferimenti di lettura: arte reale 0,401 · soffitto `log(6)` = 1,000 · accuratezza
+del giudice 0,623.
+
+### Osservazione da verificare: collasso sistematico del CAN dopo l'epoca 20
+
+**I tre seed CAN raggiungono il FID minimo tutti alla stessa epoca (20 su 100), poi
+degradano quasi monotonicamente per il resto del training:** `can-seed1` 171,4 →
+305,7, `can-seed3` 177,5 → 305,2, `can-seed2` 201,4 → 268,0. Non è il collasso
+isolato di un singolo run come `dcgan-seed1` (che degrada solo nell'ultimo tratto,
+epoca 90→100): qui il fenomeno è **sistematico su tutti e tre i seed CAN**, e
+comincia presto — al 20% del training.
+
+**Non sembra lo stesso fenomeno del mode collapse osservato a 64px** (`can-seed1` a
+64px: copertura 0,190, 89,3% delle attribuzioni su un solo stile — vedi sopra). Qui
+la copertura oscilla ma non crolla in modo pulito: il minimo di `can-seed1` a 128px
+è 0,603 all'epoca 100, mai vicino a 0,19. **Da verificare con ispezione visiva dei
+campioni a epoca 20 vs epoca 100 per i tre seed CAN** prima di scrivere in tesi che
+«il CAN collassa» a 128px — potrebbe essere degrado generico di qualità (rumore,
+artefatti) piuttosto che collasso di modo su un singolo stile. Vedi V-008 in
+`docs/registro-decisioni.md`.
+
+**Confronto con l'impianto a 64px.** Lì il vantaggio di ambiguità del CAN non
+costava nulla in fedeltà (FID 107,3 vs 107,7, indistinguibili). Qui il vantaggio di
+ambiguità è di entità simile (+0,089 vs +0,068 a 64px) ma costa un FID nettamente
+peggiore. Se confermata dall'ispezione visiva, l'ipotesi che **l'instabilità del CAN
+scali con la risoluzione** è il risultato più rilevante di questo impianto — ma è
+un'ipotesi emersa dai dati, non pre-registrata, e va trattata con la stessa cautela
+metodologica già applicata alla revisione del criterio di selezione (D-019).
+
+---
+
 ## Registri collegati
 
 - [`giudice-stile.md`](giudice-stile.md) — iterazioni del classificatore terzo
