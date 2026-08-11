@@ -6,8 +6,7 @@
 > plausibile, si riempiono solo con decisioni effettivamente prese.
 
 **Ultimo aggiornamento:** 2026-08-11 · **Stato:** impianto sperimentale eseguito a
-64px e 128px (14 run), in attesa del relatore e delle domande di ricerca — vedi
-l'avviso in cima a §8, scadenza amministrativa a **tre giorni** da oggi
+64px e 128px (14 run), in attesa del relatore e delle domande di ricerca
 
 ---
 
@@ -148,31 +147,22 @@ considera "informativo" — va chiuso prima della stesura del capitolo dei risul
 
 ## 8. Pianificazione
 
-> **Vincolo chiuso e stretto.** Sessione autunnale: caricamento dell'elaborato entro
-> il **21 settembre 2026**, discussione il **2 ottobre 2026**. L'avviso della Scuola
-> di Ingegneria specifica che non sono ammesse deroghe. Vedi V-006 nel registro delle
-> decisioni per il calendario completo degli adempimenti.
->
-> **Il rischio principale non è tecnico ma amministrativo, ed è ora imminente:** alla
-> data di questo aggiornamento (**11 agosto**) la Fase 1 scade fra **tre giorni**
-> (**14 agosto**) e richiede il nominativo del relatore. Nell'ultima sessione
-> registrata (2026-08-04) il relatore risultava ancora `DA DEFINIRE` in questo
-> documento. **Verificare subito se è stato contattato/confermato nel frattempo** e
-> aggiornare questa riga: se non lo è stato, è la sola cosa che conta più di
-> qualunque run sperimentale in questo momento.
+> Le scadenze amministrative della sessione (Fase 1-4, calendario completo) sono in
+> V-006 nel registro delle decisioni. Gian le gestisce autonomamente; questo piano
+> non le ripete né le segnala come rischio.
 
 | Milestone | Descrizione | Scadenza | Stato |
 |---|---|---|---|
 | M0 | Infrastruttura del repository | 2026-07-31 | ✅ fatto |
-| M-A1 | **Fase 1: deposito titolo e relatore** | **2026-08-14** | 🔴 **da verificare — 3 giorni** |
-| M-A2 | **Fase 3: domanda definitiva + AlmaLaurea** | **2026-08-18** | 🔴 da fare |
+| M-A1 | Fase 1: deposito titolo e relatore | vedi V-006 | ⬜ |
+| M-A2 | Fase 3: domanda definitiva + AlmaLaurea | vedi V-006 | ⬜ |
 | M3a | Pipeline sperimentale implementata e testata | 2026-08-02 | ✅ fatto |
 | M3b | Dataset preparato e smoke test superato | 2026-08-03 | ✅ fatto |
 | M4 | Run E1 ed E2 conclusi e registrati (64px) | 2026-08-03 | ✅ fatto |
 | M4b | Metriche calcolate, figure esportate (64px) | 2026-08-03 | ✅ fatto |
 | M4c | Impianto replicato a 128px, traiettoria valutata | 2026-08-04 | ✅ fatto — V-009 aperta (ispezione visiva mancante) |
 | M1 | Revisione della letteratura, gap definito | 2026-09-06 | ⬜ in parallelo |
-| M2 | Domande di ricerca approvate dal relatore | 2026-09-06 | ⬜ 🔴 Q8, la più urgente ora |
+| M2 | Domande di ricerca approvate dal relatore | 2026-09-06 | ⬜ vedi Q8 |
 | M-E4 | Studio percettivo concluso | 2026-09-06 | ⬜ |
 | M5 | Prima stesura completa | 2026-09-14 | ⬜ |
 | M6 | **Caricamento dell'elaborato (Fase 4)** | **2026-09-21** | ⬜ |
@@ -237,31 +227,27 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 Dettaglio e criticità in [`docs/registro-decisioni.md` §3](registro-decisioni.md#3-questioni-aperte).
 
 Chiuse: **Q1** (sessione: discussione 02/10/2026), **Q2** (impianto → D-010, ma vedi
-punto 3 sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** riaperta
-(vedi sotto). Restano, in ordine di urgenza:
+punto sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** riaperta
+(vedi sotto). Restano:
 
-1. **Relatore** 🔴 nominativo necessario per la Fase 1 entro il **14 agosto — fra 3
-   giorni da questo aggiornamento**. Da verificare come prima cosa: risultava ancora
-   `DA DEFINIRE` all'ultima sessione registrata (2026-08-04). Non è una questione
-   metodologica: è il singolo punto di fallimento amministrativo del progetto.
-2. **Titolo della tesi** 🔴 richiesto in italiano e inglese entro il 14 agosto —
-   dipende da Q8.
-3. **Q8 — Domande di ricerca** 🔴 ancora non formulate, ora la questione più urgente
-   dopo il relatore: servono almeno in bozza per il titolo del 14 agosto.
-4. **Q2, punto 3 — cosa conta come successo** 🔶 la CAN per costruzione tende a
-   peggiorare il FID; non è ancora deciso quale esito, prima di vederlo, si considera
-   un risultato informativo per la tesi.
-5. **V-007 — verifica dei termini d'uso del dataset** 🟠 in parte chiarita (ArtBench
-   dichiara «fair use» US, rintracciato fino alla fonte), ma manca ancora la lettura
-   della disciplina UE applicabile (direttiva 2019/790). Blocca `data.download`
-   finché non passato `--licenza-verificata`.
-6. **V-008 — l'espressionismo non è integralmente di pubblico dominio** 🟠 va
-   dichiarato esplicitamente in tesi, la formula "tutti gli stili sono di pubblico
-   dominio" va corretta.
-7. **V-009 — natura del degrado del CAN dopo l'epoca 20 a 128px** 🟠 richiede
-   ispezione visiva dei campioni prima di poter scrivere il risultato in tesi.
-8. **Q3 — Peso relativo tra componente tecnica ed etica**, da concordare col relatore.
-9. **Q5 — formulazione esatta della penalità di ambiguità**, da verificare sul paper
-   di Elgammal: il codice ne implementa due varianti non equivalenti.
-10. **Q6 — studio percettivo** 🔶 riaperta il 2026-08-03, proposta (D-012) non
-    ancora ratificata.
+- **Relatore e titolo della tesi** — nominativo e titolo (IT/EN) da depositare nelle
+  fasi amministrative descritte in V-006. Gestione di Gian.
+- **Q8 — Domande di ricerca** ancora non formulate; servono per il titolo e a monte
+  della revisione della letteratura.
+- **Q2, punto 3 — cosa conta come successo** la CAN per costruzione tende a
+  peggiorare il FID; non è ancora deciso quale esito, prima di vederlo, si considera
+  un risultato informativo per la tesi.
+- **V-007 — verifica dei termini d'uso del dataset** in parte chiarita (ArtBench
+  dichiara «fair use» US, rintracciato fino alla fonte), ma manca ancora la lettura
+  della disciplina UE applicabile (direttiva 2019/790). Blocca `data.download`
+  finché non passato `--licenza-verificata`.
+- **V-008 — l'espressionismo non è integralmente di pubblico dominio** va
+  dichiarato esplicitamente in tesi, la formula "tutti gli stili sono di pubblico
+  dominio" va corretta.
+- **V-009 — natura del degrado del CAN dopo l'epoca 20 a 128px** richiede
+  ispezione visiva dei campioni prima di poter scrivere il risultato in tesi.
+- **Q3 — Peso relativo tra componente tecnica ed etica**, da concordare col relatore.
+- **Q5 — formulazione esatta della penalità di ambiguità**, da verificare sul paper
+  di Elgammal: il codice ne implementa due varianti non equivalenti.
+- **Q6 — studio percettivo** riaperta il 2026-08-03, proposta (D-012) non
+  ancora ratificata.
