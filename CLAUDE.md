@@ -28,6 +28,17 @@ Due documenti governano il progetto e vanno letti prima di intervenire:
 - **`docs/registro-decisioni.md`** — la *storia*: ogni decisione presa con alternative
   scartate e motivazione, le questioni ancora aperte, le verifiche da fare.
 
+**Se hai accesso solo al repo GitHub sincronizzato (nessuna cartella locale
+collegata), leggi per primo l'ultima sezione «Punto di ripresa» in
+`registro-decisioni.md`** (cerca l'intestazione `## 5-` con il numero più alto, es.
+`5-ter`, in fondo al file, prima delle sezioni 6 e 7): è lo stato più fresco che
+esiste, spesso più aggiornato di `project-plan.md` se sono state fatte run
+sperimentali dopo l'ultima modifica di quest'ultimo. Verifica anche `git log -1`:
+se la fonte che stai leggendo (API GitHub, fetch web) sembra ferma a una data
+precedente all'ultimo commit atteso, trattala come sospetta e non riportarla come
+stato attuale senza dirlo esplicitamente — è già successo che una fetch restituisse
+una versione cache di giorni prima.
+
 **Obbligo:** se un tuo intervento prende una decisione, la rovescia, apre una questione
 o introduce un'ipotesi da verificare, aggiorni `registro-decisioni.md` **nello stesso
 commit**. Una decisione applicata e non registrata è una decisione che fra tre mesi

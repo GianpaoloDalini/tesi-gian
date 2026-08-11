@@ -1083,19 +1083,54 @@ Sostituisce i punti di ripresa precedenti.
 | Test | 78 superati, invariante di ADR-0003 verificato a 64 e 128 |
 | Volume | ampliato a 60 GB dopo il riempimento a metà impianto |
 
-### I prossimi comandi
+### Il prossimo comando, letteralmente il primo da lanciare
+
+Il commit di questa sessione (registro esperimenti 128px + apertura V-009) è
+**bloccato**: `.git/index.lock` non si rimuove da sessione assistita remota
+("Operation not permitted" anche da proprietario del file — variante nuova
+dell'anomalia già nota in §5). Le modifiche sono su disco (staging fatto), manca
+solo il commit. Sul Mac, in locale:
+
+```bash
+cd "/Users/gian/Documents/Tesi Gian"
+rm -f .git/index.lock .git/HEAD.lock
+git status   # tre file già in staging: registro-decisioni.md, registry.md, traiettoria-128px.png
+git commit -m "docs: impianto 128px a registro, apre V-009 sul degrado del CAN dopo l'epoca 20"
+```
+
+### Cosa è successo in questa sessione (2026-08-04, sera)
+
+I 66 JSON di `experiments/traiettoria-128/` sono stati recuperati dal pod RunPod
+via `runpodctl send`/`receive` e analizzati con `traiettoria.py`/`sintesi.py`.
+Risultato: i **tre seed CAN toccano il FID minimo tutti all'epoca 20** (171-201) e
+degradano quasi monotonicamente fino a fine corsa (FID 268-306 a epoca 100); i tre
+DCGAN toccano il minimo fra le epoche 80 e 100. Confronto fra condizioni:
+FID 183,4 (CAN) contro 117,8 (DCGAN), +55% — a differenza di 64px, dove la stessa
+ipotesi era stata falsificata (FID indistinguibile). Tabella completa e
+osservazione in `experiments/registry.md`, sezione «Impianto 128px». Aperta
+**V-009**: non è chiaro se il degrado del CAN sia lo stesso mode collapse già
+visto a 64px (`can-seed1`, copertura crollata a 0,190) — qui la copertura non
+crolla in modo pulito — o un fenomeno diverso. Serve ispezione visiva dei campioni.
+
+**Incoerenza trovata, da correggere prima di generare altre figure:** D-021 fissa
+l'epoca 90 per le figure di confronto reali/generate a 128px (decisa per il
+collasso tardivo di `dcgan-seed1`), ma quella decisione precede la scoperta che il
+CAN tocca il suo picco all'epoca 20. Usare l'epoca 90 per il CAN mostrerebbe
+campioni già degradati mentre per il DCGAN è vicina all'ottimo — un'asimmetria non
+decisa deliberatamente. Da risolvere: epoca del FID minimo per condizione (stessa
+regola di D-019) oppure striscia multi-epoca che renda visibile il degrado.
+
+### I prossimi comandi, dopo lo sblocco di git
 
 ```bash
 cd /workspace/tesi-gian && git pull
 
-# se la valutazione della traiettoria non è finita
-tail -f /workspace/traj128.log
+# ispezione visiva V-009: campioni CAN a epoca 20 vs epoca 100, tre seed —
+# guardare quelli salvati su disco o su W&B, non rigenerarli dai checkpoint
+# se già presenti
 
-# sintesi compatta, in una schermata, più il grafico per la tesi
-python scripts/sintesi.py experiments/traiettoria-128
-
-# figure di confronto per tutti i run, stessa epoca per tutti
-CONDIZIONI=dcgan RES=128 EPOCA=0090 bash scripts/figure_confronti.sh
+# quando risolta l'incoerenza sull'epoca delle figure (vedi sopra):
+# CONDIZIONI=can RES=128 EPOCA=0020 bash scripts/figure_confronti.sh
 ```
 
 ### Strumenti disponibili
@@ -1153,6 +1188,10 @@ CONDIZIONI=dcgan RES=128 EPOCA=0090 bash scripts/figure_confronti.sh
 4. **V-008**, l'espressionismo non integralmente di pubblico dominio.
 5. **V-009**, natura del degrado del CAN dopo l'epoca 20 a 128px — richiede ispezione
    visiva dei campioni prima di poter scrivere il risultato in tesi.
+6. **Epoca delle figure di confronto CAN a 128px.** D-021 fissa l'epoca 90 per
+   l'intero impianto 128px, ma il CAN tocca il suo picco all'epoca 20: da
+   ridecidere prima di lanciare `figure_confronti.sh` sul CAN, altrimenti le
+   figure mostrano il CAN già degradato accanto a un DCGAN vicino al suo ottimo.
 
 ---
 
