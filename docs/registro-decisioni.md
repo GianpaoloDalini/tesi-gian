@@ -664,6 +664,68 @@ dell'immagine.
 
 ---
 
+### D-022 — Esperimento illustrativo condizionato per stile (E5), esplicitamente fuori da ADR-0003
+**Data:** 2026-08-11 · **Stato:** implementato, non ancora eseguito
+
+Su richiesta di Gian, ispirato al condizionamento categorico di ArtGAN (Tan, Chan,
+Aguirre & Tanaka) e in particolare al progetto studentesco non ufficiale
+`github.com/sebastienmeyer2/image-synthesis-artgan`, la cui galleria di immagini
+sembrava visivamente superiore a quanto prodotto finora dall'impianto DCGAN/CAN.
+
+**Obiettivo dichiarato: solo figure piu' convincenti per la tesi, non un confronto
+quantitativo.** Prima di implementare e' stata fatta un'obiezione esplicita
+sull'idea di "replicare i loro risultati": non pubblicano FID/IS, solo una galleria
+curata di immagini scelte, su compiti diversi (volti di politici francesi, WikiArt
+per singolo artista o genere, CIFAR-10) — non un termine di paragone omogeneo con
+sei stili art-storici. Gian ha confermato che l'obiettivo e' comunque la resa
+visiva, non la dimostrazione di un risultato.
+
+**Perche' e' fuori dall'impianto comparativo.** ADR-0003 vale perche' DCGAN e CAN
+condividono lo stesso generatore e la stessa backbone del discriminatore, con
+un'unica variabile indipendente (la loss). Un generatore condizionato per stile
+prende in ingresso anche l'etichetta: e' un'architettura diversa per costruzione,
+non una terza condizione dello stesso confronto. Aggiungerlo al registro come "E5"
+comparabile a E1/E2 sarebbe stato un errore metodologico.
+
+**Cosa e' stato implementato**, in moduli **separati** che non toccano nulla
+dell'impianto D-010 (`networks.py`, `losses.py`, `trainer.py` restano invariati):
+
+- `src/tesi_gan/models/conditional.py` — `ConditionalGenerator` (concatena
+  l'etichetta di stile in one-hot al vettore latente) e `ConditionalDiscriminator`
+  (testa ausiliaria di classificazione su reali **e** generate, logica AC-GAN).
+- `src/tesi_gan/training/conditional_losses.py` — loss dove il generatore e'
+  premiato per farsi classificare **come lo stile richiesto**: l'esatto opposto
+  della penalita' di ambiguita' della CAN.
+- `src/tesi_gan/training/conditional_trainer.py` — `ConditionalTrainer`, ciclo
+  separato da `Trainer`, con griglia a rumore ed etichette fisse (una riga per
+  stile) per seguire se il condizionamento funziona.
+- `src/tesi_gan/evaluation/conditional_figures.py` — unica figura prodotta:
+  griglia stile-per-riga, con didascalia che dichiara i limiti (vedi sotto).
+- `configs/model/conditional_artgan.yaml`, `configs/experiment/e5-illustrativo-64.yaml`
+  e `...-128.yaml` — entrambe le risoluzioni, perche' il budget di calcolo
+  disponibile lo permette. Un solo seed: non e' un confronto statistico.
+- `tests/test_conditional.py` — verifica che il condizionamento non sia un
+  ingresso morto (etichette diverse -> immagini diverse), le forme alle due
+  risoluzioni, e che nessuna importazione tocchi le classi di ADR-0003.
+
+**Limite dichiarato, da riportare in tesi se le figure vengono usate:** nessun
+numero (FID/IS) e' comparabile con la fonte di ispirazione, che non ne pubblica.
+La figura mostra qualita' visiva ottenuta con un'architettura diversa, non un
+risultato che confermi o smentisca l'ipotesi della CAN.
+
+**Citazione bloccata.** Il paper di Tan, Chan, Aguirre & Tanaka non e' ancora in
+`thesis/references/bibliography.bib` — marcato `% TODO[CITE]` nei file di codice.
+Va importato in Zotero prima di qualunque `\parencite` in tesi (CLAUDE.md §2.1).
+
+**Non ancora eseguito.** Il codice e' scritto e compila, ma non testato su GPU: i
+test automatici richiedono `torch`, non installabile nel sandbox di sviluppo
+(spazio disco insufficiente e proxy che blocca l'indice CPU di PyTorch). **Prima di
+lanciare un run vero, eseguire `make test` (o `pytest tests/test_conditional.py -v`)
+nell'ambiente con le dipendenze installate** — Mac locale o pod RunPod — per
+verificare che non ci siano errori di forma o di tipo prima di spendere GPU.
+
+---
+
 ## 3. Questioni aperte
 
 Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla

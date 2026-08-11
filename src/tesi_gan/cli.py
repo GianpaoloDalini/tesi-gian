@@ -6,6 +6,11 @@
     python -m tesi_gan.cli evaluate --checkpoint experiments/checkpoints/latest.pt
     python -m tesi_gan.cli export-figures
 
+    # Esperimento illustrativo condizionato per stile — FUORI da ADR-0003,
+    # non entra nel confronto DCGAN/CAN (vedi models/conditional.py):
+    python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-64
+    python -m tesi_gan.cli sample-conditional --checkpoint experiments/checkpoints/.../final.pt
+
 Ogni comando legge la configurazione da `configs/` tramite Hydra: nessun
 iperparametro va passato modificando il codice sorgente (D-007). Gli override si
 scrivono in coda al comando, es. `training.epochs=100 model=can`.
@@ -123,6 +128,124 @@ def cmd_train(cfg, allow_dirty: bool, resume: bool) -> int:
         tracker.run_id,
         prov.commit[:8],
     )
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+#  train-conditional — esperimento ILLUSTRATIVO, fuori da ADR-0003
+# --------------------------------------------------------------------------- #
+
+def cmd_train_conditional(cfg, allow_dirty: bool, resume: bool) -> int:
+    """Addestra il generatore condizionato per stile (esperimento illustrativo).
+
+    Comando separato da `train`: costruisce modelli, loss e trainer diversi
+    (`models/conditional.py`, `training/conditional_trainer.py`). Non risponde
+    alla domanda di ADR-0003 e i suoi numeri non vanno confrontati con E1/E2.
+    """
+    from omegaconf import OmegaConf
+
+    from tesi_gan.data import build_dataloader, build_dataset, num_styles_of
+    from tesi_gan.models.conditional import build_conditional_models
+    from tesi_gan.training import ConditionalTrainer, count_parameters
+    from tesi_gan.utils import provenance
+    from tesi_gan.utils.seed import set_seed
+    from tesi_gan.utils.tracking import build_tracker
+
+    if not allow_dirty:
+        provenance.assert_clean_tree()
+    prov = provenance.collect()
+
+    set_seed(int(cfg.seed), strict=bool(cfg.get("strict_determinism", False)))
+    device = _device()
+
+    dataset = build_dataset(cfg)
+    detected = num_styles_of(dataset)
+    declared = cfg.model.get("num_styles")
+    if declared is None:
+        log.info("model.num_styles non dichiarato: ricavato dai dati = %d", detected)
+        OmegaConf.update(cfg, "model.num_styles", detected, force_add=True)
+    elif int(declared) != detected:
+        raise ValueError(
+            f"model.num_styles={declared} non coincide con gli stili presenti nel "
+            f"dataset ({detected})."
+        )
+
+    dataloader = build_dataloader(cfg, dataset)
+    generator, discriminator = build_conditional_models(cfg)
+
+    log.info(
+        "Esperimento illustrativo condizionato | stili: %d | immagini: %d | batch: %d",
+        detected, len(dataset), int(cfg.training.batch_size),
+    )
+    log.info(
+        "Parametri addestrabili — G: %s, D: %s",
+        f"{count_parameters(generator):,}",
+        f"{count_parameters(discriminator):,}",
+    )
+
+    tracker = build_tracker(cfg, prov)
+    trainer = ConditionalTrainer(cfg, generator, discriminator, dataloader, device, tracker)
+
+    if resume and trainer.maybe_resume():
+        log.info("Run ripreso dall'epoca %d", trainer.state.epoch)
+
+    try:
+        trainer.fit(int(cfg.training.epochs))
+    finally:
+        trainer.save_checkpoint("final.pt")
+        tracker.finish()
+
+    log.info(
+        "Training illustrativo concluso (run_id=%s, commit=%s). Non e' un run "
+        "dell'impianto comparativo: non entra in experiments/registry.md come E1/E2, "
+        "ma vale la pena annotarlo comunque per tracciabilita' della figura.",
+        tracker.run_id, prov.commit[:8],
+    )
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+#  sample-conditional — figura illustrativa da un checkpoint
+# --------------------------------------------------------------------------- #
+
+def cmd_sample_conditional(cfg, checkpoint: Path, output_dir: Path) -> int:
+    import torch
+
+    from tesi_gan.data import build_dataset
+    from tesi_gan.evaluation import save_conditional_grid
+    from tesi_gan.models.conditional import build_conditional_models
+    from tesi_gan.utils.seed import set_seed
+
+    if not checkpoint.exists():
+        log.error("Checkpoint inesistente: %s", checkpoint)
+        return 1
+
+    set_seed(int(cfg.seed))
+    device = _device()
+
+    dataset = build_dataset(cfg)
+    classes = list(getattr(dataset, "classes", []))
+    from omegaconf import OmegaConf
+
+    if cfg.model.get("num_styles") is None:
+        OmegaConf.update(cfg, "model.num_styles", len(classes), force_add=True)
+
+    generator, _discriminator = build_conditional_models(cfg)
+    ckpt = torch.load(checkpoint, map_location=device, weights_only=True)
+    generator.load_state_dict(ckpt["generator"])
+    generator.to(device).eval()
+
+    path = save_conditional_grid(
+        generator=generator,
+        classes=classes,
+        out_dir=output_dir,
+        seed=int(cfg.seed),
+        device=device,
+    )
+    if path is None:
+        log.warning("Figura non prodotta (matplotlib assente?).")
+        return 1
+    log.info("Figura illustrativa scritta: %s", path)
     return 0
 
 
@@ -427,6 +550,20 @@ def main(argv: list[str] | None = None) -> int:
     p_train.add_argument("--resume", action="store_true",
                          help="Riprende da experiments/checkpoints/latest.pt se esiste")
 
+    p_train_cond = sub.add_parser(
+        "train-conditional",
+        help="Addestra il generatore condizionato per stile (esperimento illustrativo, fuori da ADR-0003)",
+    )
+    p_train_cond.add_argument("--allow-dirty", action="store_true")
+    p_train_cond.add_argument("--resume", action="store_true")
+
+    p_sample_cond = sub.add_parser(
+        "sample-conditional",
+        help="Genera la figura illustrativa (una riga per stile) da un checkpoint condizionato",
+    )
+    p_sample_cond.add_argument("--checkpoint", type=Path, required=True)
+    p_sample_cond.add_argument("--output-dir", type=Path, default=Path("thesis/figures/generated"))
+
     p_judge = sub.add_parser(
         "train-style-classifier",
         help="Addestra il giudice terzo dell'ambiguita' stilistica (una volta sola)",
@@ -464,6 +601,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "train":
         return cmd_train(cfg, allow_dirty=args.allow_dirty, resume=args.resume)
+    if args.command == "train-conditional":
+        return cmd_train_conditional(cfg, allow_dirty=args.allow_dirty, resume=args.resume)
+    if args.command == "sample-conditional":
+        return cmd_sample_conditional(cfg, args.checkpoint, args.output_dir)
     if args.command == "train-style-classifier":
         return cmd_train_style_classifier(cfg, force=args.force)
     if args.command == "inspect-style-classifier":

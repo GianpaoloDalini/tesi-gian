@@ -1,0 +1,29 @@
+# @package _global_
+#
+# E5 — Esperimento ILLUSTRATIVO condizionato per stile, a 64x64.
+#
+# **Fuori dal confronto comparativo di ADR-0003 (E1/E2).** Non va nella stessa
+# tabella di DCGAN/CAN e non risponde alla stessa domanda: qui l'obiettivo e' solo
+# ottenere campioni piu' nitidi da mostrare in tesi come contrasto visivo, ispirato
+# al condizionamento categorico di ArtGAN. Nessun vincolo di identita' con e1/e2:
+# i parametri sotto sono liberi di essere ritoccati per il risultato visivo, cosa
+# che non e' MAI permessa per E1/E2.
+#
+#   python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-64
+#
+# Un seed solo basta: non e' un confronto statistico, e' una dimostrazione.
+defaults:
+  - override /model: conditional_artgan
+  - override /data: artbench
+
+seed: 1
+
+training:
+  epochs: 100
+  batch_size: 128
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 10
+  label_smoothing: 0.1

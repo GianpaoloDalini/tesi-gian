@@ -1,0 +1,24 @@
+# Generatore condizionato per stile — esperimento ILLUSTRATIVO, fuori da ADR-0003.
+#
+# Ispirato al condizionamento categorico di ArtGAN (Tan, Chan, Aguirre & Tanaka).
+# % TODO[CITE]: il paper non e' ancora in thesis/references/bibliography.bib.
+# Importalo in Zotero prima di citarlo in tesi (CLAUDE.md §2.1).
+#
+# NON e' una terza condizione del confronto DCGAN/CAN: architettura diversa
+# (prende in ingresso anche l'etichetta di stile), obiettivo diverso (fedelta' allo
+# stile richiesto, non ambiguita'). Vedi src/tesi_gan/models/conditional.py.
+name: conditional_artgan
+latent_dim: 100
+channels: 3
+generator_features: 64
+discriminator_features: 64
+
+# Numero di classi di stile, ricavato dai dati a runtime (stessa logica di
+# can.yaml): dichiararlo a mano rischierebbe di non coincidere col dataset.
+num_styles: null
+
+# Peso della loss di classificazione nel generatore. Qui non c'e' un valore da
+# "verificare sul paper": la fonte di ispirazione non pubblica un valore
+# confrontabile (nessun benchmark quantitativo, solo una galleria di immagini). Va
+# scelto per il risultato visivo, e dichiarato come tale.
+classification_weight: 1.0

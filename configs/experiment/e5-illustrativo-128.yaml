@@ -1,0 +1,24 @@
+# @package _global_
+#
+# E5 — Esperimento ILLUSTRATIVO condizionato per stile, a 128x128.
+#
+# Stessa natura di e5-illustrativo-64: fuori dal confronto di ADR-0003, parametri
+# liberi di essere ritoccati per il risultato visivo. Batch dimezzato per la
+# memoria, come per e3-dcgan-128/e4-can-128.
+#
+#   python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-128
+defaults:
+  - override /model: conditional_artgan
+  - override /data: artbench128
+
+seed: 1
+
+training:
+  epochs: 100
+  batch_size: 64
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 10
+  label_smoothing: 0.1
