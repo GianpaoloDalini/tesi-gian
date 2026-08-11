@@ -337,7 +337,7 @@ Questionario online su poche decine di rispondenti, con consenso informato.
 
 **Alternative scartate:** nessuno studio umano (lascerebbe la valutazione alle sole
 metriche automatiche, che per ammissione della tesi stessa non misurano creatività);
-replica del protocollo di Elgammal (mesi di lavoro, incompatibile con la scadenza).
+replica del protocollo di Elgammal (mesi di lavoro, non compatibile con il tempo a disposizione).
 
 **Motivazione:** serve almeno un giudizio umano perché il capitolo dei risultati non
 poggi interamente su FID e IS, di cui la tesi dichiara i limiti.
@@ -736,13 +736,9 @@ decisione che le ha risolte: cancellarle farebbe perdere la traccia del percorso
 ### Q1 — Sessione di laurea ✅ chiusa
 **Stato:** risolta il 2026-08-02 · **Verifica:** V-006
 
-Sessione autunnale, **discussione magistrale 2 ottobre 2026**. Le date non sono più
-un'ipotesi: sono state lette sull'avviso ufficiale della Scuola di Ingegneria, che
-riporta testualmente «non sono ammesse deroghe rispetto alle scadenze indicate».
-
-L'obiezione del 31 luglio era fondata e la risposta «non preoccuparti delle scadenze»
-era basata su un'informazione sbagliata: **la Fase 1 scade il 14 agosto 2026**, non a
-settembre. Vedi V-006 per il calendario completo.
+Sessione autunnale confermata sull'avviso ufficiale della Scuola di Ingegneria. Le
+date amministrative sono gestite da Gian autonomamente, fuori da questo repository,
+per scelta esplicita — non vengono più registrate qui.
 
 ### Q2 — Impianto sperimentale ✅ chiusa dall'autore
 **Stato:** chiusa il 2026-08-03 → **D-010**, [ADR-0003](decisions/0003-impianto-sperimentale.md)
@@ -857,9 +853,10 @@ Non ancora formulate. Con Q2 chiusa non dipendono più dall'impianto, ma restano
 subordinate alla revisione della letteratura: formulare domande di ricerca prima di
 conoscere lo stato dell'arte produce quasi sempre domande già risolte o mal poste.
 
-**Vincolo nuovo:** la Fase 1 della domanda di laurea richiede il **titolo della tesi
-entro il 14 agosto 2026** (V-006). Un titolo si può cambiare, ma sceglierlo senza
-avere almeno una domanda di ricerca abbozzata significa sceglierlo a caso.
+**Vincolo:** la domanda di laurea richiede il titolo della tesi in una delle prime
+fasi amministrative (gestite da Gian, non tracciate qui). Un titolo si può cambiare,
+ma sceglierlo senza avere almeno una domanda di ricerca abbozzata significa
+sceglierlo a caso.
 
 Direzione compatibile con D-010, da affinare dopo la revisione:
 *che cosa misura effettivamente il meccanismo di ambiguità stilistica di una CAN, e
@@ -872,28 +869,16 @@ in che rapporto sta con le metriche con cui la letteratura ne valuta il risultat
 Punti su cui è stata fatta un'ipotesi o un adattamento che va confermato da una fonte
 autorevole prima della consegna.
 
-### V-006 — Scadenze della sessione autunnale ✅ verificata, con adempimenti aperti
-**Verificata il:** 2026-08-02
-**Fonte:** [Avviso Lauree Settembre 2026 — Scuola di Ingegneria UniBg](https://www.unibg.it/sites/default/files/media/documents/2026-07-03/Avviso%20Lauree%20Settembre%202026.pdf)
+### V-006 — Scadenze della sessione autunnale ✅ verificata
 
-L'avviso riporta: «**NON SONO AMMESSE DEROGHE RISPETTO ALLE SCADENZE INDICATE**».
+Fonte ufficiale della Scuola di Ingegneria consultata. Il calendario e le singole
+scadenze sono gestiti da Gian autonomamente e **non vengono più tracciati in questo
+repository**, per scelta esplicita.
 
-| Adempimento | Scadenza | Stato |
-|---|---|---|
-| Fase 1 — deposito titolo tesi (IT + EN) e nominativo relatore | **ven 14/08/2026** | ⬜ da fare |
-| Fase 2 — approvazione online del relatore | lun 17/08/2026 | ⬜ dipende dal relatore |
-| Fase 3 — domanda definitiva + questionario AlmaLaurea + € 32 | mar 18/08/2026 | ⬜ da fare |
-| Termine registrazione esami | sab 12/09/2026 | ⬜ da verificare |
-| Fase 4 — caricamento dell'elaborato | ven 11/09 – lun 21/09/2026 | ⬜ |
-| Discussione e proclamazione (magistrali) | **ven 02/10/2026** | — |
-
-**Conseguenze immediate.** La Fase 1 richiede il nominativo del relatore, che è
-tuttora `DA DEFINIRE` (§1) e che deve poi approvare online entro il 17 agosto, in
-pieno agosto. Questo, non il training, è il rischio principale del progetto: nessun
-risultato sperimentale compensa una domanda non presentata.
-
-Il tempo effettivo per la parte sperimentale e la stesura è **fino al 21 settembre**,
-cioè circa sette settimane da oggi.
+**Unica dipendenza rilevante per il progetto:** una delle prime fasi amministrative
+richiede il nominativo del relatore, tuttora `DA DEFINIRE` (§1), che deve poi dare
+un'approvazione. Questo, non il training, è il rischio principale del progetto:
+nessun risultato sperimentale compensa una domanda non presentata.
 
 ### V-007 — Termini d'uso del dataset 🟠 in parte chiarita
 **Stato:** ricognizione fatta il 2026-08-03; resta la lettura diretta dei termini
@@ -1387,40 +1372,39 @@ identicamente alle due condizioni. Non è ancora stato deciso.
 
 ## 6. Prossimi passi
 
-Ordinati per **scadenza**, non per dipendenza logica: da oggi il calendario comanda.
+Ordinati per dipendenza logica, non per scadenza (le scadenze amministrative sono
+gestite da Gian fuori da questo repository).
 
-### Entro il 14 agosto — amministrativo, non rinviabile
+### Amministrativo
 
-1. **Contattare il relatore.** Il suo nominativo serve in Fase 1 e la sua approvazione
-   online in Fase 2 entro il 17 agosto. È il singolo punto di fallimento del progetto.
+1. **Contattare il relatore.** Il suo nominativo e la sua approvazione sono il
+   singolo punto di fallimento del progetto: senza, nessuna fase amministrativa
+   successiva può procedere.
 2. **Scegliere il titolo della tesi** (italiano e inglese) anche in forma provvisoria.
-3. **Fase 1** entro venerdì 14/08, **Fase 3** entro martedì 18/08, con questionario
-   AlmaLaurea e pagamento.
-4. **V-007:** verificare i termini d'uso del dataset e sbloccare il download.
+3. **V-007:** verificare i termini d'uso del dataset e sbloccare il download.
 
-### Entro fine agosto — sperimentale
+### Sperimentale
 
-5. Preparare il sottoinsieme del dataset e lanciare lo smoke test su dati sintetici.
-6. **Run E1 (DCGAN)** e **run E2 (CAN)**, registrandoli in `experiments/registry.md`.
-7. Valutazione con metriche identiche sulle due condizioni; export delle figure.
+4. Preparare il sottoinsieme del dataset e lanciare lo smoke test su dati sintetici.
+5. **Run E1 (DCGAN)** e **run E2 (CAN)**, registrandoli in `experiments/registry.md`.
+6. Valutazione con metriche identiche sulle due condizioni; export delle figure.
 
-### Entro il 6 settembre — studio percettivo
+### Studio percettivo
 
-8. Predisporre questionario e consenso informato; raccogliere le risposte mentre
+7. Predisporre questionario e consenso informato; raccogliere le risposte mentre
    procede la stesura.
 
-### Fino al 21 settembre — stesura
+### Stesura
 
-9. Revisione della letteratura e schede in `docs/literature/` (in parallelo, non dopo).
-10. Formulare le domande di ricerca (Q8) e farle approvare.
-11. Stesura dei capitoli; V-001…V-005 chiuse prima della consegna.
+8. Revisione della letteratura e schede in `docs/literature/` (in parallelo, non dopo).
+9. Formulare le domande di ricerca (Q8) e farle approvare.
+10. Stesura dei capitoli; V-001…V-005 chiuse prima della consegna.
 
 **Ordine da non invertire.** La revisione della letteratura sarebbe metodologicamente
-dovuta *prima* dell'esperimento. Con sette settimane e agosto di mezzo, si fa in
-parallelo: è una deviazione consapevole dal metodo, imposta dal calendario, e come
-tale va dichiarata invece che nascosta. L'esperimento è deciso e implementato; se la
-revisione ne rivelasse l'inadeguatezza, resterebbe comunque materiale per la
-discussione dei limiti.
+dovuta *prima* dell'esperimento. Farla in parallelo è una deviazione consapevole dal
+metodo, e come tale va dichiarata invece che nascosta. L'esperimento è deciso e
+implementato; se la revisione ne rivelasse l'inadeguatezza, resterebbe comunque
+materiale per la discussione dei limiti.
 
 ---
 
@@ -1430,7 +1414,7 @@ discussione dei limiti.
 |---|---|---|
 | 2026-07-31 | Intervista iniziale; analisi del template `phd-thesis-tex`; impostazione del monorepo | D-001…D-009 decise; Q1…Q8 aperte; infrastruttura verificata |
 | 2026-08-03 | Ripianificazione: impianto ridiscusso e ratificato; ricognizione dei dataset artistici; dataset e servizio di calcolo decisi | D-010 ratificata con tre precisazioni; D-013 RunPod; D-014 ArtBench-10 supera D-011; Q2, Q4, Q7 chiuse; V-007 documentata; pipeline adattata |
-| 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
+| 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (date amministrative non tracciate qui); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
 | 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
 | 2026-08-03 (3ª sessione) | Infrastruttura RunPod completata; impianto a 64px eseguito e valutato; estensione a 128px | Dataset preparato (D-017 stili rivisti); giudici J1-J3; **8 run a 64px** con ambiguità 0,682 → 0,750 a parità di FID, IS e copertura; due ipotesi pre-registrate falsificate; **D-018** impianto a 128px; **D-019** criterio del FID minimo dopo aver osservato il collasso a fine corsa; **D-020** soglia IS < 2,0 per i run degenerati; **D-021** figure alla stessa epoca; **V-008** aperta. 78 test superati |
 | 2026-08-11 | Corretta una lettura stale del repo (fetch GitHub ferma al 31/07); riallineati `project-plan.md` e `CLAUDE.md`; deciso e implementato **E5**, esperimento illustrativo condizionato per stile, esplicitamente fuori da ADR-0003 | **D-022**; codice in moduli separati (`models/conditional.py`, `training/conditional_*`, `evaluation/conditional_figures.py`); **92 test superati** (78 invariati + 14 nuovi); nessun run E5 ancora lanciato; E3 resta il prossimo esperimento comparativo, non avviato; Q8 lasciata sospesa su richiesta esplicita |

@@ -20,7 +20,7 @@
 | Relatore | `DA DEFINIRE` (nome) — area: IA e informatica etica |
 | Correlatore | `DA DEFINIRE` |
 | Tipo di tesi | Sperimentale con componente analitico-etica |
-| Sessione di laurea | Autunnale — discussione **2026-10-02**, elaborato entro **2026-09-21** (V-006) |
+| Sessione di laurea | Autunnale — gestita autonomamente da Gian, non tracciata qui |
 | Lingua | Italiano |
 
 ---
@@ -154,37 +154,34 @@ considera "informativo" — va chiuso prima della stesura del capitolo dei risul
 
 ## 8. Pianificazione
 
-> Le scadenze amministrative della sessione (Fase 1-4, calendario completo) sono in
-> V-006 nel registro delle decisioni. Gian le gestisce autonomamente; questo piano
-> non le ripete né le segnala come rischio.
+> Le scadenze amministrative della sessione sono gestite autonomamente da Gian fuori
+> da questo repository e non vengono tracciate qui, per scelta esplicita.
 
-| Milestone | Descrizione | Scadenza | Stato |
-|---|---|---|---|
-| M0 | Infrastruttura del repository | 2026-07-31 | ✅ fatto |
-| M-A1 | Fase 1: deposito titolo e relatore | vedi V-006 | ⬜ |
-| M-A2 | Fase 3: domanda definitiva + AlmaLaurea | vedi V-006 | ⬜ |
-| M3a | Pipeline sperimentale implementata e testata | 2026-08-02 | ✅ fatto |
-| M3b | Dataset preparato e smoke test superato | 2026-08-03 | ✅ fatto |
-| M4 | Run E1 ed E2 conclusi e registrati (64px) | 2026-08-03 | ✅ fatto |
-| M4b | Metriche calcolate, figure esportate (64px) | 2026-08-03 | ✅ fatto |
-| M4c | Impianto replicato a 128px, traiettoria valutata | 2026-08-04 | ✅ fatto — V-009 aperta (ispezione visiva mancante) |
-| M1 | Revisione della letteratura, gap definito | 2026-09-06 | ⬜ in parallelo |
-| M2 | Domande di ricerca approvate dal relatore | 2026-09-06 | ⬜ vedi Q8 |
-| M-E4 | Studio percettivo concluso | 2026-09-06 | ⬜ |
-| M5 | Prima stesura completa | 2026-09-14 | ⬜ |
-| M6 | **Caricamento dell'elaborato (Fase 4)** | **2026-09-21** | ⬜ |
-| M7 | Discussione | 2026-10-02 | — |
+| Milestone | Descrizione | Stato |
+|---|---|---|
+| M0 | Infrastruttura del repository | ✅ fatto |
+| M-A1 | Deposito titolo e relatore | ⬜ |
+| M-A2 | Domanda definitiva | ⬜ |
+| M3a | Pipeline sperimentale implementata e testata | ✅ fatto |
+| M3b | Dataset preparato e smoke test superato | ✅ fatto |
+| M4 | Run E1 ed E2 conclusi e registrati (64px) | ✅ fatto |
+| M4b | Metriche calcolate, figure esportate (64px) | ✅ fatto |
+| M4c | Impianto replicato a 128px, traiettoria valutata | ✅ fatto — V-009 aperta (ispezione visiva mancante) |
+| M1 | Revisione della letteratura, gap definito | ⬜ in parallelo |
+| M2 | Domande di ricerca approvate dal relatore | ⬜ vedi Q8 |
+| M-E4 | Studio percettivo concluso | ⬜ |
+| M5 | Prima stesura completa | ⬜ |
+| M6 | Caricamento dell'elaborato | ⬜ |
+| M7 | Discussione | — |
 
-**Margine reale:** nullo. Ogni slittamento di M4 si scarica interamente sulla stesura.
-Per questo E1 ed E2 hanno un budget di epoche fisso e un checkpoint ripristinabile: se
-la qualità a 100 epoche non è quella sperata, si scrive la tesi su quello che c'è e si
-discute il limite, invece di rilanciare il training a due settimane dalla consegna.
+E1 ed E2 hanno un budget di epoche fisso e un checkpoint ripristinabile: se la qualità
+a 100 epoche non è quella sperata, si scrive la tesi su quello che c'è e si discute il
+limite, invece di rilanciare il training.
 
 ## 9. Rischi
 
 | Rischio | Probabilità | Impatto | Mitigazione |
 |---|---|---|---|
-| Sessione di laurea troppo ravvicinata per un impianto sperimentale serio | alta | alto | Decidere presto la sessione; predisporre uno scope minimo difendibile |
 | Le metriche automatiche non misurano ciò che la tesi afferma di misurare | alta | alto | Dichiarare esplicitamente i limiti; affiancare valutazione qualitativa |
 | Costi o quote di calcolo insufficienti per il training | media | alto | Risoluzione ridotta, dataset ristretto, checkpointing aggressivo |
 | Sessioni cloud effimere che interrompono il training | alta | medio | Checkpoint frequenti su storage persistente |
@@ -233,7 +230,7 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 
 Dettaglio e criticità in [`docs/registro-decisioni.md` §3](registro-decisioni.md#3-questioni-aperte).
 
-Chiuse: **Q1** (sessione: discussione 02/10/2026), **Q2** (impianto → D-010, ma vedi
+Chiuse: **Q1** (sessione confermata), **Q2** (impianto → D-010, ma vedi
 punto sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** riaperta
 (vedi sotto). Restano:
 
