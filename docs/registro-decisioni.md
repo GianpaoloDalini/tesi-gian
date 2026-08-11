@@ -19,7 +19,7 @@
 > una riga qui nello stesso commit che la applica. Una decisione superata non si
 > cancella: si marca `superata` e si indica da cosa.
 
-**Ultimo aggiornamento:** 2026-08-04
+**Ultimo aggiornamento:** 2026-08-11
 
 ---
 
@@ -1131,6 +1131,80 @@ comando: `source .venv/bin/activate`.
 
 ---
 
+## 5-quater. Punto di ripresa — 2026-08-11
+
+**Sostituisce i punti di ripresa precedenti** (5-ter, 5-bis, lasciati sotto per la
+cronologia). Se apri una chat nuova su questo progetto e hai solo l'accesso
+sincronizzato da GitHub (nessuna cartella locale collegata), **leggi prima questa
+sezione** — vedi anche la nota in cima a `CLAUDE.md`.
+
+### Stato dell'intera parte sperimentale, in un colpo d'occhio
+
+| Traccia | Stato |
+|---|---|
+| Impianto comparativo D-010 a 64px (E1/E2) | ✅ completo — 8 run, risultati a registro, ambiguità confermata (0,682→0,750), FID indistinguibile |
+| Impianto comparativo D-010 a 128px (E1b/E2b) | ✅ completo — 6 run, FID CAN +55%, causa non confermata (V-009 aperta) |
+| E3 — ablazione di controllo (peso ambiguità = 0) | ⬜ **non eseguito** — prossimo esperimento comparativo in coda |
+| E4 — studio percettivo leggero | ⬜ non eseguito |
+| E5 — illustrativo condizionato per stile (D-022, fuori da ADR-0003) | codice scritto **e testato** (92 test verdi, 2026-08-11), **nessun run lanciato** |
+
+### Cosa è successo in questa sessione (2026-08-11)
+
+1. **Corretta una falsa partenza.** A inizio sessione ho letto lo stato del
+   progetto da una fetch del repo GitHub che si è rivelata ferma al primo commit
+   (31 luglio), mentre il repo vero era già a metà agosto. Non era un problema dei
+   documenti — erano già ottimi — ma di una lettura stale. Aggiunta nota in
+   `CLAUDE.md` §1 per non ripetere l'errore: chi ha solo l'accesso sincronizzato
+   deve diffidare di una fetch che sembra ferma e controllare `git log -1`.
+2. **`project-plan.md` riallineato**: era rimasto indietro rispetto al registro
+   (diceva ancora "E1/E2 non avviato" quando erano già conclusi da una settimana).
+   Ora riflette impianto 64px e 128px conclusi, D-015→D-021 nell'indice.
+3. **Deciso e implementato E5** (D-022): generatore condizionato per stile,
+   ispirato al condizionamento categorico di ArtGAN, **esplicitamente fuori** dal
+   confronto comparativo — solo per ottenere figure più nitide, nessuna pretesa
+   quantitativa. Codice in moduli separati che non toccano l'impianto D-010:
+   `models/conditional.py`, `training/conditional_{losses,trainer}.py`,
+   `evaluation/conditional_figures.py`, config `e5-illustrativo-{64,128}.yaml`.
+4. **Testato**: 92 test verdi sul Mac locale (i 78 di D-010, invariati, più 14
+   nuovi). Verificato solo su CPU e dati sintetici: non dice nulla sulla qualità
+   visiva o la stabilità del training vero.
+5. Due commit pushati: `3dc124f` (allineamento documenti) e `1602d88` (E5).
+
+### Il prossimo comando, letteralmente il primo da lanciare
+
+Nessun run di E5 è partito. Sul pod RunPod:
+
+```bash
+cd /workspace/tesi-gian && git pull
+bash scripts/bootstrap_remote.sh        # solo se e' un pod nuovo
+python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-64
+# poi, se il primo va bene:
+python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-128
+```
+
+Dopo E5 (o anche prima/in parallelo, non c'e' una dipendenza tecnica fra i due),
+il prossimo esperimento pianificato è **E3**, l'ablazione di controllo:
+`style_ambiguity_weight=0` deve far degenerare la CAN esattamente nella DCGAN.
+Non ancora avviato, nessuna config `e-ablazione` scritta — da preparare quando si
+riprende (probabilmente basta un override `model.style_ambiguity_weight=0` su
+`e2-can-confronto`, non una config nuova: da verificare).
+
+### Cosa NON è ancora deciso, in ordine di peso
+
+1. Se dopo il run E5 mostrerà risultati visivamente validi o servirà tuning
+   (`classification_weight`, epoche, batch) — nessun run reale eseguito finora.
+2. **Q2, punto 3** — cosa conta come esito "informativo" per D-010, dato che la
+   CAN tende strutturalmente a peggiorare il FID. Mai chiuso.
+3. **V-009** — natura del degrado del CAN a 128px dopo l'epoca 20: serve
+   ispezione visiva dei campioni, mai fatta.
+4. **Q8, le domande di ricerca** — lasciate esplicitamente in sospeso su
+   richiesta di Gian in questa sessione. Non toccarle finché non lo chiede lui.
+5. Relatore, titolo della tesi, questioni amministrative — **fuori dal perimetro
+   di queste sessioni per esplicita richiesta di Gian**: non vanno sollevate né
+   usate per stabilire urgenza. Sono affari suoi.
+
+---
+
 ## 5-ter. Punto di ripresa — 2026-08-04
 
 Sostituisce i punti di ripresa precedenti.
@@ -1359,3 +1433,4 @@ discussione dei limiti.
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
 | 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
 | 2026-08-03 (3ª sessione) | Infrastruttura RunPod completata; impianto a 64px eseguito e valutato; estensione a 128px | Dataset preparato (D-017 stili rivisti); giudici J1-J3; **8 run a 64px** con ambiguità 0,682 → 0,750 a parità di FID, IS e copertura; due ipotesi pre-registrate falsificate; **D-018** impianto a 128px; **D-019** criterio del FID minimo dopo aver osservato il collasso a fine corsa; **D-020** soglia IS < 2,0 per i run degenerati; **D-021** figure alla stessa epoca; **V-008** aperta. 78 test superati |
+| 2026-08-11 | Corretta una lettura stale del repo (fetch GitHub ferma al 31/07); riallineati `project-plan.md` e `CLAUDE.md`; deciso e implementato **E5**, esperimento illustrativo condizionato per stile, esplicitamente fuori da ADR-0003 | **D-022**; codice in moduli separati (`models/conditional.py`, `training/conditional_*`, `evaluation/conditional_figures.py`); **92 test superati** (78 invariati + 14 nuovi); nessun run E5 ancora lanciato; E3 resta il prossimo esperimento comparativo, non avviato; Q8 lasciata sospesa su richiesta esplicita |
