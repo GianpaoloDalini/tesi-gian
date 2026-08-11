@@ -27,6 +27,14 @@
 | Creativity and Machine Learning: A Survey | (2021) | arXiv 2104.02726 | Survey che struttura il rapporto fra il framework di Boden e i modelli generativi — utile per l'impianto teorico della sezione su ambiguità-come-proxy-di-creatività. | Open access |
 | Towards creativity characterization of generative models via group-based subset scanning | (2021) | arXiv 2104.00479 | Tecnico: tentativi di misurare la creatività nei modelli generativi. Verifica se aggiunge qualcosa oltre a Elgammal/entropia di stile già usata. | Open access |
 
+## Dal filone "locus della creativita’: algoritmo vs uso umano" — 2026-08-11
+
+| Titolo | Autori (anno) | Venue | Perché | Accesso |
+|---|---|---|---|---|
+| Human-AI Co-Creativity: Exploring Synergies Across Levels of Creative Collaboration | (2024) | arXiv 2411.12527 | Modella l'agentività come distribuita lungo un continuum uomo-AI (da strumento a collaboratore) — struttura diretta per l'idea "l'emozione sta nell'uso, non nell'algoritmo". | Open access |
+| Co-creating art with generative artificial intelligence: Implications for artworks and artists | (2024) | ScienceDirect | L'accoglienza dell'opera dipende dall'intenzione dichiarata dell'artista, non solo dallo strumento usato — sposta la domanda dalla macchina all'intenzione umana che la guida. | Verificare accesso |
+| Human-AI co-creation or conflict? Mapping art students' diverse perspectives on creative identity with genAI | | Springer, Education and Information Technologies | Prospettiva empirica (studenti d'arte) su identità creativa e uso di genAI — utile se la tesi tocca la percezione soggettiva di chi usa lo strumento. | Verificare accesso |
+
 ## Note
 
 - **Non tutti vanno letti per intero.** Priorità: Qi (2019) e Berryman (2024) sono i
