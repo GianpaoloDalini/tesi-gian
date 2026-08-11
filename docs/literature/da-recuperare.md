@@ -35,6 +35,15 @@
 | Co-creating art with generative artificial intelligence: Implications for artworks and artists | (2024) | ScienceDirect | L'accoglienza dell'opera dipende dall'intenzione dichiarata dell'artista, non solo dallo strumento usato — sposta la domanda dalla macchina all'intenzione umana che la guida. | Verificare accesso |
 | Human-AI co-creation or conflict? Mapping art students' diverse perspectives on creative identity with genAI | | Springer, Education and Information Technologies | Prospettiva empirica (studenti d'arte) su identità creativa e uso di genAI — utile se la tesi tocca la percezione soggettiva di chi usa lo strumento. | Verificare accesso |
 
+## Dal filone "falsa rivendicazione di creativita' come problema etico" — 2026-08-11
+
+| Titolo | Autori (anno) | Venue | Perché | Accesso |
+|---|---|---|---|---|
+| Anthropomorphism in AI: hype and fallacy | | AI and Ethics, Springer | **Nodo centrale**: chiamare un sistema "Creative Adversarial Network" è un atto di antropomorfizzazione, che la letteratura di etica dell'AI tratta esplicitamente come fallacia che distorce il giudizio morale su un sistema. Collega direttamente la critica estetica (Langer/Qi) alla componente etica richiesta dal corso. | Verificare accesso |
+| The synthetic transformation of the art world: ethical tensions | | Humanities and Social Sciences Communications, Nature | Inganno del pubblico, svalutazione della creatività umana, erosione dell'autenticità quando l'uso di AI non è dichiarato o è sopravvalutato. | Open access (Nature Comms) |
+| Creativity Reconsidered: Generative AI and the Problem of Intentional Agency | (2026) | arXiv 2601.15797 | Molto recente (gennaio 2026): riprende esattamente il problema dell'agentività intenzionale nei sistemi generativi — verificare se sovrappone o rifinisce l'argomento Langer/co-creativita' già raccolto. | Open access |
+| Bias against AI art can enhance perceptions of human creativity | | PMC | **Complicazione da tenere presente**: le persone svalutano l'arte etichettata come AI-made anche quando è indistinguibile da quella umana. Non contraddice l'argomento etico, ma va gestito: se il pubblico è già scettico, la rivendicazione di creatività potrebbe essere motivata anche a compensare questo stigma, non solo a ingannare. | Open access |
+
 ## Note
 
 - **Non tutti vanno letti per intero.** Priorità: Qi (2019) e Berryman (2024) sono i
