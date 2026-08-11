@@ -787,8 +787,9 @@ esperimenti dedicati):**
 
 **Cosa resta aperto, esplicitamente non deciso qui:**
 
-- **Il tema dell'accessibilità** (AI come strumento per chi ha lacune tecniche, da
-  cui Gian era partito) non è ancora ricollegato a questo nucleo — va ripreso.
+- ~~Il tema dell'accessibilità (AI come strumento per chi ha lacune tecniche, da
+  cui Gian era partito) non è ancora ricollegato a questo nucleo~~ — **ricollegato
+  da D-024.**
 - **La divergenza 0,28 vs 0,75** è preliminare: va capito se serve un esperimento
   dedicato (non solo un sottoprodotto di D-010/D-015) prima di poterla usare come
   risultato in tesi.
@@ -800,6 +801,54 @@ esperimenti dedicati):**
   citate qui sono state trovate e verificate una a una in risposta a affermazioni
   specifiche di Gian, non tramite una ricerca sistematica sullo stato dell'arte.
 - **Q8 resta aperta**, ma con una prima direzione difendibile invece che vuota.
+
+---
+
+### D-024 — Accessibilità e training: due tesi che coesistono senza elidersi (completa D-023)
+**Data:** 2026-08-11 · **Stato:** confermata da Gian, chiude il punto aperto in D-023 sull'accessibilità
+
+Riprende il punto di partenza di Gian (D-023, primo passo del dialogo): l'AI
+generativa come strumento di accessibilità per chi ha lacune tecniche, per
+esprimere qualcosa attraverso l'arte visiva. Restava da capire come si collega al
+nucleo critico (D-023): se fosse la controparte costruttiva della critica, o se il
+fatto che il training "ruba" da altri artisti (V-007) la rimettesse in discussione.
+
+**Obiezione posta e verificata prima di accettare la posizione di Gian.** Prima
+formulazione di Gian: il training è paragonabile all'ispirazione umana, perché
+anche la creazione umana nasce dall'osservazione di natura, realtà e opere altrui,
+e gli stili artistici lo dimostrano. Verificato che questa equiparazione è tra le
+più contestate in letteratura — non ci sono solo tesi accademiche discordanti, ci
+sono **sentenze di tribunali americani che si contraddicono direttamente** su
+questo stesso punto: una motiva un giudizio con l'analogia alla lettura umana
+("un LLM allenato su un'opera non per sostituirla, ma per prendere una svolta e
+crearne un'altra"), un'altra la respinge esplicitamente ("non è così che un umano
+legge un libro" — il testo viene ingerito, spezzettato, ricombinato miliardi di
+volte, un processo meccanico senza equivalente nella lettura umana).
+
+**Il criterio che ha sciolto la tensione, proposto da Gian stesso:** la differenza
+non sta nella scala né nella tecnica, ma nella **componente emotiva**, sempre
+presente nello studio di un artista umano, assente nell'addestramento di un
+modello. Coerente con D-023 (l'algoritmo non ha emozione) invece di essere in
+tensione con esso: **l'assenza di emozione non riguarda solo l'output della CAN,
+riguarda anche il training di qualunque modello generativo**, quindi l'analogia
+con l'ispirazione umana perde il fondamento che la renderebbe una difesa valida.
+Aggancio trovato in filosofia della mente: il "problema del symbol grounding" —
+una semantica puramente relazionale (pesi, gradienti) non produce significato
+vissuto, perché non c'è un soggetto per cui l'esperienza conti qualcosa.
+
+**Decisione:** l'accessibilità (l'uso umano dello strumento per esprimersi,
+nonostante lacune tecniche) resta un beneficio genuino, **indipendente** dalla
+legittimità del processo con cui il modello sottostante è stato addestrato. Le due
+valutazioni **coesistono senza elidersi a vicenda**: uno strumento può fare del
+bene a chi lo usa e restare, allo stesso tempo, costruito in un modo eticamente
+problematico (V-007). La tesi non deve scegliere fra le due, deve tenerle insieme
+e distinte.
+
+**Conseguenza per la struttura della tesi:** il capitolo di discussione ha ora due
+argomenti distinti da tenere separati esplicitamente, non fusi in uno solo —
+altrimenti si rischia di usare il beneficio dell'uno per attenuare il problema
+dell'altro, esattamente l'errore che l'obiezione qui sopra ha escluso. Dettaglio di
+merito e struttura da definire dopo M1.
 
 ---
 
@@ -922,14 +971,16 @@ circa 100 epoche su un sottoinsieme di alcune migliaia di immagini. Ore consumat
 costo effettivo vanno annotati qui man mano, per l'appendice sulla riproducibilità.
 
 ### Q8 — Domande di ricerca 🟡 bozza formulata, da consolidare
-**Stato:** aperta, con una prima direzione → **D-023**
+**Stato:** aperta, con una prima direzione → **D-023**, completata da **D-024**
 
 Prima bozza: la rivendicazione di creatività della CAN come antropomorfizzazione
-(vedi D-023 per il percorso completo). Emersa da dialogo aperto, non dalla
-revisione sistematica della letteratura — resta subordinata a quella (M1):
-formulare domande di ricerca prima di conoscere lo stato dell'arte produce quasi
-sempre domande già risolte o mal poste, e questa bozza va trattata come tale finché
-la revisione non la conferma o la corregge.
+(D-023), con l'accessibilità riconosciuta come beneficio indipendente dalla
+legittimità del training (D-024) — due argomenti da tenere distinti nel capitolo
+di discussione, non fusi. Emersa da dialogo aperto, non dalla revisione
+sistematica della letteratura — resta subordinata a quella (M1): formulare domande
+di ricerca prima di conoscere lo stato dell'arte produce quasi sempre domande già
+risolte o mal poste, e questa bozza va trattata come tale finché la revisione non
+la conferma o la corregge.
 
 **Vincolo:** la domanda di laurea richiede il titolo della tesi in una delle prime
 fasi amministrative (gestite da Gian, non tracciate qui). Un titolo si può cambiare,
@@ -1496,4 +1547,4 @@ materiale per la discussione dei limiti.
 | 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
 | 2026-08-03 (3ª sessione) | Infrastruttura RunPod completata; impianto a 64px eseguito e valutato; estensione a 128px | Dataset preparato (D-017 stili rivisti); giudici J1-J3; **8 run a 64px** con ambiguità 0,682 → 0,750 a parità di FID, IS e copertura; due ipotesi pre-registrate falsificate; **D-018** impianto a 128px; **D-019** criterio del FID minimo dopo aver osservato il collasso a fine corsa; **D-020** soglia IS < 2,0 per i run degenerati; **D-021** figure alla stessa epoca; **V-008** aperta. 78 test superati |
 | 2026-08-11 | Corretta una lettura stale del repo (fetch GitHub ferma al 31/07); riallineati `project-plan.md` e `CLAUDE.md`; deciso e implementato **E5**, esperimento illustrativo condizionato per stile, esplicitamente fuori da ADR-0003 | **D-022**; codice in moduli separati (`models/conditional.py`, `training/conditional_*`, `evaluation/conditional_figures.py`); **92 test superati** (78 invariati + 14 nuovi); nessun run E5 ancora lanciato; E3 resta il prossimo esperimento comparativo, non avviato; Q8 lasciata sospesa su richiesta esplicita |
-| 2026-08-11 (2ª sessione) | Rimosse tutte le scadenze/date amministrative dai file (richiesta esplicita e ripetuta di Gian) e aggiunta regola permanente in `CLAUDE.md` §0; dialogo aperto guidato da domande per costruire l'idea di base della tesi, con verifica di ogni affermazione contro fonti reali | Q8 con prima bozza di direzione → **D-023**; creato `docs/literature/da-recuperare.md` per tracciare i paper trovati non ancora in Zotero |
+| 2026-08-11 (2ª sessione) | Rimosse tutte le scadenze/date amministrative dai file (richiesta esplicita e ripetuta di Gian) e aggiunta regola permanente in `CLAUDE.md` §0; dialogo aperto guidato da domande per costruire l'idea di base della tesi, con verifica di ogni affermazione contro fonti reali | Q8 con prima bozza di direzione → **D-023**; ricollegato il tema dell'accessibilità e chiarito il rapporto col problema del training → **D-024**; creato `docs/literature/da-recuperare.md` per tracciare i paper trovati non ancora in Zotero; sessione chiusa su richiesta di Gian |

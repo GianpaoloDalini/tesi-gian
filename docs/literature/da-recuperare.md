@@ -44,6 +44,15 @@
 | Creativity Reconsidered: Generative AI and the Problem of Intentional Agency | (2026) | arXiv 2601.15797 | Molto recente (gennaio 2026): riprende esattamente il problema dell'agentività intenzionale nei sistemi generativi — verificare se sovrappone o rifinisce l'argomento Langer/co-creativita' già raccolto. | Open access |
 | Bias against AI art can enhance perceptions of human creativity | | PMC | **Complicazione da tenere presente**: le persone svalutano l'arte etichettata come AI-made anche quando è indistinguibile da quella umana. Non contraddice l'argomento etico, ma va gestito: se il pubblico è già scettico, la rivendicazione di creatività potrebbe essere motivata anche a compensare questo stigma, non solo a ingannare. | Open access |
 
+## Dal filone "training = ispirazione umana? l'obiezione della componente emotiva" — 2026-08-11
+
+| Titolo | Autori (anno) | Venue | Perché | Accesso |
+|---|---|---|---|---|
+| Comparing AI Training to Human Learning Is Cartoonishly Absurd | | Copyright Alliance | Posizione critica sull'analogia training/ispirazione umana — di parte (lobby del copyright) ma riassume bene gli argomenti tecnici (scala, memorizzazione) da verificare con fonti più neutre. | Open web |
+| Generative AI Training and Copyright Law | (2025) | arXiv 2502.15858 | Rassegna più equilibrata del dibattito giuridico, incluse le sentenze USA che si contraddicono sull'analogia con la lettura umana — fonte primaria per D-024. | Open access |
+| Copyright Office Weighs In on AI Training and Fair Use | (2025) | Skadden (studio legale) | Sintesi dello stato dell'arte legale USA post-report dell'US Copyright Office. Utile per l'appendice/nota sui termini d'uso (V-007), non solo per l'argomento filosofico. | Open web |
+| Toward Affective Interactions: E-Motions and Embodied Artificial Cognitive Systems | | PMC | Fonda filosoficamente la distinzione proposta da Gian: "problema del symbol grounding", assenza di un soggetto per cui l'esperienza conti. Aggancio diretto a D-024. | Open access |
+
 ## Note
 
 - **Non tutti vanno letti per intero.** Priorità: Qi (2019) e Berryman (2024) sono i

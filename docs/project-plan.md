@@ -40,8 +40,17 @@ in attesa del relatore e della revisione della letteratura per consolidarla
 - **Contesto applicativo (bozza):** uso e presentazione pubblica/commerciale di
   sistemi generativi (in particolare CAN) come agenti "creativi" nella produzione
   artistica.
-- **Stakeholder:** artisti, ricercatori in creatività computazionale, chi si occupa
-  di policy sul diritto d'autore, comunità ML. `DA RESTRINGERE`.
+- **Due tesi che coesistono (D-024):** l'accessibilità che questi strumenti offrono
+  a chi ha lacune tecniche è un beneficio genuino, **indipendente** dalla
+  legittimità del processo con cui il modello sottostante è stato addestrato
+  (V-007) — l'emozione che manca nel training di qualunque modello generativo
+  (D-023, D-024) non è la stessa cosa dell'emozione che l'utente umano porta
+  nell'uso dello strumento. Le due valutazioni vanno tenute distinte nel capitolo
+  di discussione, non fuse: l'una non attenua l'altra.
+- **Stakeholder:** artisti (sia chi usa questi strumenti per esprimersi, sia chi ha
+  visto le proprie opere usate per l'addestramento senza consenso — due posizioni
+  distinte, non sovrapponibili), ricercatori in creatività computazionale, chi si
+  occupa di policy sul diritto d'autore, comunità ML. `DA RESTRINGERE`.
 
 ## 2. Definizione del problema
 
@@ -254,6 +263,7 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 | D-021 | 2026-08-03 | Figure di confronto alla stessa epoca per tutti i run di una condizione | — |
 | D-022 | 2026-08-11 | Esperimento illustrativo E5 condizionato per stile, fuori da ADR-0003 | — |
 | D-023 | 2026-08-11 | Bozza dell'idea di base e di RQ1: rivendicazione di creatività della CAN come antropomorfizzazione | — |
+| D-024 | 2026-08-11 | Accessibilità e training: due tesi che coesistono senza elidersi | completa D-023 |
 
 ## Prossime decisioni da prendere
 
@@ -265,13 +275,14 @@ punto sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** ria
 
 - **Relatore e titolo della tesi** — nominativo e titolo (IT/EN) da depositare nelle
   fasi amministrative descritte in V-006. Gestione di Gian.
-- **Q8 — Domande di ricerca**: prima bozza formulata (D-023, RQ1 in §3), non ancora
-  consolidata dalla revisione della letteratura. Resta da: ricollegare il tema
-  dell'accessibilità (motivazione iniziale di Gian, non ancora integrata nel
-  nucleo); decidere se serve un esperimento dedicato per la divergenza
-  autovalutazione/giudice terzo (0,28 vs 0,75) prima di usarla in tesi; rivedere
-  §5 e §7 alla luce del nuovo ruolo dell'impianto sperimentale (caso di studio a
-  supporto della critica, non più confronto che stabilisce "chi vince").
+- **Q8 — Domande di ricerca**: prima bozza formulata (D-023, RQ1 in §3), completata
+  dal collegamento fra accessibilità e problema del training (D-024). Non ancora
+  consolidata dalla revisione della letteratura. Resta da: decidere se serve un
+  esperimento dedicato per la divergenza autovalutazione/giudice terzo (0,28 vs
+  0,75) prima di usarla in tesi; rivedere §5 e §7 alla luce del nuovo ruolo
+  dell'impianto sperimentale (caso di studio a supporto della critica, non più
+  confronto che stabilisce "chi vince"); strutturare il capitolo di discussione
+  tenendo distinti i due argomenti di D-024 invece di fonderli.
 - **Q2, punto 3 — cosa conta come successo** la CAN per costruzione tende a
   peggiorare il FID; non è ancora deciso quale esito, prima di vederlo, si considera
   un risultato informativo per la tesi.
