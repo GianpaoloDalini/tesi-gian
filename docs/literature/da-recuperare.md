@@ -1,0 +1,36 @@
+# Paper da recuperare in Zotero
+
+> **Cos'è questo file.** Elenco dei paper emersi durante le sessioni di definizione
+> dell'idea di tesi (dialogo aperto con Gian), non ancora importati in Zotero e non
+> ancora presenti in `thesis/references/bibliography.bib` (che resta generato solo
+> da Zotero, non va editato a mano). Una volta importato un paper, va tolto da qui e
+> aggiunta la relativa scheda in `docs/literature/` seguendo `_template.md`.
+>
+> **Perché esiste.** `bibliography.bib` non si modifica a mano, quindi i paper
+> trovati in una sessione di ricerca andrebbero persi se non registrati da qualche
+> parte prima di essere importati in Zotero.
+
+## Dal filone "creatività claim vs. casualità / estetica simbolica" — 2026-08-11
+
+| Titolo | Autori (anno) | Venue | Perché | Accesso |
+|---|---|---|---|---|
+| Research on Art of Artificial Intelligence from the Perspective of Symbolic Aesthetics | Qi (2019) | ICASSEE / Atlantis Press | Applica l'estetica simbolica di Langer **direttamente al CAN**: conclude che manca l'input emotivo, quindi "non è ancora arte". È il paper-ponte fra la tua intuizione e il tuo oggetto di studio. | Open access — [PDF](https://www.atlantis-press.com/article/125923486.pdf) |
+| Feeling and Form / Problems of Art | Langer (1953 / 1957) | libro | **Fonte primaria** dell'estetica simbolica citata da Qi solo di seconda mano. Se l'argomento entra in tesi, va letta la fonte, non solo chi la applica. | da reperire (biblioteca/Zotero) |
+| Philosophy of Symbolic Forms | Cassirer (1923-1929) | libro | Precursore di Langer; fonda l'arte come "funzione simbolica" dell'uomo. Solo se serve la genealogia del concetto, non essenziale al primo giro. | da reperire |
+| Creativity and Style in GAN and AI Art: Some Art-historical Reflections | Berryman (2024) | Philosophy & Technology | Critica **specificamente CAN** da prospettiva storico-artistica: basare la creatività sulla sola deviazione stilistica reintroduce una visione formalista, stile-centrica. Bibliografia interna molto ricca (Coeckelbergh, McCormack et al., Zeilinger, Hertzmann — vedi sotto). | Paywall (abstract letto, non il full text) |
+| Can machines create art? | Coeckelbergh (2017) | Philosophy & Technology | Citato da Berryman. Domanda filosofica diretta al centro del tuo claim. | da reperire |
+| Autonomy, authenticity, authorship and intention in computer generated art | McCormack, Gifford & Hutchings (2019) | EvoMUSART / Springer LNCS | Citato da Berryman. **Rilevante per la tua ultima risposta**: dove si colloca l'intenzione/autorialità quando l'artefatto è generato da un algoritmo — utile per la tesi "l'emozione sta nell'uso umano, non nella CAN". | da reperire |
+| Issues of authenticity in autonomously creative systems | Colton, Pease & Saunders (2018) | ICCC | Aggiornamento del Colton (2008) già in bibliografia; stessa linea (creatività percepita vs. reale), applicata all'autenticità. | Open access probabile (atti ICCC) |
+| Visual indeterminacy in GAN art | Hertzmann (2020) | Leonardo | Citato da Berryman. Estetica specifica delle immagini GAN (indeterminatezza visiva) — utile per la sezione tecnico-estetica. | da reperire |
+| Who gets credit for AI-generated art? | Epstein, Levine, Rand & Rahwan (2020) | iScience | Attribuzione/autorialità percepita — angolo empirico (studio con soggetti) sul tema di chi "possiede" la creatività. | Open access — ScienceDirect |
+| Generative AI doesn't "democratize creativity" | Furze (2024) | blog (leonfurze.com) | Contro-narrativa alla "democratizzazione" con cui hai aperto il discorso. **Non è peer-reviewed**: utile per la motivazione, da sostituire o affiancare con fonte accademica equivalente se possibile. | Open web |
+| Creativity and Machine Learning: A Survey | (2021) | arXiv 2104.02726 | Survey che struttura il rapporto fra il framework di Boden e i modelli generativi — utile per l'impianto teorico della sezione su ambiguità-come-proxy-di-creatività. | Open access |
+| Towards creativity characterization of generative models via group-based subset scanning | (2021) | arXiv 2104.00479 | Tecnico: tentativi di misurare la creatività nei modelli generativi. Verifica se aggiunge qualcosa oltre a Elgammal/entropia di stile già usata. | Open access |
+
+## Note
+
+- **Non tutti vanno letti per intero.** Priorità: Qi (2019) e Berryman (2024) sono i
+  più direttamente legati al claim su CAN ed estetica simbolica — da leggere per
+  primi e schedare in `docs/literature/`.
+- Berryman (2024) è dietro paywall: verificare accesso via biblioteca UniBg o
+  richiesta diretta all'autore prima di rinunciare.

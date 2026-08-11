@@ -10,6 +10,8 @@ moltiplicati quando scriverai il capitolo sullo stato dell'arte.
 Il capitolo di stato dell'arte si costruisce a partire da queste schede: nel testo
 entra solo ciò che serve all'argomentazione, il resto resta qui.
 
+Elenco dei paper ancora da importare in Zotero: [`da-recuperare.md`](da-recuperare.md).
+
 ## Indice
 
 | Chiave | Autori (anno) | Rilevanza | Schedato |
