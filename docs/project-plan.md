@@ -6,7 +6,8 @@
 > plausibile, si riempiono solo con decisioni effettivamente prese.
 
 **Ultimo aggiornamento:** 2026-08-11 · **Stato:** impianto sperimentale eseguito a
-64px e 128px (14 run), in attesa del relatore e delle domande di ricerca
+64px e 128px (14 run); prima bozza dell'idea di base e di RQ1 formulata (D-023),
+in attesa del relatore e della revisione della letteratura per consolidarla
 
 ---
 
@@ -29,24 +30,50 @@
 
 - **Area di ricerca:** intelligenza artificiale generativa applicata alla produzione
   artistica; intersezione tra machine learning, creatività computazionale ed etica.
-- **Motivazione:** `DA DEFINIRE` — perché *ora*, perché *questo* taglio.
-- **Contesto applicativo:** `DA DEFINIRE`.
+- **Motivazione (bozza, D-023):** le rivendicazioni di "creatività" nei sistemi
+  generativi (in particolare la CAN) guidano adozione, mercato e percezione
+  pubblica senza un vaglio commisurato — né empirico (si autovalutano con metriche
+  autoreferenziali) né teorico (non reggono a un confronto con criteri filosofici
+  consolidati di cosa sia l'arte). L'etichetta "creativo" non è neutra: ha
+  conseguenze su come pubblico e artisti percepiscono e valutano questi sistemi e
+  il lavoro umano.
+- **Contesto applicativo (bozza):** uso e presentazione pubblica/commerciale di
+  sistemi generativi (in particolare CAN) come agenti "creativi" nella produzione
+  artistica.
 - **Stakeholder:** artisti, ricercatori in creatività computazionale, chi si occupa
   di policy sul diritto d'autore, comunità ML. `DA RESTRINGERE`.
 
 ## 2. Definizione del problema
 
-- **Problema reale:** `DA DEFINIRE`
-- **Limiti delle soluzioni esistenti:** `DA DEFINIRE` (esito della revisione, §4)
-- **Opportunità di ricerca:** `DA DEFINIRE`
+> Bozza del 2026-08-11 (D-023), emersa da un dialogo aperto e verificata contro
+> fonti reali punto per punto — non dalla revisione sistematica della letteratura,
+> che resta da fare (M1) e che può confermarla, correggerla o sostituirla.
+> Fino ad allora va trattata come direzione di lavoro, non come conclusione.
 
-> Nota metodologica: questa sezione non si può compilare prima di aver fatto la
-> revisione della letteratura. Un problema definito prima di conoscere lo stato
-> dell'arte è quasi sempre già risolto, oppure mal posto.
+- **Problema reale:** la rivendicazione di creatività della CAN (Elgammal et al.,
+  2017) si basa su una metrica autoreferenziale — la testa di stile del proprio
+  discriminatore, allenata insieme al generatore che valuta — non su una misura
+  indipendente né su un criterio filosofico condiviso di cosa costituisca
+  creatività o arte.
+- **Limiti delle soluzioni esistenti:** `DA DEFINIRE` (esito della revisione, §4)
+- **Opportunità di ricerca:** verificare quanto la rivendicazione di creatività
+  della CAN regge a un confronto con una misura indipendente sugli stessi campioni
+  (dato preliminare già raccolto, 0,28 contro 0,75 a 64px — non ancora confermato
+  da un esperimento dedicato, vedi D-023) e con un criterio teorico esplicito
+  (estetica simbolica di Langer: l'arte richiede emozione), per poi discutere le
+  conseguenze etiche di una rivendicazione che non regge, in linea con la critica
+  dell'antropomorfizzazione nella letteratura di etica dell'AI.
+
+> Nota metodologica originale, ancora valida: questa sezione non si considera
+> davvero chiusa prima di aver fatto la revisione della letteratura. Un problema
+> definito prima di conoscere lo stato dell'arte è quasi sempre già risolto, oppure
+> mal posto — per questo la bozza sopra resta marcata come tale.
 
 ## 3. Obiettivi
 
-- **Obiettivo generale:** `DA DEFINIRE`
+- **Obiettivo generale (bozza, D-023):** verificare se e quanto la rivendicazione
+  di "creatività" della CAN regge a un confronto empirico indipendente e a un
+  vaglio teorico esplicito, e discuterne le implicazioni etiche quando non regge.
 - **Obiettivi specifici:** `DA DEFINIRE`
 - **Deliverable concreti:**
   1. Elaborato di tesi (PDF).
@@ -58,7 +85,7 @@
 
 | ID | Domanda | Come viene risposta | Stato |
 |---|---|---|---|
-| RQ1 | `DA DEFINIRE` | | aperta |
+| RQ1 | In che misura la creatività rivendicata dalla CAN (misurata dalla propria testa di stile) diverge da una misura indipendente sugli stessi campioni, e quali conseguenze etiche comporta presentare come "creativo" un sistema la cui creatività non è, in questo senso, affidabile né teoricamente fondata? | Confronto autovalutazione vs. giudice terzo (dato preliminare in `experiments/registry.md`, da consolidare); vaglio teorico via estetica simbolica di Langer e letteratura su antropomorfizzazione in etica dell'AI | bozza (D-023) — da affinare dopo M1 |
 
 ## 4. Stato dell'arte
 
@@ -225,6 +252,8 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 | D-019 | 2026-08-03 | Criterio di selezione del checkpoint: FID minimo su tutta la traiettoria, non epoca 100 fissa | — |
 | D-020 | 2026-08-03 | Criterio di esclusione dei run degenerati: Inception Score < 2,0 | — |
 | D-021 | 2026-08-03 | Figure di confronto alla stessa epoca per tutti i run di una condizione | — |
+| D-022 | 2026-08-11 | Esperimento illustrativo E5 condizionato per stile, fuori da ADR-0003 | — |
+| D-023 | 2026-08-11 | Bozza dell'idea di base e di RQ1: rivendicazione di creatività della CAN come antropomorfizzazione | — |
 
 ## Prossime decisioni da prendere
 
@@ -236,8 +265,13 @@ punto sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** ria
 
 - **Relatore e titolo della tesi** — nominativo e titolo (IT/EN) da depositare nelle
   fasi amministrative descritte in V-006. Gestione di Gian.
-- **Q8 — Domande di ricerca** ancora non formulate; servono per il titolo e a monte
-  della revisione della letteratura.
+- **Q8 — Domande di ricerca**: prima bozza formulata (D-023, RQ1 in §3), non ancora
+  consolidata dalla revisione della letteratura. Resta da: ricollegare il tema
+  dell'accessibilità (motivazione iniziale di Gian, non ancora integrata nel
+  nucleo); decidere se serve un esperimento dedicato per la divergenza
+  autovalutazione/giudice terzo (0,28 vs 0,75) prima di usarla in tesi; rivedere
+  §5 e §7 alla luce del nuovo ruolo dell'impianto sperimentale (caso di studio a
+  supporto della critica, non più confronto che stabilisce "chi vince").
 - **Q2, punto 3 — cosa conta come successo** la CAN per costruzione tende a
   peggiorare il FID; non è ancora deciso quale esito, prima di vederlo, si considera
   un risultato informativo per la tesi.

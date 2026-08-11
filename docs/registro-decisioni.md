@@ -726,6 +726,81 @@ checkpoint. Resta da fare la prova vera, su GPU con dati reali: i test su dati
 sintetici non dicono nulla sulla qualita' visiva o sulla stabilita' del training,
 solo che il codice non esplode.
 
+### D-023 — Bozza dell'idea di base e di RQ1: rivendicazione di creatività della CAN come antropomorfizzazione
+**Data:** 2026-08-11 · **Stato:** bozza confermata da Gian, da consolidare con la revisione della letteratura (M1)
+
+Emersa da un dialogo aperto (domande una alla volta, risposte verificate contro
+fonti reali di volta in volta invece che assunte) — non dalla revisione
+sistematica della letteratura, che resta da fare. Registrata qui perché è la prima
+risposta concreta a Q8, ferma dal 31/07.
+
+**Il percorso.** Punto di partenza di Gian: l'AI generativa interessa come
+strumento per superare lacune tecniche ed esprimere qualcosa attraverso l'arte
+visiva, ma la "creatività claim" di alcuni algoritmi non convince. Prima
+formulazione: "non c'è creatività, è casualità, soprattutto rifacendosi
+all'estetismo simbolico". Verificato che:
+
+1. La letteratura sulla creatività computazionale (Boden, già in bibliografia)
+   definisce la creatività **in opposizione** alla pura casualità — un campionamento
+   casuale nello spazio latente non garantisce di per sé valore, novità o coerenza.
+   La critica di Gian, precisata, non è "è casuale" ma "manca l'emozione/intenzione".
+2. "Estetismo simbolico" → **estetica simbolica di Susanne K. Langer** (sviluppa la
+   semiotica di Cassirer): un'opera d'arte richiede "illusione artistica" imbevuta
+   di emozione per essere arte. Qi (2019) applica questa teoria esattamente al CAN e
+   conclude che manca l'input emotivo — non è ancora arte secondo questo criterio.
+   Fonte trovata solo dopo una seconda ricerca mirata (il riferimento era in un
+   paper scartato come "troppo corto" al primo giro): vedi
+   `docs/literature/da-recuperare.md`.
+3. Gian: la CAN non può esprimere emozione, l'uso umano dell'arte generativa sì.
+   Confermato dalla letteratura su co-creatività uomo-AI: l'agentività è distribuita
+   lungo un continuum, l'accoglienza di un'opera dipende dall'intenzione dichiarata
+   dall'artista umano, non dallo strumento.
+4. Ponte fra parte teorica e impianto sperimentale (che Gian giudica, allo stato
+   attuale, "un eccesso di zelo" rispetto a ciò che gli interessa davvero — la
+   parte espositiva): l'impianto non serve a stabilire *se* la CAN è creativa
+   (già escluso teoricamente), ma a mostrare *come si comporta* un sistema che
+   rivendica una creatività che non ha. La testa di stile del discriminatore della
+   CAN si autovaluta 0,28 (immagini facilmente attribuibili), il giudice terzo
+   indipendente dà 0,75 sugli stessi campioni (`experiments/registry.md`) — la
+   stessa divergenza fra creatività rivendicata e creatività misurata che Colton
+   (2008, già in bibliografia) descrive in astratto.
+5. Gian: rivendicare falsamente creatività è di per sé un problema etico — non un
+   filone a parte rispetto al vincolo analitico-etico del corso (Q3), la stessa
+   linea di ragionamento. Confermato: la letteratura di etica dell'AI tratta
+   l'attribuzione di creatività a un sistema come **antropomorfizzazione**, una
+   fallacia che distorce il giudizio morale, con conseguenze concrete documentate
+   (svalutazione del lavoro artistico umano, inganno del pubblico).
+
+**La frase, confermata da Gian con una correzione (il dato 0,28 vs 0,75 va tenuto
+come preliminare, non come risultato consolidato — mancano ancora verifiche/
+esperimenti dedicati):**
+
+> Le CAN rivendicano "creatività" tramite una metrica autoreferenziale (il proprio
+> discriminatore) che diverge nettamente da una misura indipendente sugli stessi
+> dati (0,28 contro 0,75 a 64px — **dato preliminare**, non ancora confermato da un
+> esperimento dedicato); questa rivendicazione non regge nemmeno sul piano teorico,
+> perché per l'estetica simbolica di Langer l'arte richiede emozione, che
+> l'algoritmo non ha e che semmai risiede nell'uso umano dello strumento;
+> etichettare comunque il sistema come "creativo" è un caso di antropomorfizzazione
+> che la letteratura di etica dell'AI classifica come fallacia, con conseguenze
+> reali su artisti e pubblico.
+
+**Cosa resta aperto, esplicitamente non deciso qui:**
+
+- **Il tema dell'accessibilità** (AI come strumento per chi ha lacune tecniche, da
+  cui Gian era partito) non è ancora ricollegato a questo nucleo — va ripreso.
+- **La divergenza 0,28 vs 0,75** è preliminare: va capito se serve un esperimento
+  dedicato (non solo un sottoprodotto di D-010/D-015) prima di poterla usare come
+  risultato in tesi.
+- **Rapporto con l'impianto sperimentale esistente (D-010, ADR-0003):** questa
+  bozza lo riqualifica da "confronto che stabilisce se la CAN è più/meno fedele"
+  a "caso di studio a supporto della critica" — implicazioni su §5 e §7 del
+  piano di progetto (metodologia, piano sperimentale) non ancora tratte.
+- **Non sostituisce la revisione sistematica della letteratura (M1).** Le fonti
+  citate qui sono state trovate e verificate una a una in risposta a affermazioni
+  specifiche di Gian, non tramite una ricerca sistematica sullo stato dell'arte.
+- **Q8 resta aperta**, ma con una prima direzione difendibile invece che vuota.
+
 ---
 
 ## 3. Questioni aperte
@@ -846,12 +921,15 @@ RunPod con RTX 4090. Dimensionamento: 64×64, sei run (due condizioni × tre see
 circa 100 epoche su un sottoinsieme di alcune migliaia di immagini. Ore consumate e
 costo effettivo vanno annotati qui man mano, per l'appendice sulla riproducibilità.
 
-### Q8 — Domande di ricerca 🔴 ora la più urgente
-**Stato:** aperta
+### Q8 — Domande di ricerca 🟡 bozza formulata, da consolidare
+**Stato:** aperta, con una prima direzione → **D-023**
 
-Non ancora formulate. Con Q2 chiusa non dipendono più dall'impianto, ma restano
-subordinate alla revisione della letteratura: formulare domande di ricerca prima di
-conoscere lo stato dell'arte produce quasi sempre domande già risolte o mal poste.
+Prima bozza: la rivendicazione di creatività della CAN come antropomorfizzazione
+(vedi D-023 per il percorso completo). Emersa da dialogo aperto, non dalla
+revisione sistematica della letteratura — resta subordinata a quella (M1):
+formulare domande di ricerca prima di conoscere lo stato dell'arte produce quasi
+sempre domande già risolte o mal poste, e questa bozza va trattata come tale finché
+la revisione non la conferma o la corregge.
 
 **Vincolo:** la domanda di laurea richiede il titolo della tesi in una delle prime
 fasi amministrative (gestite da Gian, non tracciate qui). Un titolo si può cambiare,
@@ -1418,3 +1496,4 @@ materiale per la discussione dei limiti.
 | 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
 | 2026-08-03 (3ª sessione) | Infrastruttura RunPod completata; impianto a 64px eseguito e valutato; estensione a 128px | Dataset preparato (D-017 stili rivisti); giudici J1-J3; **8 run a 64px** con ambiguità 0,682 → 0,750 a parità di FID, IS e copertura; due ipotesi pre-registrate falsificate; **D-018** impianto a 128px; **D-019** criterio del FID minimo dopo aver osservato il collasso a fine corsa; **D-020** soglia IS < 2,0 per i run degenerati; **D-021** figure alla stessa epoca; **V-008** aperta. 78 test superati |
 | 2026-08-11 | Corretta una lettura stale del repo (fetch GitHub ferma al 31/07); riallineati `project-plan.md` e `CLAUDE.md`; deciso e implementato **E5**, esperimento illustrativo condizionato per stile, esplicitamente fuori da ADR-0003 | **D-022**; codice in moduli separati (`models/conditional.py`, `training/conditional_*`, `evaluation/conditional_figures.py`); **92 test superati** (78 invariati + 14 nuovi); nessun run E5 ancora lanciato; E3 resta il prossimo esperimento comparativo, non avviato; Q8 lasciata sospesa su richiesta esplicita |
+| 2026-08-11 (2ª sessione) | Rimosse tutte le scadenze/date amministrative dai file (richiesta esplicita e ripetuta di Gian) e aggiunta regola permanente in `CLAUDE.md` §0; dialogo aperto guidato da domande per costruire l'idea di base della tesi, con verifica di ogni affermazione contro fonti reali | Q8 con prima bozza di direzione → **D-023**; creato `docs/literature/da-recuperare.md` per tracciare i paper trovati non ancora in Zotero |
