@@ -717,12 +717,14 @@ risultato che confermi o smentisca l'ipotesi della CAN.
 `thesis/references/bibliography.bib` — marcato `% TODO[CITE]` nei file di codice.
 Va importato in Zotero prima di qualunque `\parencite` in tesi (CLAUDE.md §2.1).
 
-**Non ancora eseguito.** Il codice e' scritto e compila, ma non testato su GPU: i
-test automatici richiedono `torch`, non installabile nel sandbox di sviluppo
-(spazio disco insufficiente e proxy che blocca l'indice CPU di PyTorch). **Prima di
-lanciare un run vero, eseguire `make test` (o `pytest tests/test_conditional.py -v`)
-nell'ambiente con le dipendenze installate** — Mac locale o pod RunPod — per
-verificare che non ci siano errori di forma o di tipo prima di spendere GPU.
+**Test eseguiti il 2026-08-11 sul Mac locale (venv, non nel sandbox di sviluppo,
+dove non e' stato possibile installare `torch` per spazio disco e proxy):
+92 test verdi (78 dell'impianto D-010, invariati, + 14 nuovi di
+`test_conditional.py`).** Il codice e' verificato su CPU: forme, differenziabilita',
+condizionamento non banale (etichette diverse -> immagini diverse), round-trip dei
+checkpoint. Resta da fare la prova vera, su GPU con dati reali: i test su dati
+sintetici non dicono nulla sulla qualita' visiva o sulla stabilita' del training,
+solo che il codice non esplode.
 
 ---
 

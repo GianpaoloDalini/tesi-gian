@@ -112,14 +112,13 @@ sola riga**: `override /model`.
 | E1b/E2b | Stesso confronto a **128px** | idem | 3+3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
 | E3 | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | non avviato |
 | E4 | Studio percettivo leggero sui campioni generati | condizione mostrata | — | giudizio umano | non avviato |
-| E5 | **Illustrativo**, generatore condizionato per stile, 64 e 128px | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | codice pronto (D-022), non eseguito |
+| E5 | **Illustrativo**, generatore condizionato per stile, 64 e 128px | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | codice testato (92 test verdi), run non ancora lanciato |
 
 **E5 non fa parte del confronto comparativo E1/E2/E3** (ADR-0003): architettura
 diversa (il generatore riceve anche l'etichetta di stile), obiettivo diverso
 (fedeltà allo stile richiesto invece di ambiguità), nessuna metrica quantitativa —
 serve solo a produrre figure più nitide da mostrare come contrasto visivo. Dettagli
-in D-022. Da eseguire `make test` prima del primo run vero: il codice non è stato
-verificato su un ambiente con `torch` installato.
+in D-022.
 
 Dataset per E1-E3: ArtBench-10, sei stili (D-017: `ukiyo_e`, `renaissance`,
 `baroque`, `art_nouveau`, `expressionism`, `impressionism`), 30.000 immagini.
