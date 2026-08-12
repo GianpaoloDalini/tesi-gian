@@ -154,8 +154,8 @@ studio percettivo sono ora **E6** ed **E7**.
 | E2 | `e2-can-confronto` | Condizione **sperimentale**: CAN, 64px | + classificazione stile (D) e ambiguità (G) | 4 (seed 1-4) | idem | ✅ **concluso 2026-08-03** — 1 run collassato (`can-seed1`), escluso dalle medie |
 | E3 | `e3-dcgan-128` | Condizione di controllo, **128px** | idem | 3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
 | E4 | `e4-can-128` | Condizione sperimentale, **128px** | idem | 3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
-| E5 | `e5-illustrativo-{64,128}` | **Illustrativo**, generatore condizionato per stile | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | codice testato (92 test verdi), run non ancora lanciato |
-| E6 | `e6-ablazione-can-peso-zero` | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | non avviato |
+| E5 | `e5-illustrativo-{64,128}` | **Illustrativo**, generatore condizionato per stile | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | 64px concluso e valutato (2026-08-12); 128px in coda |
+| E6 | `e6-ablazione-can-peso-zero` | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | concluso e valutato (2026-08-12) — risultato non atteso, vedi V-010 |
 | E7 | — (non ancora creato) | Studio percettivo leggero sui campioni generati | condizione mostrata | — | giudizio umano | non avviato |
 
 **E5 non fa parte del confronto comparativo E1-E4** (ADR-0003): architettura

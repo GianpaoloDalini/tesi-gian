@@ -4,7 +4,7 @@ metodologica in `metrics.py` e Q5 nel registro delle decisioni.
 `conditional_figures.py` produce la sola figura dell'esperimento illustrativo
 condizionato, fuori dal confronto DCGAN/CAN."""
 
-from tesi_gan.evaluation.conditional_figures import save_conditional_grid
+from tesi_gan.evaluation.conditional_figures import save_conditional_grid, save_progression_grid
 from tesi_gan.evaluation.metrics import EvaluationResult, evaluate, style_ambiguity
 from tesi_gan.evaluation.style_classifier import (
     StyleClassifier,
@@ -26,4 +26,5 @@ __all__ = [
     "save_style_classifier",
     "train_style_classifier",
     "save_conditional_grid",
+    "save_progression_grid",
 ]

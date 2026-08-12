@@ -852,6 +852,61 @@ merito e struttura da definire dopo M1.
 
 ---
 
+### D-025 — Due figure aggiuntive per l'esperimento illustrativo E5 (colonna reale + progressione per epoca)
+**Data:** 2026-08-12 · **Stato:** implementate, in attesa di verifica coi test da parte di Gian
+
+Su richiesta di Gian, due estensioni a `evaluation/conditional_figures.py`, entrambe
+fuori da ADR-0003 come il resto di E5 (D-022):
+
+**1. Colonna reale opzionale in `save_conditional_grid`.** Nuovo parametro
+`reference_dataset`: se passato, la prima colonna di ogni riga mostra un'immagine
+reale di quello stile accanto ai campioni generati.
+
+- l'immagine reale proviene dallo split di **riferimento** (`data.reference_root`),
+  non da quello di training, cosi' l'esemplare mostrato non e' un'immagine che il
+  generatore ha gia' visto in addestramento;
+- e' **un singolo esemplare scelto a caso** (seed dedicato, `reference_seed`), non
+  una media ne' un prototipo statistico dello stile — va dichiarato in didascalia,
+  esattamente come per l'assenza di un confronto quantitativo (gia' vincolante da
+  D-022);
+- retrocompatibile: senza `reference_dataset` (default `None`) la figura resta
+  identica a prima;
+- `cmd_sample_conditional` in `cli.py` costruisce ora anche il dataset di
+  riferimento via `build_reference_dataset` e lo passa alla figura, con
+  `assert_same_classes` a guardia di un possibile disallineamento fra le classi dei
+  due split.
+
+**2. Nuova funzione `save_progression_grid`** (+ comando
+`sample-conditional-progression`): griglia stile × epoca, una riga per stile e una
+colonna per checkpoint, costruita dai checkpoint periodici `epoch_NNNN.pt` che
+`ConditionalTrainer` gia' scrive ogni `training.checkpoint_every` epoche (10 nei
+config e5-illustrativo-*). Non e' la vista automatica gia' loggata su W&B a ogni
+epoca (quella resta invariata, non richiedeva codice nuovo): qui l'obiettivo e' una
+sola immagine statica che mostri l'evoluzione nel tempo per ciascuno dei sei stili,
+affiancati.
+
+- **stesso rumore fisso per tutte le colonne** di una riga: la differenza visibile
+  fra una colonna e la successiva e' quindi imputabile solo all'evoluzione dei pesi,
+  non a un campione diverso;
+- il generatore passato viene **mutato** (i pesi vengono ricaricati a ogni colonna):
+  documentato esplicitamente nel docstring perche' e' un comportamento diverso da
+  `save_conditional_grid`, che non tocca lo stato del generatore oltre `.eval()`;
+- guardie esplicite: rifiuta checkpoint senza flag `"conditional"` o con un numero
+  di stili diverso da quello atteso, per non mescolare in una figura epoche di run
+  incompatibili tra loro;
+- il comando CLI legge `--checkpoint-dir`, ordina i file per numero di epoca dal
+  nome (`epoch_NNNN.pt`) e si rifiuta di procedere se non ne trova nessuno —
+  `latest.pt`/`final.pt` non bastano perche' non portano il numero di epoca nel
+  nome.
+
+Aggiunti 8 test in `tests/test_conditional.py` in totale fra le due figure
+(selezione dell'immagine reale deterministica e con stile assente, entrambe le
+figure con e senza gli argomenti opzionali, i due casi di rifiuto per checkpoint
+incoerenti). Non ancora eseguiti da Gian — nessun numero da questa modifica entra
+nell'impianto comparativo, quindi non blocca i run E5/E6 già in corso su RunPod.
+
+---
+
 ## 3. Questioni aperte
 
 Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla
@@ -1185,6 +1240,56 @@ corretta.
 candidato più solido per il capitolo di discussione: l'instabilità del meccanismo
 di ambiguità sembra scalare con la risoluzione.
 
+### V-010 — L'ablazione E6 (peso ambiguità zero) non replica i numeri di DCGAN 🟠
+**Stato:** aperta, emersa il 2026-08-12 · **Origine:** `experiments/registry.md`,
+sezione «Ablazione di controllo (E6)»
+
+Il config `e6-ablazione-can-peso-zero.yaml` dichiara: se FID/IS del run risultassero
+sistematicamente diversi da `e1-dcgan-baseline seed=1`, sarebbe un bug
+nell'implementazione condivisa. Il run (seed=1, epoca 100) da':
+
+- FID 91,7 — sotto tutti e tre i seed DCGAN a 64px (102,3–114,1);
+- IS 4,10 ± 0,20 — indistinguibile dalla media DCGAN (4,11 ± 0,27);
+- ambiguità (giudice terzo) 0,652 — sotto il minimo dei tre seed DCGAN (0,673).
+
+Non è mode collapse (copertura 0,991) né un run degenerato (IS ben sopra soglia
+D-020). **Non sembra un bug di implementazione**: più probabile un'ipotesi
+strutturale. La CAN, anche a peso di ambiguità zero, mantiene nel discriminatore una
+testa di classificazione stilistica addestrata sulle immagini reali — quella parte
+della loss non dipende da `style_ambiguity_weight`, che pesa solo il termine
+sul generatore (`training/losses.py`). ADR-0003 dichiara che DCGAN e CAN
+«differiscono solo per `style_head: bool`»: è tecnicamente vero (stesso backbone),
+ma la *presenza* della testa di stile nel discriminatore — non il suo peso nella
+loss del generatore — resta una differenza architetturale rispetto a DCGAN, e questo
+run suggerisce che possa comportarsi da compito ausiliario regolarizzante,
+cambiando la dinamica avversaria anche quando il generatore non riceve mai il
+segnale di ambiguità.
+
+**Da fare prima di scrivere qualunque cosa in tesi su questo:**
+
+1. Un solo seed non distingue «effetto reale della testa ausiliaria» da «varianza
+   fra run»: il range dei tre seed DCGAN (102,3–114,1 di FID) è già ampio quanto la
+   differenza osservata. Servirebbe la stessa ripetizione a più seed già fatta per
+   E1/E2 prima di trarre conclusioni.
+2. Un'ablazione più fine isolerebbe la causa: testa di stile presente nel
+   discriminatore ma NON addestrata (nessun gradiente dalla CE sui reali),
+   confrontata con questa (testa presente e addestrata, weight=0 solo sul
+   generatore).
+3. Ispezione visiva dei campioni, come già richiesto per V-009.
+
+**Perché conta.** Il confronto principale E1/E2 resta valido come esperimento (ogni
+condizione è consistente con se stessa, e il confronto è comunque DCGAN-senza-testa
+contro CAN-con-testa-e-peso-pieno, esattamente ciò che ADR-0003 dichiara di
+misurare). Quello che questo run mette in discussione è una lettura più fine:
+D-010/ADR-0003 descrivono la differenza fra le due condizioni come «un solo termine
+di loss» (il peso di ambiguità). Questo risultato suggerisce che una parte
+dell'effetto osservato in E1/E2 — FID comparabile, ambiguità più alta nella CAN —
+potrebbe derivare dalla *presenza* della testa di classificazione nel discriminatore
+in sé, non (solo) dal termine di ambiguità che agisce sul generatore. Se confermato
+con più seed, è materiale per la sezione sui limiti metodologici: non toglie valore
+al risultato principale, ma va dichiarato che «un solo termine di loss» è una
+semplificazione della differenza architetturale reale fra le due condizioni.
+
 ### V-001 — Frontespizio ufficiale per la laurea magistrale 🔴
 Il frontespizio attuale è un adattamento di quello di una tesi di **dottorato**.
 Verificare in segreteria UniBg il modello ufficiale per la LM-32.
@@ -1242,6 +1347,79 @@ sulla stessa cartella. Conviene tenerne aperta una sola per volta.
 
 **Ambiente Python:** virtualenv in `.venv/` (ignorato da git). Prima di qualsiasi
 comando: `source .venv/bin/activate`.
+
+---
+
+## 5-quinquies. Punto di ripresa — 2026-08-12
+
+**Sostituisce 5-quater** (lasciato sotto per la cronologia).
+
+### Stato dell'intera parte sperimentale, in un colpo d'occhio
+
+| Traccia | Stato |
+|---|---|
+| Impianto comparativo D-010 a 64px (E1/E2) | ✅ completo — 8 run, a registro |
+| Impianto comparativo D-010 a 128px (E1b/E2b) | ✅ completo — 6 run, V-009 aperta |
+| E5 — illustrativo condizionato per stile (D-022) | ✅ **train-conditional a 64px concluso**, valutato; 128px non ancora lanciato |
+| E6 — ablazione di controllo (peso ambiguità = 0) | ✅ **eseguito e valutato** (seed 1, 64px) — risultato sorprendente, V-010 aperta |
+| E7 — studio percettivo leggero | ⬜ non eseguito |
+
+### Cosa è successo in questa sessione (2026-08-12)
+
+1. **Risolto un conflitto di merge** in `registro-decisioni.md` dopo che una
+   sessione parallela (D-023, D-024 sul nucleo teorico della tesi) aveva pushato
+   mentre questa sessione lavorava in locale. Merge fatto a mano, entrambe le
+   parti preservate. Push riuscito (`6f83c92`).
+2. **Lanciati E5-64 ed E6 su RunPod.** Dataset già pronto su `/workspace/tesi-gian`
+   da una sessione precedente (4 agosto) — trovato dopo un giro a vuoto perché il
+   pod era clonato in `/tesi-gian`, non su `/workspace`.
+3. **Bug di percorso trovato e corretto in `e6-ablazione-can-peso-zero.yaml`**:
+   senza override esplicito di `paths.checkpoints`, l'ablazione scriveva nella
+   stessa cartella di `can-64-seed1` (E2 reale) — verificato che l'E2 originale
+   sul volume non è stato toccato (i due run erano su filesystem diversi), ma il
+   bug era reale e ora è corretto per sempre.
+4. **Backup su `/workspace`**: i checkpoint di E5/E6, nati sul filesystem effimero
+   del container (`/tesi-gian`), sono stati copiati sul Network Volume prima che
+   andassero persi con la distruzione del pod.
+5. **E6 valutato — risultato che apre V-010.** Il run non replica i numeri di
+   DCGAN come il config si aspettava di dover verificare: FID 91,7 (sotto tutti e
+   tre i seed DCGAN, 102,3–114,1), IS comparabile (4,10 vs 4,11), ambiguità 0,652
+   (sotto il minimo DCGAN, 0,673). Non è un bug né mode collapse. Ipotesi aperta:
+   la testa di classificazione di stile nel discriminatore, addestrata sui reali
+   indipendentemente dal peso di ambiguità sul generatore, potrebbe già avere un
+   effetto regolarizzante da sola. Serve più di un seed prima di scrivere
+   qualunque cosa in tesi — vedi V-010 per il dettaglio completo.
+6. **Due nuove figure per E5** su richiesta di Gian:
+   `save_conditional_grid` accetta ora una colonna reale opzionale (un esemplare
+   dallo split di riferimento accanto ai generati); nuova funzione
+   `save_progression_grid` + comando `sample-conditional-progression` per una
+   griglia stile × epoca dai checkpoint periodici. D-025. **Non ancora pushato.**
+7. Task ancora aperto: generare le due figure di E5-64 con i comandi CLI (non
+   ancora lanciati), poi lanciare E5-128.
+
+### Il prossimo comando, letteralmente il primo da lanciare
+
+Sul Mac, prima di tutto: pushare il lavoro di D-025 (colonna reale + progressione),
+la correzione del bug di E6, e questo aggiornamento al registro — vedi il messaggio
+di chat per i comandi esatti (`git add -A && git commit && git push`).
+
+Sul pod, dopo il pull: generare le figure di E5-64 (`sample-conditional`,
+`sample-conditional-progression`) e poi lanciare
+`train-conditional experiment=e5-illustrativo-128` — vedi il messaggio di chat per
+i comandi con i percorsi dati già verificati in questa sessione
+(`/workspace/tesi-gian/data/processed_128`, ecc.).
+
+### Cosa NON è ancora deciso, in ordine di peso
+
+1. **V-010** — se l'ablazione a peso zero non replica DCGAN per varianza fra seed
+   o per un effetto reale della testa di stile. Richiede più seed o
+   un'ablazione più fine, non ancora pianificata.
+2. **V-009** — natura del degrado del CAN a 128px dopo l'epoca 20: ispezione
+   visiva mai fatta.
+3. **Q2, punto 3** — cosa conta come esito "informativo" per D-010. Mai chiuso.
+4. **Q8**, le domande di ricerca — resta in sospeso su richiesta di Gian.
+5. Relatore, titolo, questioni amministrative — fuori dal perimetro di queste
+   sessioni per esplicita richiesta di Gian.
 
 ---
 

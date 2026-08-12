@@ -17,6 +17,15 @@
 # meccanismo che dovrebbe fare la differenza è spento. Se FID/IS di questo run
 # risultassero sistematicamente diversi da e1-dcgan-baseline seed=1, sarebbe un
 # bug nell'implementazione condivisa, non un risultato da interpretare.
+# ATTENZIONE (bug corretto qui, 2026-08-12): senza override esplicito, il percorso
+# dei checkpoint (paths.checkpoints in config.yaml) si costruisce da
+# ${model.name}-${data.image_size}-seed${seed}. Questo file non cambia model.name
+# (resta "can", ereditato da configs/model/can.yaml), quindi senza le due righe
+# `paths:` qui sotto questo esperimento scriverebbe nella STESSA cartella di
+# e2-can-confronto seed=1 — sovrascrivendo silenziosamente i checkpoint della
+# condizione sperimentale reale con quelli dell'ablazione di controllo. Verificare,
+# se questo file e' stato lanciato prima di questa correzione, che
+# experiments/checkpoints/can-<risoluzione>-seed1 non sia stato danneggiato.
 defaults:
   - override /model: can
   - override /data: artbench
@@ -25,6 +34,10 @@ seed: 1
 
 model:
   style_ambiguity_weight: 0.0
+
+paths:
+  checkpoints: experiments/checkpoints/e6-ablazione-${data.image_size}-seed${seed}
+  samples: experiments/samples/e6-ablazione-${data.image_size}-seed${seed}
 
 training:
   epochs: 100

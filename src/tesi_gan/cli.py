@@ -10,6 +10,8 @@
     # non entra nel confronto DCGAN/CAN (vedi models/conditional.py):
     python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-64
     python -m tesi_gan.cli sample-conditional --checkpoint experiments/checkpoints/.../final.pt
+    python -m tesi_gan.cli sample-conditional-progression \
+        --checkpoint-dir experiments/checkpoints/... experiment=e5-illustrativo-64
 
 Ogni comando legge la configurazione da `configs/` tramite Hydra: nessun
 iperparametro va passato modificando il codice sorgente (D-007). Gli override si
@@ -211,7 +213,7 @@ def cmd_train_conditional(cfg, allow_dirty: bool, resume: bool) -> int:
 def cmd_sample_conditional(cfg, checkpoint: Path, output_dir: Path) -> int:
     import torch
 
-    from tesi_gan.data import build_dataset
+    from tesi_gan.data import assert_same_classes, build_dataset, build_reference_dataset
     from tesi_gan.evaluation import save_conditional_grid
     from tesi_gan.models.conditional import build_conditional_models
     from tesi_gan.utils.seed import set_seed
@@ -230,6 +232,14 @@ def cmd_sample_conditional(cfg, checkpoint: Path, output_dir: Path) -> int:
     if cfg.model.get("num_styles") is None:
         OmegaConf.update(cfg, "model.num_styles", len(classes), force_add=True)
 
+    # Colonna reale, se configurata: dallo split di RIFERIMENTO, non da quello di
+    # training, cosi' l'esemplare reale non e' un'immagine che il generatore ha
+    # gia' visto durante l'addestramento (illustrativo, non una metrica, ma la
+    # distinzione resta corretta da mantenere).
+    reference = build_reference_dataset(cfg)
+    if reference is not None:
+        assert_same_classes(dataset, reference)
+
     generator, _discriminator = build_conditional_models(cfg)
     ckpt = torch.load(checkpoint, map_location=device, weights_only=True)
     generator.load_state_dict(ckpt["generator"])
@@ -241,11 +251,82 @@ def cmd_sample_conditional(cfg, checkpoint: Path, output_dir: Path) -> int:
         out_dir=output_dir,
         seed=int(cfg.seed),
         device=device,
+        reference_dataset=reference,
     )
     if path is None:
         log.warning("Figura non prodotta (matplotlib assente?).")
         return 1
     log.info("Figura illustrativa scritta: %s", path)
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+#  sample-conditional-progression — evoluzione per stile ogni N epoche
+# --------------------------------------------------------------------------- #
+
+def cmd_sample_conditional_progression(cfg, checkpoint_dir: Path, output_dir: Path) -> int:
+    """Griglia stile x epoca dai checkpoint periodici di un run `train-conditional`.
+
+    Usa gli `epoch_NNNN.pt` scritti da `ConditionalTrainer` a intervalli di
+    `training.checkpoint_every` (10 epoche nei config e5-illustrativo-*), non
+    `latest.pt`/`final.pt`: solo i primi hanno un numero di epoca nel nome su cui
+    ordinare le colonne.
+    """
+    import re
+
+    from tesi_gan.data import build_dataset
+    from tesi_gan.evaluation import save_progression_grid
+    from tesi_gan.models.conditional import build_conditional_models
+
+    if not checkpoint_dir.exists():
+        log.error("Cartella dei checkpoint inesistente: %s", checkpoint_dir)
+        return 1
+
+    pattern = re.compile(r"^epoch_(\d+)\.pt$")
+    trovati: list[tuple[int, Path]] = []
+    for p in sorted(checkpoint_dir.glob("epoch_*.pt")):
+        m = pattern.match(p.name)
+        if m:
+            trovati.append((int(m.group(1)), p))
+    trovati.sort(key=lambda coppia: coppia[0])
+
+    if not trovati:
+        log.error(
+            "Nessun checkpoint 'epoch_NNNN.pt' trovato in %s. La progressione usa i "
+            "checkpoint periodici (training.checkpoint_every), non 'latest.pt' o "
+            "'final.pt', che non portano il numero di epoca nel nome.",
+            checkpoint_dir,
+        )
+        return 1
+
+    log.info(
+        "Trovati %d checkpoint alle epoche: %s",
+        len(trovati), ", ".join(str(e) for e, _ in trovati),
+    )
+
+    device = _device()
+    dataset = build_dataset(cfg)
+    classes = list(getattr(dataset, "classes", []))
+    from omegaconf import OmegaConf
+
+    if cfg.model.get("num_styles") is None:
+        OmegaConf.update(cfg, "model.num_styles", len(classes), force_add=True)
+
+    generator, _discriminator = build_conditional_models(cfg)
+    generator.to(device)
+
+    path = save_progression_grid(
+        generator=generator,
+        classes=classes,
+        checkpoint_paths=[p for _, p in trovati],
+        out_dir=output_dir,
+        seed=int(cfg.seed),
+        device=device,
+    )
+    if path is None:
+        log.warning("Figura non prodotta (matplotlib assente?).")
+        return 1
+    log.info("Figura di progressione scritta: %s", path)
     return 0
 
 
@@ -564,6 +645,15 @@ def main(argv: list[str] | None = None) -> int:
     p_sample_cond.add_argument("--checkpoint", type=Path, required=True)
     p_sample_cond.add_argument("--output-dir", type=Path, default=Path("thesis/figures/generated"))
 
+    p_sample_prog = sub.add_parser(
+        "sample-conditional-progression",
+        help="Genera la figura di progressione (una riga per stile, una colonna per "
+             "checkpoint) dai checkpoint periodici di un run train-conditional",
+    )
+    p_sample_prog.add_argument("--checkpoint-dir", type=Path, required=True,
+                               help="Cartella con gli epoch_NNNN.pt di un run train-conditional")
+    p_sample_prog.add_argument("--output-dir", type=Path, default=Path("thesis/figures/generated"))
+
     p_judge = sub.add_parser(
         "train-style-classifier",
         help="Addestra il giudice terzo dell'ambiguita' stilistica (una volta sola)",
@@ -605,6 +695,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_train_conditional(cfg, allow_dirty=args.allow_dirty, resume=args.resume)
     if args.command == "sample-conditional":
         return cmd_sample_conditional(cfg, args.checkpoint, args.output_dir)
+    if args.command == "sample-conditional-progression":
+        return cmd_sample_conditional_progression(cfg, args.checkpoint_dir, args.output_dir)
     if args.command == "train-style-classifier":
         return cmd_train_style_classifier(cfg, force=args.force)
     if args.command == "inspect-style-classifier":

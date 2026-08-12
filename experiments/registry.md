@@ -243,6 +243,63 @@ metodologica già applicata alla revisione del criterio di selezione (D-019).
 
 ---
 
+## Ablazione di controllo (E6) — 2026-08-12
+
+Verifica end-to-end che l'implementazione condivisa (ADR-0003) non introduca
+differenze spurie quando il meccanismo di ambiguità è spento
+(`model.style_ambiguity_weight: 0.0`, altrimenti identico a `e2-can-confronto`
+seed=1 — config `e6-ablazione-can-peso-zero.yaml`). Un solo seed: non misura un
+effetto fra condizioni, verifica l'implementazione (D-010 punto 3 sulle repliche non
+si applica qui). Giudice J2, lo stesso di E1/E2 (accuratezza 0,578, entropia sui
+reali 0,531). Valutazione a epoca 100, coerente col criterio dichiarato per
+l'impianto a 64px (non FID minimo su traiettoria, quello è D-019 e vale solo per
+128px).
+
+**Nota operativa:** il config aveva un bug di percorso corretto lo stesso giorno
+(2026-08-12) — senza override esplicito di `paths.checkpoints`/`paths.samples`,
+questo esperimento avrebbe scritto nella stessa cartella di `can-64-seed1` (E2
+reale). Verificato che l'E2 originale non è stato toccato: i checkpoint di questo
+run erano su un clone del repository separato dal Network Volume dove vive E2.
+Checkpoint di questa run rinominati e spostati in `e6-ablazione-64-seed1`.
+
+| Run | Checkpoint | FID ↓ | IS ↑ | Ambiguità (giudice) | Copertura | Note |
+|---|---|---|---|---|---|---|
+| `e6-ablazione-seed1` | `e6-ablazione-64-seed1/final.pt` | 91,7 | 4,10 ± 0,20 | 0,652 | 0,991 | vedi discussione sotto — **non conferma l'attesa dichiarata nel config** |
+
+### Non degenera esattamente in DCGAN — V-010 aperta
+
+Confronto con l'impianto DCGAN a 64px (`dcgan-seed1` 114,1 · `dcgan-seed2` 106,5 ·
+`dcgan-seed3` 102,3, media 107,7 ± 6,0, ambiguità 0,698/0,674/0,673, media
+0,682 ± 0,014):
+
+- **FID nettamente migliore**: 91,7 — sotto tutti e tre i seed DCGAN, non solo la
+  media.
+- **IS comparabile**: 4,10 ± 0,20 contro una media DCGAN di 4,11 ± 0,27 — nessuna
+  differenza apprezzabile.
+- **Ambiguità più bassa**: 0,652 — sotto il minimo dei tre seed DCGAN (0,673).
+
+Non è mode collapse (copertura 0,991, in linea con i run sani) né un run degenerato
+(IS ben sopra la soglia 2,0 di D-020). È un run pulito che però non replica i numeri
+di DCGAN come il config si aspettava di dover verificare.
+
+**Ipotesi non verificata** (vedi V-010 in `registro-decisioni.md`): la CAN, anche a
+peso di ambiguità zero, ha comunque una testa di classificazione stilistica nel
+discriminatore addestrata sulle immagini reali — quella parte della loss non dipende
+da `style_ambiguity_weight`, che pesa solo il termine sul generatore
+(`training/losses.py`). Il compito ausiliario potrebbe regolarizzare il
+discriminatore e cambiare la dinamica avversaria anche senza che il generatore
+riceva mai il segnale di ambiguità. Coerente con ADR-0003 («differiscono solo per
+`style_head: bool`»): il backbone è identico, ma la *presenza* della testa di
+stile — non il suo peso nella loss del generatore — è già una differenza
+architetturale rispetto a DCGAN.
+
+**Non scrivere nulla di questo in tesi prima di V-010.** Un solo seed non basta a
+distinguere «effetto reale della testa ausiliaria» da «varianza fra run»: il range
+dei tre seed DCGAN (102,3-114,1 di FID) è già ampio quanto la differenza osservata
+qui.
+
+---
+
 ## Registri collegati
 
 - [`giudice-stile.md`](giudice-stile.md) — iterazioni del classificatore terzo

@@ -250,3 +250,183 @@ def test_conditional_checkpoint_non_si_carica_su_trainer_incompatibile(tmp_path)
     )
     with pytest.raises(RuntimeError, match="stili"):
         trainer_b.load_checkpoint(path)
+
+
+# --------------------------------------------------------------------------- #
+#  Figura illustrativa con colonna reale
+# --------------------------------------------------------------------------- #
+
+def test_immagine_reale_per_stile_e_deterministica_e_copre_tutti_gli_stili():
+    from tesi_gan.data import SyntheticStyleDataset
+    from tesi_gan.evaluation.conditional_figures import _immagine_reale_per_stile
+
+    dataset = SyntheticStyleDataset(n=40, image_size=32, num_styles=NUM_STYLES)
+
+    scelte_a = _immagine_reale_per_stile(dataset, NUM_STYLES, seed=7)
+    scelte_b = _immagine_reale_per_stile(dataset, NUM_STYLES, seed=7)
+
+    assert len(scelte_a) == NUM_STYLES
+    assert all(immagine is not None for immagine in scelte_a)
+    for a, b in zip(scelte_a, scelte_b):
+        assert torch.equal(a, b)  # stesso seed -> stessa scelta
+
+
+def test_immagine_reale_per_stile_nessuna_disponibile_restituisce_none():
+    from tesi_gan.data import SyntheticStyleDataset
+    from tesi_gan.evaluation.conditional_figures import _immagine_reale_per_stile
+
+    dataset = SyntheticStyleDataset(n=8, image_size=32, num_styles=2)
+    # Si chiede uno stile (indice 5) che il dataset non contiene: non deve esplodere,
+    # deve segnalare l'assenza con None invece di sollevare un KeyError.
+    scelte = _immagine_reale_per_stile(dataset, num_styles=6, seed=0)
+    assert scelte[5] is None
+    assert scelte[0] is not None
+
+
+def test_save_conditional_grid_con_colonna_reale(tmp_path):
+    pytest.importorskip("matplotlib")
+    from tesi_gan.data import SyntheticStyleDataset
+    from tesi_gan.evaluation.conditional_figures import save_conditional_grid
+
+    generator = ConditionalGenerator(
+        num_styles=NUM_STYLES, latent_dim=16, features=8, image_size=32
+    )
+    reference = SyntheticStyleDataset(n=20, image_size=32, num_styles=NUM_STYLES)
+    classes = reference.classes
+
+    path = save_conditional_grid(
+        generator=generator,
+        classes=classes,
+        out_dir=tmp_path,
+        seed=1,
+        device=torch.device("cpu"),
+        n_per_style=3,
+        reference_dataset=reference,
+    )
+
+    assert path is not None
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_save_conditional_grid_senza_riferimento_resta_compatibile(tmp_path):
+    """Comportamento invariato quando `reference_dataset` non e' passato (default
+    `None`): la firma precedente non deve rompersi per le chiamate esistenti."""
+    pytest.importorskip("matplotlib")
+    from tesi_gan.evaluation.conditional_figures import save_conditional_grid
+
+    generator = ConditionalGenerator(
+        num_styles=NUM_STYLES, latent_dim=16, features=8, image_size=32
+    )
+    classes = [f"stile_{i}" for i in range(NUM_STYLES)]
+
+    path = save_conditional_grid(
+        generator=generator,
+        classes=classes,
+        out_dir=tmp_path,
+        seed=2,
+        device=torch.device("cpu"),
+        n_per_style=3,
+    )
+
+    assert path is not None
+    assert path.exists()
+
+
+# --------------------------------------------------------------------------- #
+#  Figura di progressione — una riga per stile, una colonna per checkpoint
+# --------------------------------------------------------------------------- #
+
+def _scrivi_checkpoint_condizionato(path, generator, epoch, num_styles):
+    torch.save(
+        {
+            "generator": generator.state_dict(),
+            "epoch": epoch,
+            "num_styles": num_styles,
+            "conditional": True,
+        },
+        path,
+    )
+
+
+def test_save_progression_grid_produce_una_colonna_per_checkpoint(tmp_path):
+    pytest.importorskip("matplotlib")
+    from tesi_gan.evaluation.conditional_figures import save_progression_grid
+
+    generator = ConditionalGenerator(
+        num_styles=NUM_STYLES, latent_dim=16, features=8, image_size=32
+    )
+    classes = [f"stile_{i}" for i in range(NUM_STYLES)]
+
+    checkpoint_dir = tmp_path / "ckpt"
+    checkpoint_dir.mkdir()
+    checkpoint_paths = []
+    for epoca in (10, 20, 30):
+        p = checkpoint_dir / f"epoch_{epoca:04d}.pt"
+        _scrivi_checkpoint_condizionato(p, generator, epoca, NUM_STYLES)
+        checkpoint_paths.append(p)
+
+    path = save_progression_grid(
+        generator=generator,
+        classes=classes,
+        checkpoint_paths=checkpoint_paths,
+        out_dir=tmp_path / "figure",
+        seed=3,
+        device=torch.device("cpu"),
+    )
+
+    assert path is not None
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_save_progression_grid_nessun_checkpoint_restituisce_none(tmp_path):
+    pytest.importorskip("matplotlib")
+    from tesi_gan.evaluation.conditional_figures import save_progression_grid
+
+    generator = ConditionalGenerator(num_styles=NUM_STYLES, latent_dim=16, features=8)
+    classes = [f"stile_{i}" for i in range(NUM_STYLES)]
+
+    path = save_progression_grid(
+        generator=generator,
+        classes=classes,
+        checkpoint_paths=[],
+        out_dir=tmp_path,
+        seed=4,
+        device=torch.device("cpu"),
+    )
+    assert path is None
+
+
+def test_save_progression_grid_rifiuta_checkpoint_non_condizionato(tmp_path):
+    pytest.importorskip("matplotlib")
+    from tesi_gan.evaluation.conditional_figures import save_progression_grid
+
+    generator = ConditionalGenerator(num_styles=NUM_STYLES, latent_dim=16, features=8)
+    classes = [f"stile_{i}" for i in range(NUM_STYLES)]
+
+    p = tmp_path / "epoch_0010.pt"
+    torch.save({"generator": generator.state_dict(), "epoch": 10}, p)  # manca "conditional"
+
+    with pytest.raises(ValueError, match="condizionato"):
+        save_progression_grid(
+            generator=generator, classes=classes, checkpoint_paths=[p],
+            out_dir=tmp_path, seed=5, device=torch.device("cpu"),
+        )
+
+
+def test_save_progression_grid_rifiuta_numero_stili_incoerente(tmp_path):
+    pytest.importorskip("matplotlib")
+    from tesi_gan.evaluation.conditional_figures import save_progression_grid
+
+    generator = ConditionalGenerator(num_styles=NUM_STYLES, latent_dim=16, features=8)
+    classes = [f"stile_{i}" for i in range(NUM_STYLES)]
+
+    p = tmp_path / "epoch_0010.pt"
+    _scrivi_checkpoint_condizionato(p, generator, 10, NUM_STYLES + 1)  # sbagliato apposta
+
+    with pytest.raises(ValueError, match="stili"):
+        save_progression_grid(
+            generator=generator, classes=classes, checkpoint_paths=[p],
+            out_dir=tmp_path, seed=6, device=torch.device("cpu"),
+        )
