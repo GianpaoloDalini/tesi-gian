@@ -112,7 +112,9 @@ def save_conditional_grid(
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"illustrativo-condizionato-seed{seed}.png"
+    # La risoluzione nel nome evita che un run a 128px sovrascriva silenziosamente
+    # la figura di uno a 64px con lo stesso seed (successo una volta, non doveva).
+    path = out_dir / f"illustrativo-condizionato-{generator.image_size}px-seed{seed}.png"
 
     generator.eval()
     gen = torch.Generator(device="cpu").manual_seed(generator_seed)
@@ -210,7 +212,9 @@ def save_progression_grid(
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"illustrativo-progressione-seed{seed}.png"
+    # Stesso motivo della risoluzione nel nome di save_conditional_grid: evitare
+    # che risoluzioni diverse con lo stesso seed si sovrascrivano.
+    path = out_dir / f"illustrativo-progressione-{generator.image_size}px-seed{seed}.png"
 
     num_styles = len(classes)
     gen = torch.Generator(device="cpu").manual_seed(generator_seed)
