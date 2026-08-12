@@ -1144,8 +1144,8 @@ sezione** — vedi anche la nota in cima a `CLAUDE.md`.
 |---|---|
 | Impianto comparativo D-010 a 64px (E1/E2) | ✅ completo — 8 run, risultati a registro, ambiguità confermata (0,682→0,750), FID indistinguibile |
 | Impianto comparativo D-010 a 128px (E1b/E2b) | ✅ completo — 6 run, FID CAN +55%, causa non confermata (V-009 aperta) |
-| E3 — ablazione di controllo (peso ambiguità = 0) | ⬜ **non eseguito** — prossimo esperimento comparativo in coda |
-| E4 — studio percettivo leggero | ⬜ non eseguito |
+| E6 — ablazione di controllo (peso ambiguità = 0) | ⬜ **non eseguito** — prossimo esperimento comparativo in coda, config pronta |
+| E7 — studio percettivo leggero | ⬜ non eseguito |
 | E5 — illustrativo condizionato per stile (D-022, fuori da ADR-0003) | codice scritto **e testato** (92 test verdi, 2026-08-11), **nessun run lanciato** |
 
 ### Cosa è successo in questa sessione (2026-08-11)
@@ -1183,11 +1183,20 @@ python -m tesi_gan.cli train-conditional experiment=e5-illustrativo-128
 ```
 
 Dopo E5 (o anche prima/in parallelo, non c'e' una dipendenza tecnica fra i due),
-il prossimo esperimento pianificato è **E3**, l'ablazione di controllo:
+il prossimo esperimento pianificato è **E6**, l'ablazione di controllo:
 `style_ambiguity_weight=0` deve far degenerare la CAN esattamente nella DCGAN.
-Non ancora avviato, nessuna config `e-ablazione` scritta — da preparare quando si
-riprende (probabilmente basta un override `model.style_ambiguity_weight=0` su
-`e2-can-confronto`, non una config nuova: da verificare).
+Config pronta: `configs/experiment/e6-ablazione-can-peso-zero.yaml` (override di
+`can` con `model.style_ambiguity_weight: 0.0`, per il resto identica a
+`e2-can-confronto`).
+
+```bash
+python -m tesi_gan.cli train experiment=e6-ablazione-can-peso-zero
+```
+
+**Nota sulla numerazione (2026-08-11):** l'ablazione era chiamata "E3" nel piano,
+ma quel nome era già preso da `e3-dcgan-128.yaml` (128px). Rinominata **E6** per
+coincidere col nome del file di config. Lo studio percettivo, non ancora
+implementato, è **E7**. Vedi `docs/project-plan.md` §7 per la tabella corretta.
 
 ### Cosa NON è ancora deciso, in ordine di peso
 
@@ -1433,4 +1442,4 @@ discussione dei limiti.
 | 2026-08-02 | Verifica delle scadenze ufficiali; chiusura dell'impianto sperimentale; implementazione della pipeline | V-006 verificata (Fase 1 il 14/08, discussione il 02/10); D-010…D-012 decise; Q1, Q2, Q4, Q6, Q7 chiuse; codice sperimentale implementato e testato |
 | 2026-08-03 (2ª sessione) | Avvio della configurazione RunPod, sospeso; revisione del codice sperimentale prima di spendere GPU | Trovata e chiusa la lacuna sulla metrica di ambiguità (**D-015**, ADR-0005); figure dei campioni automatizzate (**D-016**); corretto il nome dei run W&B, privo del seed; `entity` W&B compilata; virtualenv `.venv` creato e dipendenze installate. **45 test superati**, zero falliti |
 | 2026-08-03 (3ª sessione) | Infrastruttura RunPod completata; impianto a 64px eseguito e valutato; estensione a 128px | Dataset preparato (D-017 stili rivisti); giudici J1-J3; **8 run a 64px** con ambiguità 0,682 → 0,750 a parità di FID, IS e copertura; due ipotesi pre-registrate falsificate; **D-018** impianto a 128px; **D-019** criterio del FID minimo dopo aver osservato il collasso a fine corsa; **D-020** soglia IS < 2,0 per i run degenerati; **D-021** figure alla stessa epoca; **V-008** aperta. 78 test superati |
-| 2026-08-11 | Corretta una lettura stale del repo (fetch GitHub ferma al 31/07); riallineati `project-plan.md` e `CLAUDE.md`; deciso e implementato **E5**, esperimento illustrativo condizionato per stile, esplicitamente fuori da ADR-0003 | **D-022**; codice in moduli separati (`models/conditional.py`, `training/conditional_*`, `evaluation/conditional_figures.py`); **92 test superati** (78 invariati + 14 nuovi); nessun run E5 ancora lanciato; E3 resta il prossimo esperimento comparativo, non avviato; Q8 lasciata sospesa su richiesta esplicita |
+| 2026-08-11 | Corretta una lettura stale del repo (fetch GitHub ferma al 31/07); riallineati `project-plan.md` e `CLAUDE.md`; deciso e implementato **E5**, esperimento illustrativo condizionato per stile, esplicitamente fuori da ADR-0003 | **D-022**; codice in moduli separati (`models/conditional.py`, `training/conditional_*`, `evaluation/conditional_figures.py`); **92 test superati** (78 invariati + 14 nuovi); nessun run E5 ancora lanciato; rinominate E3→E6 (ablazione) ed E4→E7 (studio percettivo) per non collidere con `e3-dcgan-128`/`e4-can-128`; config `e6-ablazione-can-peso-zero.yaml` pronta, non avviato; Q8 lasciata sospesa su richiesta esplicita |

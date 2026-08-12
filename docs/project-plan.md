@@ -104,23 +104,31 @@ Tracciamento su Weights & Biases; configurazioni via Hydra; bibliografia via Zot
 Configurazioni in `configs/experiment/`. I due run definitivi differiscono per **una
 sola riga**: `override /model`.
 
-| ID | Obiettivo | Variabile indipendente | Run | Metriche | Stato |
-|---|---|---|---|---|---|
-| E0 | Smoke test della pipeline su dati sintetici, CPU | — | 1 | nessuna | ✅ fatto |
-| E1 | Condizione di **controllo**: DCGAN, 64px | loss avversaria pura | 4 (seed 1-4) | FID, IS, ambiguità (giudice terzo), copertura | ✅ **concluso 2026-08-03** |
-| E2 | Condizione **sperimentale**: CAN, 64px | + classificazione stile (D) e ambiguità (G) | 4 (seed 1-4) | idem | ✅ **concluso 2026-08-03** — 1 run collassato (`can-seed1`), escluso dalle medie |
-| E1b/E2b | Stesso confronto a **128px** | idem | 3+3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
-| E3 | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | non avviato |
-| E4 | Studio percettivo leggero sui campioni generati | condizione mostrata | — | giudizio umano | non avviato |
-| E5 | **Illustrativo**, generatore condizionato per stile, 64 e 128px | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | codice testato (92 test verdi), run non ancora lanciato |
+**Nota sulla numerazione (corretta il 2026-08-11):** gli ID qui sotto ora
+coincidono esattamente con i nomi dei file in `configs/experiment/`. Prima E3/E4
+indicavano nel piano l'ablazione e lo studio percettivo, ma `e3-dcgan-128.yaml` ed
+`e4-can-128.yaml` esistevano già con un altro significato (il confronto a 128px):
+un'incoerenza che avrebbe confuso chiunque cercasse "E3" nel repo. L'ablazione e lo
+studio percettivo sono ora **E6** ed **E7**.
 
-**E5 non fa parte del confronto comparativo E1/E2/E3** (ADR-0003): architettura
+| ID | File config | Obiettivo | Variabile indipendente | Run | Metriche | Stato |
+|---|---|---|---|---|---|---|
+| E0 | `e0-smoke` | Smoke test della pipeline su dati sintetici, CPU | — | 1 | nessuna | ✅ fatto |
+| E1 | `e1-dcgan-baseline` | Condizione di **controllo**: DCGAN, 64px | loss avversaria pura | 4 (seed 1-4) | FID, IS, ambiguità (giudice terzo), copertura | ✅ **concluso 2026-08-03** |
+| E2 | `e2-can-confronto` | Condizione **sperimentale**: CAN, 64px | + classificazione stile (D) e ambiguità (G) | 4 (seed 1-4) | idem | ✅ **concluso 2026-08-03** — 1 run collassato (`can-seed1`), escluso dalle medie |
+| E3 | `e3-dcgan-128` | Condizione di controllo, **128px** | idem | 3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
+| E4 | `e4-can-128` | Condizione sperimentale, **128px** | idem | 3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
+| E5 | `e5-illustrativo-{64,128}` | **Illustrativo**, generatore condizionato per stile | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | codice testato (92 test verdi), run non ancora lanciato |
+| E6 | `e6-ablazione-can-peso-zero` | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | non avviato |
+| E7 | — (non ancora creato) | Studio percettivo leggero sui campioni generati | condizione mostrata | — | giudizio umano | non avviato |
+
+**E5 non fa parte del confronto comparativo E1-E4** (ADR-0003): architettura
 diversa (il generatore riceve anche l'etichetta di stile), obiettivo diverso
 (fedeltà allo stile richiesto invece di ambiguità), nessuna metrica quantitativa —
 serve solo a produrre figure più nitide da mostrare come contrasto visivo. Dettagli
 in D-022.
 
-Dataset per E1-E3: ArtBench-10, sei stili (D-017: `ukiyo_e`, `renaissance`,
+Dataset per E1-E4 ed E6: ArtBench-10, sei stili (D-017: `ukiyo_e`, `renaissance`,
 `baroque`, `art_nouveau`, `expressionism`, `impressionism`), 30.000 immagini.
 
 **Esito E1/E2 a 64px** (`experiments/registry.md`): l'ambiguità di stile sale come
@@ -129,7 +137,7 @@ atteso (0,682 → 0,750, gruppi non sovrapposti), ma **il FID non peggiora** (10
 questa risoluzione. Un run CAN (`can-seed1`) è mode-collapsed (copertura 0,190),
 escluso dalle medie con motivazione esplicita.
 
-**Esito E1b/E2b a 128px:** qui l'ipotesi **non è più falsificata** — FID 183,4 (CAN)
+**Esito E3/E4 a 128px:** qui l'ipotesi **non è più falsificata** — FID 183,4 (CAN)
 contro 117,8 (DCGAN), +55%, con ambiguità che sale di entità simile a 64px. I tre
 seed CAN toccano il FID minimo tutti alla stessa epoca (20 su 100) e poi degradano
 quasi monotonicamente: possibile instabilità del meccanismo di ambiguità che scala
@@ -145,7 +153,7 @@ Tutto ciò che non è la variabile indicata resta **identico** fra E1 ed E2: gen
 backbone del discriminatore, iperparametri, seed, epoche, numero di campioni per la
 valutazione — verificato automaticamente da `tests/test_impianto.py` (78 test verdi).
 
-E3 non è un esperimento ma un controllo di sanità, ancora da eseguire: con peso nullo
+E6 non è un esperimento ma un controllo di sanità, ancora da eseguire: con peso nullo
 la CAN deve riprodurre la DCGAN.
 
 **Nodo ancora aperto (Q2, punto 3):** per costruzione la CAN tende a peggiorare il

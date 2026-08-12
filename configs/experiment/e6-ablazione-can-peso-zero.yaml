@@ -1,0 +1,37 @@
+# @package _global_
+#
+# E6 — Ablazione di controllo (non è una condizione dell'esperimento comparativo).
+#
+#   python -m tesi_gan.cli train experiment=e6-ablazione-can-peso-zero
+#
+# Identica a e2-can-confronto.yaml (stesso seed, stessi iperparametri, stessa
+# risoluzione) tranne UNA riga: `model.style_ambiguity_weight: 0.0`. Con il peso
+# a zero il termine di ambiguità sparisce dalla loss del generatore
+# (training/losses.py::generator_loss) e la CAN deve ridursi esattamente alla
+# DCGAN — stesso invariante già verificato a livello di loss pure da
+# tests/test_impianto.py::test_can_senza_ambiguita_degenera_in_dcgan, qui
+# verificato end-to-end su un training vero.
+#
+# Un solo seed basta: non misura una differenza fra condizioni, verifica che
+# l'implementazione condivisa (ADR-0003) non introduca differenze spurie quando il
+# meccanismo che dovrebbe fare la differenza è spento. Se FID/IS di questo run
+# risultassero sistematicamente diversi da e1-dcgan-baseline seed=1, sarebbe un
+# bug nell'implementazione condivisa, non un risultato da interpretare.
+defaults:
+  - override /model: can
+  - override /data: artbench
+
+seed: 1
+
+model:
+  style_ambiguity_weight: 0.0
+
+training:
+  epochs: 100
+  batch_size: 128
+  lr_generator: 2e-4
+  lr_discriminator: 2e-4
+  beta1: 0.5
+  beta2: 0.999
+  checkpoint_every: 10
+  label_smoothing: 0.1
