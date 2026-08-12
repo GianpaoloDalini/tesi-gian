@@ -10,9 +10,9 @@
 L'impianto determina dataset, architettura, metriche, fabbisogno di calcolo e durata
 del lavoro. Restava aperto in attesa di due informazioni, entrambe ora acquisite:
 
-- **Sessione di laurea:** autunnale, discussione magistrale **2 ottobre 2026**,
-  caricamento dell'elaborato entro il **21 settembre 2026** (vedi V-006). Restano
-  circa sette settimane, di cui agosto con relatore e segreteria poco raggiungibili.
+- **Sessione di laurea:** autunnale (date amministrative gestite fuori da questo
+  repository, vedi V-006). Il tempo disponibile è limitato, con agosto in cui
+  relatore e segreteria sono poco raggiungibili.
 - **Calcolo:** GPU a pagamento su servizio online.
 
 Il vincolo temporale è la variabile dominante: esclude qualunque impianto che

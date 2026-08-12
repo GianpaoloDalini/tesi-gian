@@ -6,7 +6,8 @@
 > plausibile, si riempiono solo con decisioni effettivamente prese.
 
 **Ultimo aggiornamento:** 2026-08-11 · **Stato:** impianto sperimentale eseguito a
-64px e 128px (14 run), in attesa del relatore e delle domande di ricerca
+64px e 128px (14 run); prima bozza dell'idea di base e di RQ1 formulata (D-023),
+in attesa del relatore e della revisione della letteratura per consolidarla
 
 ---
 
@@ -20,7 +21,7 @@
 | Relatore | `DA DEFINIRE` (nome) — area: IA e informatica etica |
 | Correlatore | `DA DEFINIRE` |
 | Tipo di tesi | Sperimentale con componente analitico-etica |
-| Sessione di laurea | Autunnale — discussione **2026-10-02**, elaborato entro **2026-09-21** (V-006) |
+| Sessione di laurea | Autunnale — gestita autonomamente da Gian, non tracciata qui |
 | Lingua | Italiano |
 
 ---
@@ -29,24 +30,59 @@
 
 - **Area di ricerca:** intelligenza artificiale generativa applicata alla produzione
   artistica; intersezione tra machine learning, creatività computazionale ed etica.
-- **Motivazione:** `DA DEFINIRE` — perché *ora*, perché *questo* taglio.
-- **Contesto applicativo:** `DA DEFINIRE`.
-- **Stakeholder:** artisti, ricercatori in creatività computazionale, chi si occupa
-  di policy sul diritto d'autore, comunità ML. `DA RESTRINGERE`.
+- **Motivazione (bozza, D-023):** le rivendicazioni di "creatività" nei sistemi
+  generativi (in particolare la CAN) guidano adozione, mercato e percezione
+  pubblica senza un vaglio commisurato — né empirico (si autovalutano con metriche
+  autoreferenziali) né teorico (non reggono a un confronto con criteri filosofici
+  consolidati di cosa sia l'arte). L'etichetta "creativo" non è neutra: ha
+  conseguenze su come pubblico e artisti percepiscono e valutano questi sistemi e
+  il lavoro umano.
+- **Contesto applicativo (bozza):** uso e presentazione pubblica/commerciale di
+  sistemi generativi (in particolare CAN) come agenti "creativi" nella produzione
+  artistica.
+- **Due tesi che coesistono (D-024):** l'accessibilità che questi strumenti offrono
+  a chi ha lacune tecniche è un beneficio genuino, **indipendente** dalla
+  legittimità del processo con cui il modello sottostante è stato addestrato
+  (V-007) — l'emozione che manca nel training di qualunque modello generativo
+  (D-023, D-024) non è la stessa cosa dell'emozione che l'utente umano porta
+  nell'uso dello strumento. Le due valutazioni vanno tenute distinte nel capitolo
+  di discussione, non fuse: l'una non attenua l'altra.
+- **Stakeholder:** artisti (sia chi usa questi strumenti per esprimersi, sia chi ha
+  visto le proprie opere usate per l'addestramento senza consenso — due posizioni
+  distinte, non sovrapponibili), ricercatori in creatività computazionale, chi si
+  occupa di policy sul diritto d'autore, comunità ML. `DA RESTRINGERE`.
 
 ## 2. Definizione del problema
 
-- **Problema reale:** `DA DEFINIRE`
-- **Limiti delle soluzioni esistenti:** `DA DEFINIRE` (esito della revisione, §4)
-- **Opportunità di ricerca:** `DA DEFINIRE`
+> Bozza del 2026-08-11 (D-023), emersa da un dialogo aperto e verificata contro
+> fonti reali punto per punto — non dalla revisione sistematica della letteratura,
+> che resta da fare (M1) e che può confermarla, correggerla o sostituirla.
+> Fino ad allora va trattata come direzione di lavoro, non come conclusione.
 
-> Nota metodologica: questa sezione non si può compilare prima di aver fatto la
-> revisione della letteratura. Un problema definito prima di conoscere lo stato
-> dell'arte è quasi sempre già risolto, oppure mal posto.
+- **Problema reale:** la rivendicazione di creatività della CAN (Elgammal et al.,
+  2017) si basa su una metrica autoreferenziale — la testa di stile del proprio
+  discriminatore, allenata insieme al generatore che valuta — non su una misura
+  indipendente né su un criterio filosofico condiviso di cosa costituisca
+  creatività o arte.
+- **Limiti delle soluzioni esistenti:** `DA DEFINIRE` (esito della revisione, §4)
+- **Opportunità di ricerca:** verificare quanto la rivendicazione di creatività
+  della CAN regge a un confronto con una misura indipendente sugli stessi campioni
+  (dato preliminare già raccolto, 0,28 contro 0,75 a 64px — non ancora confermato
+  da un esperimento dedicato, vedi D-023) e con un criterio teorico esplicito
+  (estetica simbolica di Langer: l'arte richiede emozione), per poi discutere le
+  conseguenze etiche di una rivendicazione che non regge, in linea con la critica
+  dell'antropomorfizzazione nella letteratura di etica dell'AI.
+
+> Nota metodologica originale, ancora valida: questa sezione non si considera
+> davvero chiusa prima di aver fatto la revisione della letteratura. Un problema
+> definito prima di conoscere lo stato dell'arte è quasi sempre già risolto, oppure
+> mal posto — per questo la bozza sopra resta marcata come tale.
 
 ## 3. Obiettivi
 
-- **Obiettivo generale:** `DA DEFINIRE`
+- **Obiettivo generale (bozza, D-023):** verificare se e quanto la rivendicazione
+  di "creatività" della CAN regge a un confronto empirico indipendente e a un
+  vaglio teorico esplicito, e discuterne le implicazioni etiche quando non regge.
 - **Obiettivi specifici:** `DA DEFINIRE`
 - **Deliverable concreti:**
   1. Elaborato di tesi (PDF).
@@ -58,7 +94,7 @@
 
 | ID | Domanda | Come viene risposta | Stato |
 |---|---|---|---|
-| RQ1 | `DA DEFINIRE` | | aperta |
+| RQ1 | In che misura la creatività rivendicata dalla CAN (misurata dalla propria testa di stile) diverge da una misura indipendente sugli stessi campioni, e quali conseguenze etiche comporta presentare come "creativo" un sistema la cui creatività non è, in questo senso, affidabile né teoricamente fondata? | Confronto autovalutazione vs. giudice terzo (dato preliminare in `experiments/registry.md`, da consolidare); vaglio teorico via estetica simbolica di Langer e letteratura su antropomorfizzazione in etica dell'AI | bozza (D-023) — da affinare dopo M1 |
 
 ## 4. Stato dell'arte
 
@@ -162,37 +198,34 @@ considera "informativo" — va chiuso prima della stesura del capitolo dei risul
 
 ## 8. Pianificazione
 
-> Le scadenze amministrative della sessione (Fase 1-4, calendario completo) sono in
-> V-006 nel registro delle decisioni. Gian le gestisce autonomamente; questo piano
-> non le ripete né le segnala come rischio.
+> Le scadenze amministrative della sessione sono gestite autonomamente da Gian fuori
+> da questo repository e non vengono tracciate qui, per scelta esplicita.
 
-| Milestone | Descrizione | Scadenza | Stato |
-|---|---|---|---|
-| M0 | Infrastruttura del repository | 2026-07-31 | ✅ fatto |
-| M-A1 | Fase 1: deposito titolo e relatore | vedi V-006 | ⬜ |
-| M-A2 | Fase 3: domanda definitiva + AlmaLaurea | vedi V-006 | ⬜ |
-| M3a | Pipeline sperimentale implementata e testata | 2026-08-02 | ✅ fatto |
-| M3b | Dataset preparato e smoke test superato | 2026-08-03 | ✅ fatto |
-| M4 | Run E1 ed E2 conclusi e registrati (64px) | 2026-08-03 | ✅ fatto |
-| M4b | Metriche calcolate, figure esportate (64px) | 2026-08-03 | ✅ fatto |
-| M4c | Impianto replicato a 128px, traiettoria valutata | 2026-08-04 | ✅ fatto — V-009 aperta (ispezione visiva mancante) |
-| M1 | Revisione della letteratura, gap definito | 2026-09-06 | ⬜ in parallelo |
-| M2 | Domande di ricerca approvate dal relatore | 2026-09-06 | ⬜ vedi Q8 |
-| M-E4 | Studio percettivo concluso | 2026-09-06 | ⬜ |
-| M5 | Prima stesura completa | 2026-09-14 | ⬜ |
-| M6 | **Caricamento dell'elaborato (Fase 4)** | **2026-09-21** | ⬜ |
-| M7 | Discussione | 2026-10-02 | — |
+| Milestone | Descrizione | Stato |
+|---|---|---|
+| M0 | Infrastruttura del repository | ✅ fatto |
+| M-A1 | Deposito titolo e relatore | ⬜ |
+| M-A2 | Domanda definitiva | ⬜ |
+| M3a | Pipeline sperimentale implementata e testata | ✅ fatto |
+| M3b | Dataset preparato e smoke test superato | ✅ fatto |
+| M4 | Run E1 ed E2 conclusi e registrati (64px) | ✅ fatto |
+| M4b | Metriche calcolate, figure esportate (64px) | ✅ fatto |
+| M4c | Impianto replicato a 128px, traiettoria valutata | ✅ fatto — V-009 aperta (ispezione visiva mancante) |
+| M1 | Revisione della letteratura, gap definito | ⬜ in parallelo |
+| M2 | Domande di ricerca approvate dal relatore | ⬜ vedi Q8 |
+| M-E4 | Studio percettivo concluso | ⬜ |
+| M5 | Prima stesura completa | ⬜ |
+| M6 | Caricamento dell'elaborato | ⬜ |
+| M7 | Discussione | — |
 
-**Margine reale:** nullo. Ogni slittamento di M4 si scarica interamente sulla stesura.
-Per questo E1 ed E2 hanno un budget di epoche fisso e un checkpoint ripristinabile: se
-la qualità a 100 epoche non è quella sperata, si scrive la tesi su quello che c'è e si
-discute il limite, invece di rilanciare il training a due settimane dalla consegna.
+E1 ed E2 hanno un budget di epoche fisso e un checkpoint ripristinabile: se la qualità
+a 100 epoche non è quella sperata, si scrive la tesi su quello che c'è e si discute il
+limite, invece di rilanciare il training.
 
 ## 9. Rischi
 
 | Rischio | Probabilità | Impatto | Mitigazione |
 |---|---|---|---|
-| Sessione di laurea troppo ravvicinata per un impianto sperimentale serio | alta | alto | Decidere presto la sessione; predisporre uno scope minimo difendibile |
 | Le metriche automatiche non misurano ciò che la tesi afferma di misurare | alta | alto | Dichiarare esplicitamente i limiti; affiancare valutazione qualitativa |
 | Costi o quote di calcolo insufficienti per il training | media | alto | Risoluzione ridotta, dataset ristretto, checkpointing aggressivo |
 | Sessioni cloud effimere che interrompono il training | alta | medio | Checkpoint frequenti su storage persistente |
@@ -236,19 +269,28 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 | D-019 | 2026-08-03 | Criterio di selezione del checkpoint: FID minimo su tutta la traiettoria, non epoca 100 fissa | — |
 | D-020 | 2026-08-03 | Criterio di esclusione dei run degenerati: Inception Score < 2,0 | — |
 | D-021 | 2026-08-03 | Figure di confronto alla stessa epoca per tutti i run di una condizione | — |
+| D-022 | 2026-08-11 | Esperimento illustrativo E5 condizionato per stile, fuori da ADR-0003 | — |
+| D-023 | 2026-08-11 | Bozza dell'idea di base e di RQ1: rivendicazione di creatività della CAN come antropomorfizzazione | — |
+| D-024 | 2026-08-11 | Accessibilità e training: due tesi che coesistono senza elidersi | completa D-023 |
 
 ## Prossime decisioni da prendere
 
 Dettaglio e criticità in [`docs/registro-decisioni.md` §3](registro-decisioni.md#3-questioni-aperte).
 
-Chiuse: **Q1** (sessione: discussione 02/10/2026), **Q2** (impianto → D-010, ma vedi
+Chiuse: **Q1** (sessione confermata), **Q2** (impianto → D-010, ma vedi
 punto sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** riaperta
 (vedi sotto). Restano:
 
 - **Relatore e titolo della tesi** — nominativo e titolo (IT/EN) da depositare nelle
   fasi amministrative descritte in V-006. Gestione di Gian.
-- **Q8 — Domande di ricerca** ancora non formulate; servono per il titolo e a monte
-  della revisione della letteratura.
+- **Q8 — Domande di ricerca**: prima bozza formulata (D-023, RQ1 in §3), completata
+  dal collegamento fra accessibilità e problema del training (D-024). Non ancora
+  consolidata dalla revisione della letteratura. Resta da: decidere se serve un
+  esperimento dedicato per la divergenza autovalutazione/giudice terzo (0,28 vs
+  0,75) prima di usarla in tesi; rivedere §5 e §7 alla luce del nuovo ruolo
+  dell'impianto sperimentale (caso di studio a supporto della critica, non più
+  confronto che stabilisce "chi vince"); strutturare il capitolo di discussione
+  tenendo distinti i due argomenti di D-024 invece di fonderli.
 - **Q2, punto 3 — cosa conta come successo** la CAN per costruzione tende a
   peggiorare il FID; non è ancora deciso quale esito, prima di vederlo, si considera
   un risultato informativo per la tesi.

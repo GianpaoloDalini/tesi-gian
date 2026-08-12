@@ -5,6 +5,26 @@ Leggi questo file **per intero** prima di modificare qualunque cosa.
 
 ---
 
+## 0. Regola permanente — niente scadenze in questo repository
+
+**Non registrare, citare o ricordare a Gian date di scadenza, calendari amministrativi
+o conteggi di tempo residuo, in nessun file di questo repository.** Riguarda in
+particolare: date della sessione di laurea, fasi amministrative (deposito titolo,
+approvazione relatore, domanda definitiva, caricamento elaborato, discussione),
+milestone con data, e frasi tipo "restano N settimane" o "margine nullo".
+
+Motivo: le scadenze qui dentro causano ansia a Gian, che le gestisce già altrove. La
+richiesta è stata fatta più volte — questa regola esiste per renderla definitiva e
+non doverla ripetere a ogni conversazione. Se serve segnalare una dipendenza
+temporale reale (es. "il nominativo del relatore serve prima di poter procedere con
+una fase amministrativa"), va scritta **senza date**, come dipendenza logica, non
+come conto alla rovescia.
+
+Se stai per scrivere una data futura o una scadenza in un file di questo repository,
+fermati: quasi certamente non va fatto.
+
+---
+
 ## 1. Il progetto in una riga
 
 Tesi di laurea magistrale in Ingegneria Informatica (LM-32), Università degli Studi di
@@ -274,7 +294,7 @@ principale: fra sei mesi dovrai ritrovare quando hai cambiato una scelta metodol
 **Branch:** `main` sempre compilabile. Lavoro sperimentale o riscritture importanti
 su branch dedicati (`exp/can-loss`, `thesis/cap04-rewrite`).
 
-**Tag:** ogni consegna al relatore va taggata (`git tag revisione-2026-09-15`).
+**Tag:** ogni consegna al relatore va taggata (`git tag revisione-capNN`).
 Serve a sapere esattamente cosa ha letto e commentato.
 
 ---
