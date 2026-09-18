@@ -1722,13 +1722,14 @@ questa sezione riassume ma non sostituisce quel file.
 6. **Bozza di mail al relatore verificata** (`Mail professore.docx`, cartella
    TESI): nessun errore fattuale sostanziale trovato il 2026-09-18.
 
-**Cosa NON e' ancora cambiato**: la ristrutturazione dei capitoli verso il
-taglio espositivo (rinomina `03-stato-arte.tex` -> `03-evoluzione-...`, capitoli
-sperimentali spostati in `capitoli-sospesi/`) e tutto il lavoro di questa
-sezione **non sono ancora committati su git** al momento in cui scrivo — quindi
-una sessione collegata solo a GitHub potrebbe non vedere nulla di quanto sopra
-finche' Gian non fa il commit. Verificare sempre `git log -1` prima di fidarsi
-ciecamente di una fetch.
+**Aggiornamento 2026-09-18 (sera): committato e pushato.** Tutto il lavoro di
+questa sezione (rinomina capitoli, `capitoli-sospesi/`, `sinossi.md`, D-029,
+Readme/Spunti in TESI/, questa sezione stessa) e' stato committato
+(`895aca2`) e pushato su `origin/main` (merge `6e1e9f2` per un conflitto con
+figure DCGAN prodotte nel frattempo su un'altra macchina/sessione). Una
+sessione collegata solo a GitHub vede ora questo stato. Verificare comunque
+`git log -1` prima di fidarsi ciecamente di una fetch, per sicurezza contro
+cache stale del connettore.
 
 **Prossimo passo concreto**: iniziare a scrivere
 `03-evoluzione-argomentazione-critica.tex` usando `docs/sinossi.md` come
