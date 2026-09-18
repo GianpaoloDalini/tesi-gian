@@ -1,13 +1,28 @@
 # Piano di progetto — Tesi magistrale
 
+> ⚠️ **SUPERATO DAL 2026-09-14 — non aggiornato dopo il cambio di relatore e il
+> pivot verso una tesi espositiva/argomentativa (D-028, D-029).** Questo file
+> descrive ancora l'impianto sperimentale (DCGAN/CAN, RQ1) valido prima del
+> ricevimento del 2026-09-14. Non è stato riscritto per rispettare la convenzione
+> del progetto ("mai cancellare, solo annotare come superato"), ma NON va usato
+> come stato attuale. Per lo stato vero e più fresco, leggi invece:
+> - `docs/registro-decisioni.md`, sezione **«5-sexies. Punto di ripresa —
+>   2026-09-18»** (la più recente disponibile), e
+> - `docs/sinossi.md`, fonte viva per la mappa delle fasi bibliografiche e la
+>   struttura a 4 fasi argomentative (D-029).
+>
+> Il binario sperimentale DCGAN/CAN descritto qui sotto prosegue come progetto
+> personale di Gian, fuori dal documento di tesi vero e proprio.
+
 > **Documento vivo.** È la fonte di verità del progetto. Ogni decisione presa va
 > registrata qui nello stesso commit in cui viene applicata. Le voci marcate
 > `DA DEFINIRE` sono i vuoti aperti: nessuno va riempito con un'ipotesi
 > plausibile, si riempiono solo con decisioni effettivamente prese.
 
-**Ultimo aggiornamento:** 2026-08-11 · **Stato:** impianto sperimentale eseguito a
+**Ultimo aggiornamento:** 2026-08-13 · **Stato:** impianto sperimentale eseguito a
 64px e 128px (14 run); prima bozza dell'idea di base e di RQ1 formulata (D-023),
-in attesa del relatore e della revisione della letteratura per consolidarla
+in attesa del relatore e della revisione della letteratura per consolidarla;
+corretta la lettura del confronto 0,28 vs 0,75 (D-026)
 
 ---
 
@@ -67,11 +82,16 @@ in attesa del relatore e della revisione della letteratura per consolidarla
 - **Limiti delle soluzioni esistenti:** `DA DEFINIRE` (esito della revisione, §4)
 - **Opportunità di ricerca:** verificare quanto la rivendicazione di creatività
   della CAN regge a un confronto con una misura indipendente sugli stessi campioni
-  (dato preliminare già raccolto, 0,28 contro 0,75 a 64px — non ancora confermato
-  da un esperimento dedicato, vedi D-023) e con un criterio teorico esplicito
-  (estetica simbolica di Langer: l'arte richiede emozione), per poi discutere le
-  conseguenze etiche di una rivendicazione che non regge, in linea con la critica
-  dell'antropomorfizzazione nella letteratura di etica dell'AI.
+  e con un criterio teorico esplicito (estetica simbolica di Langer: l'arte
+  richiede emozione), per poi discutere le conseguenze etiche di una
+  rivendicazione che non regge, in linea con la critica dell'antropomorfizzazione
+  nella letteratura di etica dell'AI. **Verificato** (D-026): con un giudice
+  esterno al ciclo di addestramento, l'aumento di ambiguità stilistica della CAN
+  rispetto al controllo è reale e quantitativamente consistente su due
+  risoluzioni indipendenti (+14,5 punti a 64px, +14,9 a 128px, sullo spazio utile
+  fra opere reali e soffitto teorico — vedi `experiments/registry.md`). Il
+  confronto preliminare fra l'autovalutazione della CAN e il giudice terzo (0,28
+  contro 0,75 a 64px) resta un dato a sé, non è più il perno dell'argomento.
 
 > Nota metodologica originale, ancora valida: questa sezione non si considera
 > davvero chiusa prima di aver fatto la revisione della letteratura. Un problema
@@ -94,7 +114,7 @@ in attesa del relatore e della revisione della letteratura per consolidarla
 
 | ID | Domanda | Come viene risposta | Stato |
 |---|---|---|---|
-| RQ1 | In che misura la creatività rivendicata dalla CAN (misurata dalla propria testa di stile) diverge da una misura indipendente sugli stessi campioni, e quali conseguenze etiche comporta presentare come "creativo" un sistema la cui creatività non è, in questo senso, affidabile né teoricamente fondata? | Confronto autovalutazione vs. giudice terzo (dato preliminare in `experiments/registry.md`, da consolidare); vaglio teorico via estetica simbolica di Langer e letteratura su antropomorfizzazione in etica dell'AI | bozza (D-023) — da affinare dopo M1 |
+| RQ1 | In che misura la creatività rivendicata dalla CAN diverge da una misura indipendente sugli stessi campioni, e quali conseguenze etiche comporta presentare come "creativo" un sistema la cui creatività non è, in questo senso, affidabile né teoricamente fondata? | Verifica con giudice esterno al ciclo di addestramento: aumento di ambiguità stilistica confermato e quantificato su due risoluzioni indipendenti (D-026, `experiments/registry.md`); vaglio teorico via estetica simbolica di Langer e letteratura su antropomorfizzazione in etica dell'AI | bozza (D-023, corretta da D-026) — da affinare dopo M1 |
 
 ## 4. Stato dell'arte
 
@@ -154,15 +174,24 @@ studio percettivo sono ora **E6** ed **E7**.
 | E2 | `e2-can-confronto` | Condizione **sperimentale**: CAN, 64px | + classificazione stile (D) e ambiguità (G) | 4 (seed 1-4) | idem | ✅ **concluso 2026-08-03** — 1 run collassato (`can-seed1`), escluso dalle medie |
 | E3 | `e3-dcgan-128` | Condizione di controllo, **128px** | idem | 3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
 | E4 | `e4-can-128` | Condizione sperimentale, **128px** | idem | 3 (seed 1-3) | idem | ✅ **concluso 2026-08-04** — vedi esito sotto |
-| E5 | `e5-illustrativo-{64,128}` | **Illustrativo**, generatore condizionato per stile | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | 64px concluso e valutato (2026-08-12); 128px in coda |
+| E5 | `e5-illustrativo-{64,128}` | **Illustrativo**, generatore condizionato per stile | — (fuori dal confronto) | 1+1 | nessuna (solo qualità visiva) | ✅ 64px e 128px conclusi, figure generate (2026-08-12) |
 | E6 | `e6-ablazione-can-peso-zero` | Ablazione: CAN con `style_ambiguity_weight=0` | peso dell'ambiguità | 1 | FID, IS | concluso e valutato (2026-08-12) — risultato non atteso, vedi V-010 |
 | E7 | — (non ancora creato) | Studio percettivo leggero sui campioni generati | condizione mostrata | — | giudizio umano | non avviato |
+| E8 | — (vedi [ADR-0006](decisions/0006-esperimento-e8-stylegan2ada.md)) | **Illustrativo**, restyling ad alta risoluzione: transfer learning StyleGAN2-ADA da checkpoint pretrained | — (fuori dal confronto) | 1 pilota, poi eventuale run completo | nessuna metrica comparativa (solo ispezione visiva ed eventuale FID di sanity vs il dataset) | pianificato — script pronto, **nessun run eseguito**, V-011 aperta (target risoluzione da confermare nel pilota) |
 
 **E5 non fa parte del confronto comparativo E1-E4** (ADR-0003): architettura
 diversa (il generatore riceve anche l'etichetta di stile), obiettivo diverso
 (fedeltà allo stile richiesto invece di ambiguità), nessuna metrica quantitativa —
 serve solo a produrre figure più nitide da mostrare come contrasto visivo. Dettagli
 in D-022.
+
+**E8, come E5, non fa parte del confronto comparativo** (ADR-0006, D-027): nasce
+dalla bocciatura della parte sperimentale al primo ricevimento col relatore
+(2026-09-14) — dimostra la fattibilità di un risultato ad alta qualità con risorse
+accademiche, non estende il confronto sull'ambiguità di stile. **Attenzione (V-011,
+aperta):** il target dichiarato di 1024×1024 potrebbe non essere sostenibile dalla
+risoluzione reale di ArtBench-10 (256×256, ADR-0004) — il pilota deve confermarlo o
+portare il target a un valore più realistico prima di qualunque run completo.
 
 Dataset per E1-E4 ed E6: ArtBench-10, sei stili (D-017: `ukiyo_e`, `renaissance`,
 `baroque`, `art_nouveau`, `expressionism`, `impressionism`), 30.000 immagini.
@@ -272,6 +301,8 @@ questioni aperte e delle verifiche da fare. Qui sotto solo l'indice.
 | D-022 | 2026-08-11 | Esperimento illustrativo E5 condizionato per stile, fuori da ADR-0003 | — |
 | D-023 | 2026-08-11 | Bozza dell'idea di base e di RQ1: rivendicazione di creatività della CAN come antropomorfizzazione | — |
 | D-024 | 2026-08-11 | Accessibilità e training: due tesi che coesistono senza elidersi | completa D-023 |
+| D-025 | 2026-08-12 | Due figure aggiuntive per l'esperimento illustrativo E5 (colonna reale + progressione per epoca) | — |
+| D-026 | 2026-08-13 | Corretta la lettura del confronto 0,28/0,75: l'esperimento è verifica indipendente dell'aumento di ambiguità stilistica, non auto-affermazione | corregge D-023 |
 
 ## Prossime decisioni da prendere
 
@@ -285,12 +316,14 @@ punto sotto), **Q4** (dataset → D-014), **Q7** (calcolo → D-013). **Q6** ria
   fasi amministrative descritte in V-006. Gestione di Gian.
 - **Q8 — Domande di ricerca**: prima bozza formulata (D-023, RQ1 in §3), completata
   dal collegamento fra accessibilità e problema del training (D-024). Non ancora
-  consolidata dalla revisione della letteratura. Resta da: decidere se serve un
-  esperimento dedicato per la divergenza autovalutazione/giudice terzo (0,28 vs
-  0,75) prima di usarla in tesi; rivedere §5 e §7 alla luce del nuovo ruolo
-  dell'impianto sperimentale (caso di studio a supporto della critica, non più
-  confronto che stabilisce "chi vince"); strutturare il capitolo di discussione
-  tenendo distinti i due argomenti di D-024 invece di fonderli.
+  consolidata dalla revisione della letteratura. Resta da: **riformulare RQ1 alla
+  luce di D-026** — l'aumento di ambiguità stilistica è verificato e quantificato
+  (+14,5 / +14,9 punti sullo spazio utile, due risoluzioni indipendenti), il
+  confronto 0,28 vs 0,75 fra i due giudici non ne è più il perno; rivedere §5 e §7
+  alla luce del nuovo ruolo dell'impianto sperimentale (caso di studio a supporto
+  della critica, non più confronto che stabilisce "chi vince"); strutturare il
+  capitolo di discussione tenendo distinti i due argomenti di D-024 invece di
+  fonderli.
 - **Q2, punto 3 — cosa conta come successo** la CAN per costruzione tende a
   peggiorare il FID; non è ancora deciso quale esito, prima di vederlo, si considera
   un risultato informativo per la tesi.

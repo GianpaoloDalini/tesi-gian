@@ -36,17 +36,24 @@ Bergamo, su **AI generativa e creatività in ambito artistico**, con analisi di 
 | Autore | Gian |
 | Ateneo | Università degli Studi di Bergamo |
 | Corso | Laurea Magistrale in Ingegneria Informatica (LM-32) |
-| Relatore | *(da compilare)* — area: Intelligenza Artificiale e Informatica Etica |
+| Relatore | Domenico Fabio Savo — area: Intelligenza Artificiale e Informatica Etica |
 | Lingua della tesi | **Italiano** (terminologia tecnica in inglese, non tradotta) |
-| Tipo di tesi | Sperimentale con componente analitico-etica |
+| Tipo di tesi | Espositiva/argomentativa (D-028, dal 2026-09-14; DCGAN/CAN proseguono come binario personale di Gian, fuori dal documento di tesi) |
 | Sessione di laurea | *(da confermare)* |
 
 Due documenti governano il progetto e vanno letti prima di intervenire:
 
-- **`docs/project-plan.md`** — lo *stato attuale*: obiettivi, domande di ricerca,
-  piano sperimentale, rischi. È la fotografia del progetto oggi.
+- **`docs/project-plan.md`** — lo *stato attuale* per obiettivi/domande di ricerca/piano
+  sperimentale/rischi del binario tecnico. ATTENZIONE: dal 2026-09-14 (cambio di
+  relatore e pivot verso una tesi espositiva/argomentativa, D-028) questo file non
+  viene più aggiornato regolarmente e riporta uno stato pre-pivot — ha un banner in
+  cima che lo segnala. Per lo stato reale e più fresco del progetto, leggi invece
+  `docs/registro-decisioni.md`, sezione «Punto di ripresa» più recente (il numero
+  più alto), e `docs/sinossi.md` (fonte viva per la mappa delle fasi bibliografiche).
 - **`docs/registro-decisioni.md`** — la *storia*: ogni decisione presa con alternative
-  scartate e motivazione, le questioni ancora aperte, le verifiche da fare.
+  scartate e motivazione, le questioni ancora aperte, le verifiche da fare. Contiene
+  anche le sezioni «Punto di ripresa», il riassunto dello stato più aggiornato
+  disponibile.
 
 **Se hai accesso solo al repo GitHub sincronizzato (nessuna cartella locale
 collegata), leggi per primo l'ultima sezione «Punto di ripresa» in

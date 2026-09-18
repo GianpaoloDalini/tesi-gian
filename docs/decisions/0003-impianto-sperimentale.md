@@ -1,7 +1,7 @@
 # ADR-0003 — Impianto sperimentale
 
 - **Data:** 2026-08-02
-- **Stato:** Riaperta il 2026-08-03, **ratificata dall'autore lo stesso giorno** con tre precisazioni (vedi D-010)
+- **Stato:** Riaperta il 2026-08-03, ratificata dall'autore lo stesso giorno con tre precisazioni (vedi D-010) --- **Superata da [ADR-0007](0007-tesi-espositiva.md) il 2026-09-14**
 - **Decisore:** Gian
 - **Supera:** lo stato «aperta» del 2026-07-31
 
@@ -111,3 +111,12 @@ stesura fino al 21 settembre.
   bloccare il lavoro durante agosto. Va portata al primo ricevimento e verbalizzata
   in `docs/meetings/`. Se il relatore la rovescia, questo ADR va marcato `superato`,
   non riscritto.
+
+
+## Nota di chiusura (2026-09-14)
+
+Il relatore, al primo ricevimento, ha effettivamente indicato che l'apparato
+sperimentale non è più al centro della tesi (vedi ADR-0007). Come previsto sopra,
+questo ADR resta così com'è scritto ed è marcato **superato**, non riscritto: il
+lavoro che descrive continua comunque, fuori dal documento di tesi, come binario
+personale (D-028).

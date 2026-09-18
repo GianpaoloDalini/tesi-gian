@@ -28,6 +28,8 @@ thesis/build/
 # Il PDF compilato NON va versionato: si rigenera. Fa eccezione la consegna
 # finale, che va allegata a un tag git o a una release.
 thesis/main.pdf
+# Idem per i documenti autonomi di thesis/extra/ compilati fuori da thesis/build/
+thesis/extra/*.pdf
 
 # ---------- Python ----------
 __pycache__/

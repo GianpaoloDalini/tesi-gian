@@ -790,9 +790,13 @@ esperimenti dedicati):**
 - ~~Il tema dell'accessibilità (AI come strumento per chi ha lacune tecniche, da
   cui Gian era partito) non è ancora ricollegato a questo nucleo~~ — **ricollegato
   da D-024.**
-- **La divergenza 0,28 vs 0,75** è preliminare: va capito se serve un esperimento
+- ~~**La divergenza 0,28 vs 0,75** è preliminare: va capito se serve un esperimento
   dedicato (non solo un sottoprodotto di D-010/D-015) prima di poterla usare come
-  risultato in tesi.
+  risultato in tesi.~~ — **reinterpretata da D-026** (2026-08-13): non è più il
+  perno di RQ1. L'esperimento va letto come verifica indipendente dell'aumento di
+  ambiguità stilistica (quantificato, due risoluzioni convergenti), non come
+  confronto fra autovalutazione e giudice terzo. Il dato 0,28 vs 0,75 resta a sé,
+  non regge da solo l'argomento.
 - **Rapporto con l'impianto sperimentale esistente (D-010, ADR-0003):** questa
   bozza lo riqualifica da "confronto che stabilisce se la CAN è più/meno fedele"
   a "caso di studio a supporto della critica" — implicazioni su §5 e §7 del
@@ -905,7 +909,197 @@ figure con e senza gli argomenti opzionali, i due casi di rifiuto per checkpoint
 incoerenti). Non ancora eseguiti da Gian — nessun numero da questa modifica entra
 nell'impianto comparativo, quindi non blocca i run E5/E6 già in corso su RunPod.
 
+**Aggiornamento 2026-08-12 — tentativo di alzare `classification_weight` per
+ridurre la ripetizione fra stili.** Osservando `illustrativo-condizionato-64px`
+(peso di default 1.0), alcuni stili condividevano campioni quasi identici fra loro
+— segno di condizionamento debole, non di un bug. Provati due pesi più alti, due
+seed ciascuno, stessa architettura:
+
+| Peso | Seed | Esito |
+|---|---|---|
+| 3.0 | 2, 3 | Buono fino a circa epoca 55-60, poi collasso netto (pattern a scacchiera, stessa firma di D-019) su entrambi i seed — sistematico, non un caso isolato |
+| 5.0 | 4 | Nessuna finestra pulita: epoca 30 ancora rumore, epoca 40 già mediocre, epoca 50 già collassato. Seed 5 non lanciato, il pattern era già chiaro |
+
+**Decisione di Gian: tenuto il peso di default (1.0, seed 1, epoca 100)** —
+valutato visivamente superiore ai candidati con peso più alto nonostante la
+ripetizione fra stili osservata inizialmente. I checkpoint e le figure dei
+tentativi scartati sono stati cancellati (non erano checkpoint dell'impianto
+comparativo, nessuna perdita di dati citabili in tesi). Non è un risultato
+scientifico da riportare in tesi — è una nota di processo per non rifare lo stesso
+giro di tuning in una sessione futura.
+
 ---
+
+### D-026 — Corretta la lettura del confronto 0,28 vs 0,75: non è auto-affermazione né sovraconfidenza, è verifica indipendente dell'aumento di ambiguità stilistica
+**Data:** 2026-08-13 · **Stato:** attiva, corregge la lettura data in D-023 · **Decisore:** Gian
+
+**Cosa correggeva.** Nel dialogo che ha prodotto D-023, il confronto fra
+l'autovalutazione della CAN (0,28) e il giudice indipendente (0,75) è stato
+raccontato come una divergenza fra "creatività rivendicata" e "creatività
+misurata", con la testa di stile del discriminatore che si autovaluta in modo
+favorevole a sé. È una lettura del segno che non regge: entropia bassa significa
+classificatore sicuro, cioè immagine facilmente attribuibile. Il 0,28 è quindi un
+giudizio **sfavorevole** alla CAN secondo il proprio discriminatore ("le mie
+immagini sono attribuibili"), non un'auto-promozione. La direzione della
+divergenza era invertita rispetto al racconto.
+
+**Un'ipotesi esplorata e scartata nello stesso confronto.** È stata considerata
+l'idea che il 0,28 riflettesse sovraconfidenza del discriminatore su immagini
+fuori distribuzione (la testa di stile riceve cross-entropy solo sulle immagini
+**reali**, mai sulle generate — `src/tesi_gan/training/losses.py`), quindi che il
+numero non dicesse nulla sulla CAN e tutto sull'iper-sicurezza tipica di una rete
+interrogata fuori dal proprio dominio di addestramento. **Decisione: non entra
+nella tesi.** Non perché sia falsa — resta un'ipotesi tecnica plausibile — ma
+perché introdurrebbe una seconda congettura non verificata sopra un dato già
+preliminare, e l'argomento non ne ha bisogno.
+
+**La correzione.** L'impianto comparativo (E1-E4, 64px e 128px) va trattato per
+quello che è: una verifica, condotta con un giudice esterno che non ha mai preso
+parte all'addestramento di nessuno dei due modelli, che il meccanismo di
+ambiguità stilistica della CAN produce un aumento reale e misurabile di
+non-attribuibilità stilistica rispetto alla condizione di controllo. Non un
+argomento sulla sincerità del discriminatore verso se stesso. Il confronto 0,28
+vs 0,75 fra i due giudici sullo stesso modello resta un dato preliminare a sé —
+mostra che i due giudici non sono intercambiabili — ma **non è più il perno di
+RQ1** e da solo non sostiene un argomento di antropomorfizzazione o inganno.
+
+**Lettura quantitativa aggiunta.** Normalizzando l'aumento di ambiguità sullo
+spazio utile fra il pavimento (entropia sulle opere reali) e il soffitto teorico
+`log(6)`, i due impianti — giudici diversi (J2 e J3), risoluzioni diverse, run
+indipendenti — restituiscono lo stesso effetto:
+
+| Impianto | Arte reale | Spazio utile | DCGAN occupa | CAN occupa | Incremento CAN |
+|---|---|---|---|---|---|
+| 64px (giudice J2) | 0,531 | 0,469 | 32,2% | 46,7% | **+14,5 punti** |
+| 128px (giudice J3) | 0,401 | 0,599 | 24,4% | 39,2% | **+14,9 punti** |
+
+Grezzi, gli incrementi erano +0,068 e +0,089 — sembravano differire di quasi un
+terzo. Normalizzati sullo spazio in cui l'effetto può manifestarsi, sono
+praticamente lo stesso numero. È la lettura più solida prodotta finora dal
+progetto: due misure indipendenti dello stesso effetto convergono. Il calcolo è
+derivato dai numeri già registrati in questo file (impianti 64px e 128px), non
+richiede nuovi run; non ancora accompagnato da uno script tracciato — se entra in
+tesi, va aggiunto uno script in `scripts/` che lo riproduca dai risultati
+registrati, per lo stesso motivo per cui nessun numero entra in tesi senza run
+tracciato (`CLAUDE.md` §6).
+
+**Riserva da mantenere.** A 128px la copertura degli stili scende e si disperde
+(0,924 → 0,809, vedi sopra), quindi l'esclusione dell'ipotesi alternativa
+("collasso generico" invece di "fusione di stile") è più debole che a 64px, dove
+la copertura è identica fra le condizioni. Non scrivere l'incremento come "fusione
+di stile confermata" a 128px prima di V-009 (ispezione visiva dei campioni).
+
+**Conseguenza per l'argomento.** Il legame fra parte sperimentale e parte teorica
+non passa più da "il sistema si giudica meglio di quanto sia". Passa da: il
+meccanismo fa esattamente quello che dichiara di fare — aumenta la
+non-attribuibilità stilistica di una quantità misurabile e consistente su due
+risoluzioni indipendenti — e la domanda che resta aperta è se questo equivalga a
+"creatività". Quella domanda si discute sul piano teorico (Langer, Qi 2019,
+antropomorfizzazione), non sui numeri: i numeri dimensionano l'effetto, non
+arbitrano l'etichetta.
+
+**Vincolante per le sessioni future.** Non reintrodurre nel testo della tesi, in
+RQ1 o nella spiegazione informale a Gian la lettura "la CAN si autovaluta in modo
+favorevole" né l'ipotesi di sovraconfidenza fuori distribuzione, senza che Gian la
+riapra esplicitamente. Questa voce sostituisce quella lettura, non la affianca.
+Chi riprende il lavoro legga questa voce **prima** di riusare il dato 0,28 vs
+0,75 in qualunque forma.
+
+### D-027 — Adottato l'esperimento E8: transfer learning StyleGAN2-ADA come restyling illustrativo ad alta risoluzione
+
+**Data:** 2026-09-14 · **Stato:** attiva · **Decisore:** Gian, in risposta al primo
+ricevimento col relatore (Domenico Fabio Savo)
+
+**Contesto.** Il relatore ha bocciato la parte sperimentale: i risultati visivi di
+DCGAN/CAN (64px/128px) sono giudicati troppo scarsi rispetto a strumenti come Nano
+Banana (Gemini 2.5/3 Pro Image). Una ricerca esplorativa dedicata (documento
+`ricerca-restyling-gan-alta-risoluzione-vs-nano-banana.md` nel progetto Claude
+"Tesi") ha passato in rassegna le GAN recenti/rilevanti a risoluzione ≥1080×1080
+(StyleGAN2/3, StyleGAN-XL, GigaGAN, R3GAN) e valutato la fattibilità di replica col
+budget attuale.
+
+**Decisione.** Adottato **StyleGAN2-ADA in transfer learning**, target dichiarato
+1024×1024, su RunPod/RTX 4090. Motivazione, alternative scartate (R3GAN esteso oltre
+i 256px testati dagli autori, GigaGAN senza codice ufficiale, training da zero) e
+conseguenze sono in **[ADR-0006](decisions/0006-esperimento-e8-stylegan2ada.md)**.
+
+**Vincolo di inquadramento — identico a E5/D-022.** È un esperimento
+**illustrativo**, esplicitamente fuori da ADR-0003: dimostra la fattibilità di un
+risultato ad alta qualità con risorse accademiche, non sostituisce né estende il
+confronto quantitativo DCGAN/CAN sull'ambiguità di stile (RQ1/D-026). Le due cose
+vanno tenute separate nel testo della tesi, con lo stesso trattamento già dato a E5.
+
+**Numerazione.** L'esperimento prende il numero **E8**, non E7: E7 è già riservato
+nel piano sperimentale (`docs/project-plan.md`, §7) allo studio percettivo leggero
+sui campioni generati — oggi in stand-by (vedi "Ricevimento del 2026-09-14" in
+`00-leggi-prima-stato-progetto.md`, il relatore l'ha giudicato inutile nella forma
+voluta finché la parte sperimentale non è rifatta), ma non è stato eliminato dal
+piano e il suo ID resta suo.
+
+**Apre V-011** (sotto): il rischio metodologico che il target di 1024×1024 non sia
+sostenuto dalla risoluzione reale delle immagini sorgente disponibili
+(ArtBench-10 è distribuito a 256×256, ADR-0004). Non si decide qui se restare su
+ArtBench con un target più realistico o assemblare un sottoinsieme dedicato ad alta
+risoluzione: lo stabilisce il pilota, non una stima a tavolino.
+
+**Stato operativo.** Preparato `scripts/bootstrap_e8_stylegan2ada.sh` per il pilota
+su RunPod. **Nessun run eseguito finora**: nessun numero di questo esperimento entra
+in tesi né in `experiments/registry.md` finché non proviene da un run tracciato
+(`CLAUDE.md` §6).
+
+---
+
+### D-028 — Adottato il taglio espositivo/argomentativo per la tesi: le CAN restano un caso di partenza, non più il centro
+
+**Data:** 2026-09-14 · **Stato:** attiva · **Decisore:** Gian, in accordo con
+l'indicazione del relatore al primo ricevimento
+
+Il relatore ha chiarito che l'apparato sperimentale (DCGAN/CAN, E1-E6, e il
+restyling E8) non gli interessa più come nucleo: vuole una tesi che ricostruisca
+come si è evoluta nel tempo l'argomentazione critica contro la rivendicazione di
+creatività dei sistemi generativi. Le CAN (Elgammal et al., 2017) restano il caso
+di partenza — la rivendicazione più esplicita, nel nome e nella funzione di
+perdita — ma discusse come caso di letteratura, non più riprodotte
+sperimentalmente nel documento.
+
+Dettaglio completo, alternative valutate e conseguenze in
+**[ADR-0007](decisions/0007-tesi-espositiva.md)**, che supera **ADR-0003**.
+
+**Il lavoro DCGAN/CAN/E8 non è abbandonato**: esce dal documento di tesi "per ora",
+ma prosegue come binario parallelo — Gian continua a sviluppare E8 (StyleGAN2-ADA,
+già preparato) per provare a mostrare al relatore un risultato visivo migliore e
+verificare se questo lo convince a riaprire la componente sperimentale. È una
+scommessa separata dalla consegna della tesi, non una sua precondizione.
+
+**Conseguenze immediate**: Q2, Q5, Q6 non sono più applicabili nella forma
+attuale (chiuse con nota, non cancellate); Q3 si scioglie verso il polo
+teorico/etico; nuova verifica **V-012** (regolamento del corso LM-32, componente
+sperimentale). Struttura dei capitoli aggiornata: `03-stato-arte.tex` diventa
+`03-evoluzione-argomentazione-critica.tex`, organizzato **cronologicamente**
+(scelta esplicita, per rispondere a "evoluta nel tempo"); `04-metodologia`,
+`05-implementazione`, `06-risultati` e le due appendici sperimentali spostati in
+`thesis/capitoli-sospesi/` (non cancellati).
+
+### D-029 — Il capitolo argomentativo ha 4 fasi, non 5: "Fase 4 — oggi" non e' una tappa a se stante
+
+**Data:** 2026-09-18 · **Stato:** attiva · **Decisore:** Gian
+
+Nella bozza di mail al relatore che ricapitola il nuovo taglio (D-028), Gian ha
+elencato solo 4 fasi argomentative (GAN/caso Belamy; CAN e prime reazioni;
+teorie del rapporto creativo uomo-macchina; angolo etico/antropomorfizzazione),
+omettendo volutamente una "Fase 4 - oggi" come tappa cronologica a se stante:
+scorporarla non ha senso argomentativo. Un articolo recente va discusso nella
+fase precedente a cui si collega tematicamente (es. Calvo 2026 nel filone etico
+insieme a Placani), non isolato in una quinta fase fittizia solo perche' e'
+recente.
+
+**Non cambia la sistemazione pratica della bibliografia**: la cartella
+`fase-4-oggi/` in `~/Desktop/esami/TESI` resta cosi' com'e' (vedi
+`docs/sinossi.md`), come contenitore provvisorio per le fonti piu' recenti non
+ancora ricollegate esplicitamente a una fase precedente. In sede di stesura,
+ogni fonte al suo interno (Franceschelli/Musolesi, Calvo, Pearson/Dennis/Cheong)
+va assegnata al punto argomentativo a cui appartiene, non trattata come fase
+autonoma.
 
 ## 3. Questioni aperte
 
@@ -933,6 +1127,12 @@ sollevati nella revisione sono stati sciolti così:
    si considera informativo. Da riprendere.
 4. **Varianza fra seed** → tre seed per condizione → D-010, punto 3.
 
+
+**Aggiornamento 2026-09-14.** Con il passaggio alla tesi espositiva (D-028,
+ADR-0007), questo impianto esce dal documento di tesi: il punto 3 (cosa conta
+come successo) resta di fatto superato, non più da decidere per la stesura del
+capitolo dei risultati, perché quel capitolo non c'è più nella forma attuale.
+
 ### Q3 — Peso relativo tra componente tecnica ed etica 🟠 alta
 **Stato:** aperta
 
@@ -940,6 +1140,12 @@ Determina quale capitolo porta il contributo principale. Da concordare col relat
 la cui area include l'informatica etica. L'impianto scelto (D-010) è compatibile con
 entrambi gli sbilanciamenti, quindi questa questione non blocca più il lavoro
 sperimentale — ma blocca ancora la stesura del capitolo di discussione.
+
+
+**Aggiornamento 2026-09-14.** Sciolta di fatto da D-028/ADR-0007: con la tesi
+espositiva il capitolo che porta il contributo principale è quello teorico/etico
+(evoluzione dell'argomentazione critica), non più quello sperimentale. Resta da
+confermare col relatore in via esplicita, ma non blocca più la stesura.
 
 ### Q4 — Dataset ✅ chiusa
 **Stato:** chiusa il 2026-08-03 → **D-014**, [ADR-0004](decisions/0004-dataset.md)
@@ -1012,11 +1218,23 @@ e tabella completa in `experiments/registry.md`, sezione «Impianto 128px».
 **Resta da stabilire se questo sia lo stesso tipo di instabilità del mode collapse
 già visto a 64px o un fenomeno diverso**: vedi V-008.
 
+
+**Aggiornamento 2026-09-14.** Con la tesi espositiva (D-028, ADR-0007) queste
+metriche non entrano più nel documento di tesi: la formulazione esatta della
+penalità di ambiguità resta comunque da verificare per il lavoro personale
+DCGAN/CAN (che prosegue fuori dal documento), ma non è più bloccante per la
+stesura.
+
 ### Q6 — Studio percettivo con soggetti umani 🔶 riaperta
 **Stato:** **di nuovo aperta dal 2026-08-03** · **Proposta:** D-012
 
 Sì, versione leggera con campione di convenienza. Limiti da dichiarare senza
 attenuanti.
+
+
+**Aggiornamento 2026-09-14.** Non più applicabile: con la tesi espositiva
+(D-028, ADR-0007) non c'è più un esperimento proprio i cui campioni richiedano
+un giudizio percettivo umano nel documento di tesi.
 
 ### Q7 — Servizio di calcolo e budget ✅ chiusa
 **Stato:** chiusa il 2026-08-03 → **D-013**
@@ -1048,6 +1266,13 @@ in che rapporto sta con le metriche con cui la letteratura ne valuta il risultat
 
 ---
 
+
+
+**Aggiornamento 2026-09-14.** La domanda di ricerca cambia natura con D-028/ADR-0007:
+non più empirica (cosa misura il meccanismo di ambiguità stilistica), ma
+storico-critica (come si è evoluta l'argomentazione contro la rivendicazione di
+creatività dal 2017 a oggi). La bozza D-023/D-024 resta materiale valido per il
+capitolo sull'ondata etica, non più come RQ diretta.
 ## 4. Verifiche da fare
 
 Punti su cui è stata fatta un'ipotesi o un adattamento che va confermato da una fonte
@@ -1290,6 +1515,106 @@ con più seed, è materiale per la sezione sui limiti metodologici: non toglie v
 al risultato principale, ma va dichiarato che «un solo termine di loss» è una
 semplificazione della differenza architetturale reale fra le due condizioni.
 
+### V-011 — Il target 1024×1024 di E8 è sostenibile dalla risoluzione reale delle immagini sorgente? 🔴
+**Stato:** aperta, emersa il 2026-09-14 · **Origine:** ADR-0006, D-027
+
+ArtBench-10, così come preparato in questo progetto, è distribuito a **256×256**
+(`data/README.md`, ADR-0004). Un transfer learning StyleGAN2-ADA con target
+1024×1024 partendo da queste immagini upscalate non aggiungerebbe dettaglio reale:
+la rete imparerebbe a riprodurre texture sfocate, vanificando l'obiettivo stesso
+dell'esperimento (la qualità visiva contestata dal relatore).
+
+**Da fare prima di qualunque run completo (il pilota serve esattamente a questo):**
+
+1. Verificare se esiste, per almeno uno dei sei stili del progetto, una fonte di
+   immagini di pubblico dominio verificato a risoluzione realmente ≥1024px sul lato
+   corto (non upscalate) — con lo stesso standard di verifica della licenza già
+   applicato in V-007/ADR-0004, mai un download non verificato.
+2. Se non è disponibile in tempi/budget ragionevoli, **rivedere il target verso il
+   basso** (es. 512×512, con AFHQ-512 come checkpoint pretrained invece di
+   FFHQ-1024) e dichiararlo esplicitamente come limite, non come traguardo mancato
+   in silenzio.
+3. In entrambi i casi, il target scelto va **misurato nel pilota**, non stimato a
+   tavolino, e registrato in `experiments/registry.md` con la motivazione.
+
+**Perché conta.** È lo stesso tipo di controllo che ha già escluso GigaGAN
+dall'esperimento (un'opzione tecnicamente attraente ma non verificabile/sostenibile
+coi vincoli reali del progetto): un esperimento che gira senza errori ma addestra
+su dati che non contengono il segnale che dovrebbe imparare produrrebbe un
+risultato altrettanto vulnerabile in discussione di quello appena bocciato dal
+relatore — solo a una risoluzione nominale più alta.
+
+**Aggiornamento 2026-09-14, stesso giorno — correzione importante, non risolve
+V-011 da sola.** Gian ha chiesto perché non si possa semplicemente scalare "il
+dataset originale" invece del pacchetto a 256×256 usato finora. Verificato (non
+assunto): ArtBench-10 offre anche una versione **"original size", per stile,
+formato LSUN**, distribuita via Google Drive, distinta dal pacchetto
+`artbench-10-imagefolder-split` (256×256) usato da questo progetto — vedi il
+[README ufficiale del repository](https://github.com/liaopeiyuan/artbench) e il
+[paper](https://arxiv.org/abs/2206.11404) (sezione sulla curation: le immagini a
+bassa risoluzione sono filtrate all'origine, ma **la soglia numerica non è
+dichiarata nel testo principale**, solo nel materiale supplementare non ancora
+consultato).
+
+**Cosa cambia e cosa NON cambia:**
+
+- **Cambia**: questa versione "original size" resta la stessa fonte già
+  verificata per licenza in ADR-0004/V-007 (stesso ArtBench-10, stesso set di
+  stili) — se la risoluzione reale regge il target, **non serve** cercare o
+  verificare una fonte nuova. È una terza strada, preferibile alle due già
+  previste sopra perché non introduce un nuovo problema di licenza.
+- **Non cambia**: la risoluzione reale di questi file **non è ancora nota**. Non
+  scriverla né stimarla: il paper non la dichiara, e "original size" per un
+  dataset curato da scrape di WikiArt può voler dire tutto, da poco sopra i 256px
+  a diverse migliaia. Va misurata scaricando un campione — esattamente quello che
+  fa la diagnostica dello script del pilota (`scripts/bootstrap_e8_stylegan2ada.sh`,
+  ora aggiornato per provare prima questa fonte).
+- **Complicazione operativa**: il formato è LSUN (database lmdb), non una cartella
+  di JPEG come il resto del progetto — serve un passaggio di esportazione in più
+  prima che `dataset_tool.py` possa leggerle, e il download da Google Drive per
+  cartelle di queste dimensioni può richiedere `gdown` invece di un semplice `curl`.
+
+**V-011 resta aperta**: cambia l'ipotesi più promettente da verificare per prima,
+non la sostanza della verifica (la risoluzione reale decide il target, non una
+stima a tavolino).
+
+**Aggiornamento 2026-09-14, stesso giorno — segnale incoraggiante, ancora non una
+prova.** Aperta la cartella Google Drive "lsun" (link dal README ufficiale):
+contiene un file `.tar` per stile, non una cartella con tante immagini singole.
+Dimensioni osservate direttamente (non stimate):
+
+| Stile | File | Dimensione |
+|---|---|---|
+| ukiyo_e | `ukiyo_e_lmdb.tar` | 8,16 GB |
+| renaissance | `renaissance_lmdb.tar` | 10,06 GB |
+| baroque | `baroque_lmdb.tar` | 8,89 GB |
+| art_nouveau | `art_nouveau_lmdb.tar` | 7,85 GB |
+| expressionism | `expressionism_lmdb.tar` | 2,54 GB |
+| impressionism | `impressionism_lmdb.tar` | 2,87 GB |
+
+(più `realism`, `romanticism`, `surrealism`, `post_impressionism`, non nei sei
+stili del progetto ma presenti nella stessa cartella.)
+
+Con ~6.000 immagini per stile (5.000 train + 1.000 test, come nel pacchetto a
+256×256), `ukiyo_e` a 8,16 GB fa circa 1,4 MB per immagine in media — un JPEG a
+256×256 pesa tipicamente 20-50 KB, quindi questo è un segnale forte (non una
+prova) che la risoluzione reale sia molto più alta. **Non è ancora una misura**:
+la dimensione del file dipende anche dalla qualità di compressione e dal
+contenuto dell'immagine, non solo dai pixel. La diagnostica di
+`scripts/bootstrap_e8_stylegan2ada.sh` (STEP 2), eseguita su un campione dopo
+l'estrazione da LSUN, resta il passo che decide, non questa stima indiretta.
+
+### V-012 — Il regolamento del corso LM-32 richiede una componente sperimentale/progettuale anche per una tesi che il relatore vuole espositiva? 🔴
+**Stato:** aperta, emersa il 2026-09-14 · **Origine:** D-028, ADR-0007
+
+Con il passaggio alla tesi espositiva, il documento non contiene più un esperimento
+originale. È una scelta condivisa col relatore, ma resta un controllo
+amministrativo distinto da fare: alcuni corsi di laurea magistrale in ingegneria
+distinguono nel regolamento tra tesi sperimentale/progettuale e tesi compilativa,
+con eventuali vincoli diversi. Verificare il regolamento del corso (o chiedere alla
+segreteria didattica), non al relatore: è una domanda amministrativa, non di
+merito scientifico.
+
 ### V-001 — Frontespizio ufficiale per la laurea magistrale 🔴
 Il frontespizio attuale è un adattamento di quello di una tesi di **dottorato**.
 Verificare in segreteria UniBg il modello ufficiale per la LM-32.
@@ -1350,6 +1675,68 @@ comando: `source .venv/bin/activate`.
 
 ---
 
+## 5-sexies. Punto di ripresa — 2026-09-18
+
+**Sostituisce 5-quinquies** (lasciato sotto per la cronologia). Copre tutto
+quello che e' successo dal 2026-08-12 a oggi: il ricevimento duro col nuovo
+relatore, il cambio di taglio della tesi, e la cernita completa della
+bibliografia.
+
+**Se stai leggendo solo via sincronizzazione GitHub (nessuna cartella locale
+collegata): questa e' la sezione piu' fresca disponibili in questo file.**
+Verifica pero' anche `docs/sinossi.md` (fonte viva per la mappa delle fasi
+bibliografiche) se il connettore del tuo ambiente lo rende leggibile, perche'
+questa sezione riassume ma non sostituisce quel file.
+
+**Cosa e' cambiato dal 2026-08-12:**
+
+1. **Relatore cambiato**: ora e' Domenico Fabio Savo (area Intelligenza
+   Artificiale e Informatica Etica). Al primo ricevimento con lui (2026-09-14)
+   la tesi e' stata giudicata "troppo vecchia": parte sperimentale (DCGAN/CAN)
+   bocciata, fonti teoriche giudicate datate/poco citate, studio percettivo
+   umano giudicato inutile nella forma proposta.
+2. **Taglio della tesi cambiato di conseguenza (D-028, ADR-0007)**: da
+   sperimentale a **espositiva/argomentativa**. Non piu' un confronto
+   DCGAN-vs-CAN da eseguire, ma una ricostruzione di come si e' evoluta nel
+   tempo l'argomentazione critica contro la rivendicazione di creativita'
+   dell'AI generativa. Le CAN (Elgammal et al. 2017) restano il caso di
+   partenza citato, non un esperimento da riprodurre. DCGAN/CAN/E8
+   proseguono come binario personale di Gian, fuori dal documento di tesi.
+3. **Struttura del capitolo critico: 4 fasi argomentative (D-029, 2026-09-18)**,
+   non 5: "Fase 4 - oggi" non e' una tappa cronologica a se' stante — un
+   articolo recente va discusso nella fase precedente a cui si collega
+   tematicamente. Le 5 cartelle di bibliografia (`fase-0-...` -> `fase-4-oggi/`)
+   restano invece cosi' come sono, per comodita' pratica di organizzazione.
+4. **Cernita della bibliografia CONCLUSA** (cartella `~/Desktop/esami/TESI`,
+   non in questo repository git): tutte le 5 cartelle di fase piu' i due
+   fondamenti trasversali (`fondamenti-generale/`, `fondamenti-tecnici/`) sono
+   popolati e verificati (autore + background accademico tecnico/umanistico
+   per ogni fonte, come richiesto dal relatore). `_tenuti/` e' vuota. Ogni
+   cartella ha ora un `Readme.docx` (sunto di ogni paper) e uno `Spunti.docx`
+   (note di lavoro da riempire leggendo i paper per intero). Dettaglio
+   completo, fonte per fonte, in `docs/sinossi.md` di questo repository —
+   che resta la fonte viva unica per l'assegnazione articolo->fase.
+5. **`docs/literature/da-recuperare.md` quasi svuotato**: resta aperto solo
+   Lamers (2025), lasciato in sospeso per scelta di Gian (accesso chiuso,
+   non essenziale).
+6. **Bozza di mail al relatore verificata** (`Mail professore.docx`, cartella
+   TESI): nessun errore fattuale sostanziale trovato il 2026-09-18.
+
+**Cosa NON e' ancora cambiato**: la ristrutturazione dei capitoli verso il
+taglio espositivo (rinomina `03-stato-arte.tex` -> `03-evoluzione-...`, capitoli
+sperimentali spostati in `capitoli-sospesi/`) e tutto il lavoro di questa
+sezione **non sono ancora committati su git** al momento in cui scrivo — quindi
+una sessione collegata solo a GitHub potrebbe non vedere nulla di quanto sopra
+finche' Gian non fa il commit. Verificare sempre `git log -1` prima di fidarsi
+ciecamente di una fetch.
+
+**Prossimo passo concreto**: iniziare a scrivere
+`03-evoluzione-argomentazione-critica.tex` usando `docs/sinossi.md` come
+scaletta (struttura a 4 fasi, D-029) — la raccolta fonti non e' piu' il collo
+di bottiglia.
+
+---
+
 ## 5-quinquies. Punto di ripresa — 2026-08-12
 
 **Sostituisce 5-quater** (lasciato sotto per la cronologia).
@@ -1360,7 +1747,7 @@ comando: `source .venv/bin/activate`.
 |---|---|
 | Impianto comparativo D-010 a 64px (E1/E2) | ✅ completo — 8 run, a registro |
 | Impianto comparativo D-010 a 128px (E1b/E2b) | ✅ completo — 6 run, V-009 aperta |
-| E5 — illustrativo condizionato per stile (D-022) | ✅ **train-conditional a 64px concluso**, valutato; 128px non ancora lanciato |
+| E5 — illustrativo condizionato per stile (D-022) | ✅ **64px e 128px conclusi**, entrambe le figure (confronto reale + progressione) generate e in `thesis/figures/generated/` |
 | E6 — ablazione di controllo (peso ambiguità = 0) | ✅ **eseguito e valutato** (seed 1, 64px) — risultato sorprendente, V-010 aperta |
 | E7 — studio percettivo leggero | ⬜ non eseguito |
 
@@ -1393,9 +1780,23 @@ comando: `source .venv/bin/activate`.
    `save_conditional_grid` accetta ora una colonna reale opzionale (un esemplare
    dallo split di riferimento accanto ai generati); nuova funzione
    `save_progression_grid` + comando `sample-conditional-progression` per una
-   griglia stile × epoca dai checkpoint periodici. D-025. **Non ancora pushato.**
-7. Task ancora aperto: generare le due figure di E5-64 con i comandi CLI (non
-   ancora lanciati), poi lanciare E5-128.
+   griglia stile × epoca dai checkpoint periodici. D-025.
+7. **E5-128 lanciato e concluso** nella stessa sessione. Le quattro figure finali
+   (condizionato e progressione, 64px e 128px) sono in `thesis/figures/generated/`
+   e pushate: `illustrativo-condizionato-64px-seed1.png`,
+   `illustrativo-condizionato-128px-seed1.png`,
+   `illustrativo-progressione-64px-seed1.png`,
+   `illustrativo-progressione-128px-seed1.png`.
+8. **Bug di collisione nei nomi delle figure**, trovato mentre si generavano quelle
+   a 128px: senza la risoluzione nel nome, un run a 128px sovrascriveva
+   silenziosamente il file di quello a 64px con lo stesso seed. Corretto
+   (risoluzione ora sempre nel nome del file). **Una figura è andata persa nel
+   frattempo** (`illustrativo-condizionato` a 64px, un rename manuale sul pod prima
+   della correzione ha prodotto un file da 2 byte) ed è stata rigenerata da capo —
+   rigenerabile perché deterministica dal seed, nessuna perdita di sostanza.
+9. Checkpoint di E5-64, E5-128 ed E6 copiati dal filesystem effimero del pod
+   (`/tesi-gian`) al Network Volume persistente (`/workspace/tesi-gian`) prima di
+   rischiare di perderli con la distruzione del pod.
 
 ### Il prossimo comando, letteralmente il primo da lanciare
 

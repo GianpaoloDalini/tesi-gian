@@ -28,9 +28,11 @@ difendibile, e alimentano direttamente il capitolo di metodologia.
 |---|---|---|
 | 0001 | Monorepo unico per tesi e codice | Accettata |
 | 0002 | Toolchain: LaTeX, bibliografia, tracciamento esperimenti | Accettata |
-| 0003 | Impianto sperimentale: confronto controllato DCGAN → CAN | Accettata |
+| 0003 | Impianto sperimentale: confronto controllato DCGAN → CAN | Superata da ADR-0007 |
 | 0004 | Dataset: ArtBench-10, sei stili di pubblico dominio | Accettata |
 | 0005 | Come si misura l'ambiguità stilistica: giudice terzo | Accettata |
+| 0006 | Esperimento E8: transfer learning StyleGAN2-ADA per il restyling ad alta risoluzione | Accettata |
+| 0007 | Tesi espositiva invece di sperimentale (supera ADR-0003) | Accettata |
 
 Decisioni successive registrate in `registro-decisioni.md` senza ADR dedicato, perché
 applicative di quelle sopra: D-017 (stili rivisti), D-018 (impianto a 128px), D-019

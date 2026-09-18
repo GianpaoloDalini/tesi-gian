@@ -144,6 +144,21 @@ soli indici CSV (~5 MB, nessuna immagine). Non serve più alla strada principale
 documenta perché WikiArt è stato scartato — ed è materiale per il capitolo di
 metodologia.
 
+## Esperimento E8 (StyleGAN2-ADA, illustrativo — ADR-0006)
+
+**Non usa questa cartella nello stesso modo di E1-E6.** E8 gira fuori dal codice
+`tesi_gan` (repository ufficiale `NVlabs/stylegan2-ada-pytorch`, vedi
+`scripts/bootstrap_e8_stylegan2ada.sh`) e il suo dataset viene preparato in un
+formato diverso (`.zip` per `dataset_tool.py`), non `data/processed`.
+
+**Prima di lanciare il pilota, verificare la risoluzione reale della sorgente**
+(V-011, `docs/registro-decisioni.md`): ArtBench-10 così come preparato sopra è a
+256×256, sotto il target dichiarato di 1024×1024. Lo script fa questa verifica in
+automatico prima di consumare GPU; se la sorgente non regge il target, la scelta fra
+abbassare il target o assemblare un sottoinsieme dedicato ad alta risoluzione (fonte
+di pubblico dominio verificata, stesso standard di V-007) resta da fare — non
+improvvisare un download qui.
+
 ## Attenzione al copyright
 
 I dataset di opere d'arte (WikiArt e simili) hanno vincoli di licenza non banali.

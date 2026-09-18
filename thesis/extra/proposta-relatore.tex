@@ -1,0 +1,162 @@
+% ============================================================================
+%  proposta-relatore.tex — documento autonomo, due pagine, da consegnare al
+%  relatore per presentare il tema, l'impianto e lo stato del lavoro.
+%
+%  NON fa parte di main.tex: si compila da solo.
+%      make proposta          (dalla radice del repository)
+%  oppure:
+%      cd thesis/extra && latexmk -pdf proposta-relatore.tex
+%
+%  Il PDF finisce in thesis/build/ e non entra in git (vedi .gitignore).
+%
+%  I dati identificativi arrivano da ../metadata.tex: non duplicarli qui.
+%  Il titolo di questo documento e' volutamente diverso dal titolo della tesi:
+%  qui serve un'esca, non l'intestazione ufficiale.
+%
+%  Vincoli rispettati (CLAUDE.md): nessuna data e nessuna scadenza; una frase
+%  per riga; virgolette con \enquote; niente sigle interne del repository
+%  (D-0NN, ADR-000N, E1..E7, V-00N) — il documento e' rivolto a chi il
+%  repository non lo ha mai visto.
+% ============================================================================
+
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{csquotes}
+\usepackage{times}                       % togliere questa riga per tornare al Computer Modern della tesi
+\usepackage[margin=2.0cm,top=1.5cm,bottom=1.4cm]{geometry}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+\usepackage[hidelinks]{hyperref}
+
+\input{../metadata}
+\graphicspath{{../figures/static/}}
+
+\definecolor{acc}{HTML}{6E3030}
+\definecolor{grigio}{HTML}{5F5F5F}
+\definecolor{filetto}{HTML}{C8B6B6}
+
+\titleformat{\section}{\normalfont\bfseries\color{acc}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{7pt}{2pt}
+
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\pagestyle{empty}
+\hyphenpenalty=800
+\emergencystretch=1.2em
+\justifying
+
+\begin{document}
+
+% ---------------------------------------------------------------- INTESTAZIONE
+\begin{center}
+
+  {\LARGE\bfseries\color{acc} Relazione tra cretività e intelligenza artificiale generativa}\\[3pt]
+  {\large Una verifica di ciò che i sistemi generativi affermano di sé}
+\end{center}
+
+\vspace{-3pt}
+{\color{filetto}\rule{\linewidth}{0.8pt}}
+
+% ---------------------------------------------------------------------- IL TEMA
+\section{Il tema}
+
+Sono partito da un'esperienza personale, non da un problema di letteratura: gli strumenti generativi permettono di produrre immagini che, per mancanza di formazione tecnica, non sono semplici da realizzare.
+E questo è un beneficio reale.
+
+Quello che non mi convince non è lo strumento: è ciò che intorno allo strumento viene affermato.
+Alcune architetture non si limitano a generare immagini, ma rivendicano di essere \emph{creative}.
+Le Creative Adversarial Networks sono il caso esemplare, perché la pretesa non sta in una brochure: sta nel nome e dentro la funzione di perdita.
+La mia tesi vuole prendere quella rivendicazione sul serio abbastanza da sottoporla a verifica, e mostrare che cosa succede quando la si verifica davvero.
+
+% -------------------------------------------------------------- IL DOPPIO VAGLIO
+\section{Perché quella rivendicazione non regge}
+
+La verifica procede su due piani.
+
+Sul piano empirico, il sistema misura la propria creatività con uno strumento che si è costruito da sé: la testa di classificazione stilistica del proprio discriminatore, allenata insieme al generatore che dovrebbe giudicare.
+È una parte in causa chiamata ad arbitrare la propria partita.
+Ho voluto vedere che cosa succede se sugli stessi identici campioni si interroga un giudice esterno --- un classificatore addestrato una volta sola sulle sole opere reali e poi congelato.
+I due responsi non si limitano a differire: si contraddicono.
+Il giudice interno dichiara immagini facilmente attribuibili a uno stile; quello indipendente le trova quasi il triplo più ambigue.
+La creatività dichiarata e la creatività misurata non sono la stessa grandezza, e la distanza fra le due è quantificabile.
+
+Sul piano teorico, la rivendicazione cade prima ancora dei numeri.
+Se si assume, con l'estetica simbolica di Susanne Langer, che un'opera sia arte in quanto forma imbevuta di emozione, allora ciò che manca a questi sistemi non è la potenza né la varietà: è l'intenzione emotiva che trasforma una forma in un simbolo.
+Tengo a precisare che la critica non è \enquote{è solo casualità}: la letteratura sulla creatività computazionale definisce la creatività proprio \emph{in opposizione} alla casualità, e liquidare la questione così sarebbe comodo e sbagliato.
+L'obiezione è più stretta, e per questo più difficile da respingere.
+
+% ------------------------------------------------------------------- PUNTO ETICO
+\section{Il punto etico, che non è un capitolo a parte}
+
+Attribuire creatività a un sistema che non la possiede è una forma di antropomorfizzazione, e l'antropomorfizzazione non è un vezzo linguistico: distorce il giudizio morale di chi ascolta.
+Ha conseguenze misurabili su come il pubblico valuta le opere, su come viene prezzato e percepito il lavoro degli artisti umani, su come si orientano mercato e regolazione.
+Per questo la componente etica non si aggiunge in coda alla parte tecnica: è la stessa linea di ragionamento portata fino alle sue conseguenze.
+
+Su un punto voglio essere netto, perché è la tensione che ho dovuto sciogliere.
+Il beneficio di accessibilità da cui sono partito resta intatto, e resta \emph{indipendente} dal modo in cui il modello sottostante è stato addestrato.
+Avevo pensato di difendere l'addestramento paragonandolo all'ispirazione umana --- anche un pittore impara guardando altri pittori.
+Ho dovuto abbandonare l'analogia, e non per ragioni giuridiche: perfino i tribunali si sono pronunciati in modo contraddittorio su questo stesso punto.
+L'ho abbandonata per coerenza con la mia stessa tesi.
+Se ciò che manca alla macchina è la componente emotiva, allora manca anche nell'addestramento, non solo nell'output: e l'analogia perde il fondamento che la renderebbe una difesa.
+Restano quindi due valutazioni che convivono senza annullarsi --- uno strumento può fare del bene a chi lo usa e restare, allo stesso tempo, costruito in un modo eticamente problematico.
+La tesi non sceglie fra le due: le tiene insieme e distinte, perché fonderle significherebbe usare l'una per attenuare l'altra.
+
+% ------------------------------------------------------------------ ESPERIMENTI
+\section{Il lavoro sperimentale, e a che cosa serve}
+
+L'esperimento non serve a stabilire se questi sistemi siano creativi: a quella domanda risponde il vaglio teorico.
+Serve a mostrare come si comporta, sotto osservazione controllata, un sistema che rivendica una creatività che non ha --- ed è ciò che produce la misura indipendente su cui poggia tutto il resto.
+
+Ho impostato un confronto a due condizioni con \emph{una sola} variabile indipendente: la funzione di perdita.
+Generatore identico, discriminatore identico, stessi iperparametri, stessi semi casuali, stessi dati nello stesso ordine.
+Le due condizioni non sono due programmi diversi: sono lo stesso programma con un interruttore.
+Qualunque differenza osservata è quindi attribuibile al meccanismo di ambiguità stilistica e a nient'altro, e non a una divergenza di implementazione.
+Il dataset è una collezione di trentamila opere di sei stili storici, bilanciata per costruzione; l'impianto è stato eseguito a due risoluzioni, per quattordici addestramenti complessivi.
+
+Ogni misura è accompagnata dalla dichiarazione esplicita di ciò che \textbf{non} misura.
+Gli indici standard di qualità delle immagini valutano fedeltà e varietà, non creatività, e poggiano per giunta su reti addestrate su fotografie anziché su dipinti: usarli come prova di creatività sarebbe ripetere, con altri mezzi, esattamente l'errore che la tesi contesta.
+
+% ------------------------------------------------------------------ OSSERVAZIONI
+\section{Che cosa ho osservato}
+
+\begin{center}
+  {\small
+  \begin{tabular}{@{}lccl@{}}
+    \toprule
+     & \textbf{Baseline} & \textbf{Sistema \enquote{creativo}} & \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textit{\color{grigio}bassa risoluzione}}\\
+    Fedeltà delle immagini & 107,7 & 107,3 & indistinguibili \\
+    Ambiguità stilistica   & 0,682 & 0,750 & effetto presente, gruppi separati \\
+    Copertura degli stili  & 0,966 & 0,967 & nessuna deriva \\[3pt]
+    \multicolumn{4}{@{}l}{\textit{\color{grigio}risoluzione raddoppiata}}\\
+    Fedeltà delle immagini & 117,8 & 183,4 & degrado del 55\% \\
+    Ambiguità stilistica   & 0,547 & 0,636 & effetto di entità analoga \\
+    \bottomrule
+  \end{tabular}}\\[3pt]
+  {\footnotesize\color{grigio} Per la fedeltà il valore più basso è il migliore; per l'ambiguità il più alto.}
+\end{center}
+
+\vspace{-2pt}
+Il meccanismo funziona: le immagini diventano davvero meno attribuibili a uno stile storico, e la separazione fra le due condizioni è netta.
+Ma a bassa risoluzione quel guadagno non costa nulla in qualità, mentre raddoppiando la risoluzione costa più della metà della fedeltà.
+È l'osservazione che considero più promettente, e la formulo con cautela perché è emersa dai dati invece di essere prevista: tutte le repliche del sistema \enquote{creativo} raggiungono il proprio massimo alla stessa epoca, molto presto, e da lì degradano insieme.
+
+Ho trovato anche una smentita che mi è stata utile più di una conferma.
+Mi aspettavo che la baseline diventasse via via più riconoscibile stilisticamente: è successo il contrario.
+Una rete generativa addestrata su sei stili senza condizionamento non impara i sei stili, impara la loro miscela: più si addestra, più produce ibridi.
+
+Due limiti li ho misurati invece di subirli, e intendo riportarli.
+Il primo: il giudice indipendente non ha mai raggiunto l'affidabilità che mi ero dato come soglia, e ho verificato in tre passaggi che la causa non è la scelta degli stili ma la risoluzione --- una metrica basata su un classificatore non può essere più fine delle immagini su cui opera.
+Il secondo: una replica su quattro del sistema \enquote{creativo} è degenerata, contro nessuna della baseline.
+Non l'ho rimossa; è esclusa dalle medie con motivazione esplicita, perché quella differenza di stabilità è essa stessa un risultato.
+
+\end{document}

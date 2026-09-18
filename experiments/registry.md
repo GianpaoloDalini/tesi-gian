@@ -241,6 +241,47 @@ scali con la risoluzione** è il risultato più rilevante di questo impianto —
 un'ipotesi emersa dai dati, non pre-registrata, e va trattata con la stessa cautela
 metodologica già applicata alla revisione del criterio di selezione (D-019).
 
+### Lettura comparata: l'aumento di ambiguità normalizzato sullo spazio utile — 2026-08-13
+
+I due impianti usano giudici diversi (J2 a 64px, J3 a 128px), con pavimenti diversi
+(entropia sulle opere reali 0,531 e 0,401): non sono confrontabili sulla scala
+assoluta, come già detto sopra. Sono però confrontabili se si normalizza
+l'incremento CAN-DCGAN sullo **spazio utile** fra quel pavimento e il soffitto
+teorico `log(6)` — lo stesso ragionamento già usato in `giudice-stile.md` per
+confrontare J2 e J3 fra loro.
+
+| Impianto | Arte reale | Soffitto | Spazio utile | DCGAN occupa | CAN occupa | **Incremento CAN** |
+|---|---|---|---|---|---|---|
+| 64px (giudice J2) | 0,531 | 1,000 | 0,469 | 32,2 % | 46,7 % | **+14,5 punti** |
+| 128px (giudice J3) | 0,401 | 1,000 | 0,599 | 24,4 % | 39,2 % | **+14,9 punti** |
+
+Grezzi, gli incrementi erano +0,068 (64px) e +0,089 (128px): sembravano differire
+di quasi un terzo, e quella differenza aveva alimentato l'ipotesi (ancora valida,
+vedi sopra) che l'instabilità del CAN scali con la risoluzione. Normalizzati sullo
+spazio in cui l'effetto può manifestarsi, i due incrementi sono **praticamente lo
+stesso numero**: due giudici indipendenti, due risoluzioni, due gruppi di run
+completamente separati, convergono sullo stesso effetto.
+
+**Come leggerla.** Non contraddice l'osservazione sul degrado a 128px (quella
+riguarda la *fedeltà*, FID, non l'*ambiguità*): i due fenomeni restano distinti.
+Rafforza invece la lettura dell'ambiguità come effetto robusto e riproducibile del
+meccanismo, indipendente dalla risoluzione — mentre il suo costo in fedeltà non lo
+è.
+
+**Riserva.** A 128px la copertura degli stili è più bassa e più dispersa (0,924 →
+0,809) rispetto a 64px, dove è identica fra le condizioni (0,966 vs 0,967).
+L'esclusione dell'ipotesi "collasso generico invece di fusione di stile" è quindi
+più debole a 128px. Non scrivere in tesi che l'incremento a 128px è "fusione di
+stile confermata" prima di V-009 (ispezione visiva dei campioni,
+`docs/registro-decisioni.md`).
+
+**Provenienza del calcolo.** Derivato dai numeri già in questa tabella (impianti
+64px e 128px), nessun run nuovo. Non ancora accompagnato da uno script tracciato
+in `scripts/`: se questa lettura entra in tesi, va aggiunto uno script che la
+riproduca dai risultati registrati, per coerenza con la regola che nessun numero
+entra in tesi senza run tracciato (`CLAUDE.md` §6). Decisione e motivazione
+complete in D-026 (`docs/registro-decisioni.md`).
+
 ---
 
 ## Ablazione di controllo (E6) — 2026-08-12
@@ -299,6 +340,33 @@ dei tre seed DCGAN (102,3-114,1 di FID) è già ampio quanto la differenza osser
 qui.
 
 ---
+
+## Esperimento E8 — pianificato (StyleGAN2-ADA, illustrativo) — 2026-09-14
+
+**Nessun run eseguito.** Questa sezione esiste solo per tracciare la preparazione,
+non per riportare numeri — nessuno è ancora stato misurato. Decisione e motivazione
+complete in [ADR-0006](../docs/decisions/0006-esperimento-e8-stylegan2ada.md) e
+D-027 (`docs/registro-decisioni.md`). Script pronto: `scripts/bootstrap_e8_stylegan2ada.sh`.
+
+**Rischio aperto (V-011):** il target dichiarato di 1024×1024 deve ancora essere
+confermato come sostenibile dalla risoluzione reale delle immagini sorgente — il
+pilota qui sotto serve prima di tutto a rispondere a questa domanda, non a produrre
+un risultato finale.
+
+### Pilota — TODO, da eseguire
+
+| Campo | Valore |
+|---|---|
+| `run_id` | TODO — riempire dopo il pilota |
+| Commit | TODO |
+| Checkpoint pretrained di partenza | TODO (FFHQ 1024 o alternativa a risoluzione più bassa, deciso nel pilota) |
+| Sorgente dati | TODO (ArtBench-10 a 256px upscalato, oppure sottoinsieme dedicato ad alta risoluzione — vedi V-011) |
+| Target di risoluzione | TODO — 1024×1024 se sostenibile, altrimenti valore rivisto e motivato |
+| kimg del pilota | TODO |
+| Tempo reale (wall-clock) | TODO |
+| Costo reale (RunPod) | TODO |
+| Esito visivo qualitativo | TODO |
+| Decisione go/no-go per il run completo | TODO |
 
 ## Registri collegati
 

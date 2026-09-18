@@ -1,7 +1,7 @@
 # ============================================================================
 #  Comandi standard del progetto. Eseguire dalla radice del repository.
 # ============================================================================
-.PHONY: help thesis watch clean install lint test figures freeze
+.PHONY: help thesis proposta watch clean install lint test figures freeze
 
 help:  ## Elenca i comandi disponibili
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -9,6 +9,9 @@ help:  ## Elenca i comandi disponibili
 
 thesis:  ## Compila la tesi in PDF (thesis/build/main.pdf)
 	cd thesis && latexmk -pdf -interaction=nonstopmode main.tex
+
+proposta:  ## Compila la proposta per il relatore (thesis/build/proposta-relatore.pdf)
+	cd thesis/extra && latexmk -pdf -interaction=nonstopmode -outdir=../build proposta-relatore.tex
 
 watch:  ## Ricompila automaticamente a ogni salvataggio
 	cd thesis && latexmk -pdf -pvc -interaction=nonstopmode main.tex
