@@ -7,10 +7,13 @@
 # Identica a e2-can-confronto.yaml (stesso seed, stessi iperparametri, stessa
 # risoluzione) tranne UNA riga: `model.style_ambiguity_weight: 0.0`. Con il peso
 # a zero il termine di ambiguità sparisce dalla loss del generatore
-# (training/losses.py::generator_loss) e la CAN deve ridursi esattamente alla
-# DCGAN — stesso invariante già verificato a livello di loss pure da
-# tests/test_impianto.py::test_can_senza_ambiguita_degenera_in_dcgan, qui
-# verificato end-to-end su un training vero.
+# (training/losses.py::generator_loss). L'attesa al momento della scrittura era
+# che la CAN si riducesse esattamente alla DCGAN. A livello di loss del
+# generatore e' vero (tests/test_impianto.py::
+# test_can_peso_zero_annulla_ambiguita_nel_generatore), ma il discriminatore
+# conserva la testa di stile: l'esito del run (2026-08-12) non ha replicato la
+# DCGAN, vedi V-010 in docs/registro-decisioni.md. Commento corretto il
+# 2026-10-16; l'attesa originale resta riportata qui per trasparenza.
 #
 # Un solo seed basta: non misura una differenza fra condizioni, verifica che
 # l'implementazione condivisa (ADR-0003) non introduca differenze spurie quando il

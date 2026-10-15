@@ -17,8 +17,9 @@ num_styles: null
 
 # Peso del termine di ambiguita' stilistica nella loss del generatore.
 # ATTENZIONE: valore da verificare sul paper originale prima di dichiararlo in
-# tesi. Con 0.0 la CAN degenera esattamente nella DCGAN: e' l'ablazione che
-# verifica l'equivalenza dell'implementazione condivisa.
+# tesi. Con 0.0 il termine sparisce dalla loss del generatore, ma il
+# discriminatore conserva e addestra la testa di stile: la CAN NON coincide con la
+# DCGAN. L'ablazione E6 lo ha mostrato empiricamente (V-010).
 style_ambiguity_weight: 1.0
 
 # Forma della penalita': `cross_entropy_uniform` oppure `negative_entropy`.

@@ -58,7 +58,7 @@ def test_generatore_identico_a_ogni_risoluzione(image_size):
     valga su tutte le risoluzioni supportate.
     """
     g1, g2 = _generatori(image_size)
-    for (n1, p1), (n2, p2) in zip(g1.named_parameters(), g2.named_parameters()):
+    for (n1, p1), (n2, p2) in zip(g1.named_parameters(), g2.named_parameters(), strict=True):
         assert n1 == n2 and torch.equal(p1, p2)
 
 
@@ -66,7 +66,7 @@ def test_generatore_identico_a_ogni_risoluzione(image_size):
 def test_backbone_identica_a_ogni_risoluzione(image_size):
     d1, d2 = _discriminatori(image_size)
     for (n1, p1), (n2, p2) in zip(
-        d1.backbone.named_parameters(), d2.backbone.named_parameters()
+        d1.backbone.named_parameters(), d2.backbone.named_parameters(), strict=True
     ):
         assert n1 == n2 and torch.equal(p1, p2)
 
@@ -163,11 +163,12 @@ def test_backbone_del_discriminatore_identica():
         assert torch.equal(b1[k], b2[k]), f"Backbone divergente: {k}"
 
 
-def test_can_senza_ambiguita_degenera_in_dcgan():
-    """Con peso 0 il termine di ambiguita' sparisce: le due loss coincidono.
+def test_can_peso_zero_annulla_ambiguita_nel_generatore():
+    """Con peso 0 il termine di ambiguita' sparisce dalla loss del generatore.
 
-    E' l'ablazione che dimostra che l'implementazione condivisa non introduce
-    differenze spurie fra le condizioni.
+    Verifica solo la loss del generatore. Non dimostra che la CAN a peso zero
+    coincida con la DCGAN: il discriminatore conserva la testa di stile e la
+    addestra sulle immagini reali (V-010).
     """
     torch.manual_seed(0)
     fake_adv = torch.randn(BATCH)

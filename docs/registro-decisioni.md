@@ -1552,6 +1552,16 @@ con più seed, è materiale per la sezione sui limiti metodologici: non toglie v
 al risultato principale, ma va dichiarato che «un solo termine di loss» è una
 semplificazione della differenza architetturale reale fra le due condizioni.
 
+**Aggiornamento 2026-10-16 — corretti i commenti nel codice.** Docstring di
+`generator_loss`, commento in `configs/model/can.yaml` e
+`configs/experiment/e6-ablazione-can-peso-zero.yaml` affermavano ancora che con peso
+zero la CAN «degenera esattamente nella DCGAN», cosa smentita da questo run. Ora
+dicono che coincide solo la loss del generatore. Il test
+`test_can_senza_ambiguita_degenera_in_dcgan` è stato rinominato
+`test_can_peso_zero_annulla_ambiguita_nel_generatore`: verificava già soltanto la
+loss del generatore, era il nome a promettere di più. Nessun cambiamento al
+comportamento del codice, quindi nessun run va ripetuto. V-010 resta aperta.
+
 ### V-011 — Il target 1024×1024 di E8 è sostenibile dalla risoluzione reale delle immagini sorgente? 🔴
 **Stato:** aperta, emersa il 2026-09-14 · **Origine:** ADR-0006, D-027
 
@@ -1651,6 +1661,22 @@ distinguono nel regolamento tra tesi sperimentale/progettuale e tesi compilativa
 con eventuali vincoli diversi. Verificare il regolamento del corso (o chiedere alla
 segreteria didattica), non al relatore: è una domanda amministrativa, non di
 merito scientifico.
+
+### V-013 — Esito dei seed 4 a 64px mai riportato nel registro 🟠
+**Stato:** aperta, emersa il 2026-10-16 · **Origine:** controllo incrociato tra
+`experiments/registry.md` e `configs/experiment/e4-can-128.yaml`
+
+Nel registro, `dcgan-seed4` (`j8pv11cf`) e `can-seed4` (`pq4wsp6y`) hanno `run_id` e
+commit ma nessun numero, e le medie a 64px restano su n=3 (DCGAN) e n=2 (CAN). Il
+commento di `e4-can-128.yaml` afferma però che a 64px «due repliche su quattro della
+CAN sono degenerate, contro una su quattro della DCGAN»: i seed 4 sono quindi stati
+eseguiti, e il loro esito sembra essere stato il collasso, ma non è registrato.
+
+**Da fare:** recuperare da W&B (o rivalutare dai checkpoint) FID, IS, ambiguità e
+copertura dei due run, completare la tabella, e dichiarare l'esclusione dalle medie
+con lo stesso criterio usato per `can-seed1`. Riguarda solo il binario personale
+(D-028), ma il tasso di collasso 2/4 contro 1/4 è proprio il dato sulla stabilità
+che il registro stesso indica come risultato.
 
 ### V-001 — Frontespizio ufficiale per la laurea magistrale 🔴
 Il frontespizio attuale è un adattamento di quello di una tesi di **dottorato**.

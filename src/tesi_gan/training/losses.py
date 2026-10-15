@@ -172,8 +172,11 @@ def generator_loss(
     generatore va male, cioe' all'inizio dell'addestramento.
 
     Il termine di ambiguita' compare solo nella CAN. Con `ambiguity_weight=0` la
-    CAN degenera esattamente nella DCGAN: e' un'ablazione utile per verificare che
-    l'implementazione condivisa sia davvero equivalente nelle due condizioni.
+    loss **del generatore** coincide con quella della DCGAN, ma la CAN **non**
+    degenera nella DCGAN: il discriminatore conserva la testa di stile e continua ad
+    addestrarla sulle immagini reali (vedi `discriminator_loss`), il che puo'
+    cambiare la dinamica avversaria. L'ablazione E6 non ha infatti replicato i
+    numeri della DCGAN (V-010 in `docs/registro-decisioni.md`).
     """
     target = torch.ones_like(fake_adv_logits)
     adversarial = _bce(fake_adv_logits, target)
