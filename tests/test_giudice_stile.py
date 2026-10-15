@@ -181,7 +181,10 @@ def test_copertura_uniforme_da_entropia_marginale_massima():
     # marginale e' uniforme per costruzione e il test verifica il conteggio, non
     # il comportamento di una rete non addestrata.
     class TestaCiclica(torch.nn.Module):
-        def __init__(self, k): super().__init__(); self.k = k; self.n = 0
+        def __init__(self, k):
+            super().__init__()
+            self.k = k
+            self.n = 0
         def forward(self, x):
             b = x.size(0)
             idx = (torch.arange(b) + self.n) % self.k
@@ -302,7 +305,8 @@ def test_salvataggio_e_caricamento_conservano_i_pesi(tmp_path):
 
     loaded, info = load_style_classifier(tmp_path, CPU, expected_classes=classes)
     assert info.classes == classes
-    for (_, a), (_, b) in zip(original.state_dict().items(), loaded.state_dict().items()):
+    coppie = zip(original.state_dict().items(), loaded.state_dict().items(), strict=True)
+    for (_, a), (_, b) in coppie:
         assert torch.allclose(a, b)
 
 

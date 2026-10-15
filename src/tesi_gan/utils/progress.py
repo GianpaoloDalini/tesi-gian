@@ -13,7 +13,8 @@ log per epoca, che sono esattamente cio' che serve in un file.
 from __future__ import annotations
 
 import sys
-from typing import Iterable, TypeVar
+from collections.abc import Iterable
+from typing import TypeVar
 
 T = TypeVar("T")
 

@@ -309,7 +309,7 @@ def confusion_matrix(
     for images, labels in progress(loader, description="Matrice di confusione",
                                    total=len(loader)):
         predette = classifier(images.to(device, non_blocking=True)).argmax(dim=1).cpu()
-        for vero, predetto in zip(labels.view(-1), predette.view(-1)):
+        for vero, predetto in zip(labels.view(-1), predette.view(-1), strict=True):
             matrice[int(vero), int(predetto)] += 1
 
     return matrice

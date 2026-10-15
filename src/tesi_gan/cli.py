@@ -486,7 +486,7 @@ def cmd_inspect_style_classifier(cfg) -> int:
     if int(fuori_diagonale.sum()) > 0:
         peggiori = torch.topk(fuori_diagonale.flatten(), k=min(5, k * (k - 1)))
         print("Confusioni piu' frequenti:")
-        for valore, indice in zip(peggiori.values, peggiori.indices):
+        for valore, indice in zip(peggiori.values, peggiori.indices, strict=True):
             if int(valore) == 0:
                 continue
             i, j = divmod(int(indice), k)
@@ -633,7 +633,10 @@ def main(argv: list[str] | None = None) -> int:
 
     p_train_cond = sub.add_parser(
         "train-conditional",
-        help="Addestra il generatore condizionato per stile (esperimento illustrativo, fuori da ADR-0003)",
+        help=(
+            "Addestra il generatore condizionato per stile "
+            "(esperimento illustrativo, fuori da ADR-0003)"
+        ),
     )
     p_train_cond.add_argument("--allow-dirty", action="store_true")
     p_train_cond.add_argument("--resume", action="store_true")

@@ -119,7 +119,7 @@ def distribuzione_stili(risultati: list[dict]) -> None:
         totale = max(sum(conteggi), 1)
         attesa = 100.0 / len(classi)
         print(f"\n{etichetta(r)}   (atteso {attesa:.1f}% per stile)")
-        for nome, n in sorted(zip(classi, conteggi), key=lambda x: -x[1]):
+        for nome, n in sorted(zip(classi, conteggi, strict=True), key=lambda x: -x[1]):
             percentuale = 100 * n / totale
             barra = "#" * int(round(percentuale / 2))
             print(f"   {nome:<16}{percentuale:>6.1f}%  {barra}")

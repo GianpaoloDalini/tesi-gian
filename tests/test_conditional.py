@@ -45,7 +45,9 @@ def test_non_importa_ne_modifica_le_classi_di_adr_0003():
 
 @pytest.mark.parametrize("image_size", RISOLUZIONI)
 def test_generatore_condizionato_produce_la_risoluzione_richiesta(image_size):
-    g = ConditionalGenerator(num_styles=NUM_STYLES, latent_dim=16, features=8, image_size=image_size)
+    g = ConditionalGenerator(
+        num_styles=NUM_STYLES, latent_dim=16, features=8, image_size=image_size
+    )
     z = torch.randn(BATCH, 16, 1, 1)
     labels = torch.randint(0, NUM_STYLES, (BATCH,))
     out = g(z, labels)
@@ -267,7 +269,7 @@ def test_immagine_reale_per_stile_e_deterministica_e_copre_tutti_gli_stili():
 
     assert len(scelte_a) == NUM_STYLES
     assert all(immagine is not None for immagine in scelte_a)
-    for a, b in zip(scelte_a, scelte_b):
+    for a, b in zip(scelte_a, scelte_b, strict=True):
         assert torch.equal(a, b)  # stesso seed -> stessa scelta
 
 

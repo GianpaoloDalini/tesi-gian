@@ -54,7 +54,9 @@ class ConditionalGenerator(nn.Module):
     ) -> None:
         super().__init__()
         if num_styles <= 0:
-            raise ValueError("num_styles deve essere > 0: senza classi non c'e' nulla da condizionare.")
+            raise ValueError(
+                "num_styles deve essere > 0: senza classi non c'e' nulla da condizionare."
+            )
         self.latent_dim = latent_dim
         self.num_styles = num_styles
         self.image_size = image_size

@@ -168,7 +168,7 @@ def save_annotated_grid(
         top = torch.topk(probabilities[i], k=min(2, len(classes)))
         etichette = " · ".join(
             f"{classes[int(idx)]} {float(p) * 100:.0f}%"
-            for p, idx in zip(top.values, top.indices)
+            for p, idx in zip(top.values, top.indices, strict=True)
         )
         ax.set_title(f"{etichette}\nH = {float(entropy_normalized[i]):.2f}", fontsize=8)
 

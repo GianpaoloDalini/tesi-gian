@@ -145,9 +145,11 @@ def grafico(per_run: dict[str, list[dict]], destinazione: Path) -> Path | None:
         ax2.text(ax2.get_xlim()[1], reali, " arte reale", va="center", fontsize=8, c="gray")
 
     ax1.set_yscale("log")
-    ax1.set_xlabel("epoca"); ax1.set_ylabel("FID (scala log)")
+    ax1.set_xlabel("epoca")
+    ax1.set_ylabel("FID (scala log)")
     ax1.set_title("Fedeltà — più basso è meglio")
-    ax2.set_xlabel("epoca"); ax2.set_ylabel("entropia / log K")
+    ax2.set_xlabel("epoca")
+    ax2.set_ylabel("entropia / log K")
     ax2.set_title("Ambiguità secondo il giudice terzo")
 
     # Una voce per condizione, non per run: sei etichette renderebbero la

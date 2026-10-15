@@ -33,7 +33,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", required=True, help="cartella del database lmdb scaricato")
     parser.add_argument("--dest", required=True, help="cartella di destinazione per i JPEG")
-    parser.add_argument("--limit", type=int, default=None, help="numero massimo di immagini (per un campione di prova)")
+    parser.add_argument(
+        "--limit", type=int, default=None,
+        help="numero massimo di immagini (per un campione di prova)",
+    )
     args = parser.parse_args()
 
     if not os.path.isdir(args.source):
@@ -46,7 +49,7 @@ def main() -> None:
     saltate = 0
     with env.begin() as txn:
         cursor = txn.cursor()
-        for i, (key, val) in enumerate(cursor):
+        for i, (_key, val) in enumerate(cursor):
             if args.limit is not None and i >= args.limit:
                 break
             img = cv2.imdecode(np.frombuffer(val, dtype=np.uint8), cv2.IMREAD_COLOR)
@@ -57,7 +60,10 @@ def main() -> None:
             cv2.imwrite(out_path, img)
             esportate += 1
 
-    print(f"Esportate {esportate} immagini in {args.dest} ({saltate} voci non decodificabili come JPEG, da investigare se molte)")
+    print(
+        f"Esportate {esportate} immagini in {args.dest} "
+        f"({saltate} voci non decodificabili come JPEG, da investigare se molte)"
+    )
     if esportate == 0:
         print("!!! Nessuna immagine esportata: il formato del database potrebbe differire "
               "da quello atteso. Ispeziona una voce a mano (chiave/valore) prima di insistere.")
