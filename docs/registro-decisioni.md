@@ -1101,6 +1101,43 @@ ogni fonte al suo interno (Franceschelli/Musolesi, Calvo, Pearson/Dennis/Cheong)
 va assegnata al punto argomentativo a cui appartiene, non trattata come fase
 autonoma.
 
+### D-030 — Dal documento del relatore sugli approcci quantitativi: tenuti due filoni, scartati due
+
+**Data:** 2026-10-15 · **Stato:** attiva · **Decisore:** Gian
+
+Il relatore (DFS), dichiarando di non avere esperienza specifica sul tema, ha inviato
+una panoramica generata con un modello AI sui modi quantitativi di studiare la
+creatività artificiale (novità nello spazio latente, valore stimato
+automaticamente, teoria dell'informazione e distanze tra distribuzioni). Il
+documento non riporta fonti, quindi non è citabile: è stato usato solo come mappa
+per cercare le fonti primarie.
+
+**Tenuti**, come posizioni nel dibattito (non come strumenti da adottare):
+1. **Creatività "statistica"/relativa** (Wang et al., 2024) → Fase 2, polo
+   misurabilista in coppia con Colton (2008).
+2. **Memorizzazione e replicazione dei dati di addestramento** (Somepalli et al.,
+   CVPR 2023 e NeurIPS 2023; Carlini et al., USENIX Security 2023) → Fase 3 (etica,
+   training vs ispirazione) e confronto GAN/diffusione.
+
+**Scartati**: predittori estetici automatici (NIMA) e teoria dell'informazione su
+singolo output (Kolmogorov, n-gram). Motivi in `docs/sinossi.md`.
+
+**Non deciso, solo annotato per il binario personale (fuori dalla tesi, D-028)**:
+calcolare la novità dei campioni DCGAN/CAN come distanza k-NN su embedding CLIP dal
+dataset di addestramento, a complemento della misura di ambiguità stilistica
+(D-026). Costo stimato basso (nessun riaddestramento). Da riprendere solo se il
+relatore chiede un caso concreto.
+
+Fonti in `docs/literature/da-recuperare.md`, note narrative in `docs/sinossi.md`.
+
+**Aggiornamento 2026-10-15 (stessa sessione), dopo la lettura completa dei quattro PDF**:
+corretta in `sinossi.md` l'ipotesi "DCGAN/CAN non condizionate, quindi replicano
+meno": non regge, perché anche i modelli non condizionati copiano su dataset piccoli
+e anche le GAN memorizzano. Resta difendibile il confronto a parità di qualità
+(diffusione circa 2× le GAN, Carlini et al.). Emerso anche che il FID può premiare
+la memorizzazione: tocca il criterio del FID minimo (D-019) nel binario personale e
+rafforza l'idea del controllo di novità k-NN sopra. Nessuna nuova decisione presa.
+
 ## 3. Questioni aperte
 
 Ordinate per criticità. Le questioni chiuse restano elencate con il rimando alla

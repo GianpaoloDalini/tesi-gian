@@ -75,6 +75,19 @@
 |---|---|---|---|---|
 | A Survey on Generative Adversarial Networks: Variants, Applications, and Training | Jabbar, Li, Omar (2021) | ACM Computing Surveys 54(8), art. 157, DOI 10.1145/3463475 | Introduzione tecnica a come funzionano le GAN, venue molto citata/autorevole - copre il bisogno di una fonte tecnica introduttiva per la Fase 0, complementare a Elgammal (2017) che presuppone gia' il funzionamento base. Autori verificati 2026-09-18 aprendo il PDF: College of Computer Science and Technology, Zhejiang University (Cina) — tecnico/informatico puro. | **Recuperato 2026-09-18** → `fase-0-gan-aprono-il-dibattito/` |
 
+## Dal filone "creatività misurabile" (documento del relatore) — 2026-10-15
+
+Il relatore ha inviato una panoramica generata con un modello AI sugli approcci quantitativi alla creatività. Il documento non ha fonti e non è citabile; queste sono le fonti primarie dei due filoni tenuti (D-030). Esistenza, autori, sedi e abstract verificati il 2026-10-15 sulle pagine ufficiali.
+
+**Aggiornamento 2026-10-15.** Tutti e quattro recuperati da Gian, letti per intero, evidenziati e spostati: Wang et al. → `fase-2-locus-della-creativita/`; i due Somepalli e Carlini → `fase-3-ondata-etica/`. Originali in `_originali_non_evidenziati/`. Note di lettura in `docs/sinossi.md`. Nota sulle citazioni: per Somepalli (NeurIPS) il PDF è il preprint arXiv, da citare dagli atti NeurIPS 2023; Wang et al. resta solo arXiv (nessuna sede peer-reviewed indicata nel PDF).
+
+| Titolo | Autori (anno) | Venue | Perché | Accesso |
+|---|---|---|---|---|
+| Can AI Be as Creative as Humans? | Wang, Zou, Mozer, Goyal, Lamb, Zhang, Su, Deng, Xie, Brown, Kawaguchi (2024) | arXiv 2401.01623 (sede peer-reviewed da verificare) | Relative/Statistical Creativity: la fonte primaria dietro la "statistical/relative creativity" del documento del relatore. Polo misurabilista, da contrapporre a Colton (2008). Fase 2. | **Recuperato 2026-10-15** → `fase-2-locus-della-creativita/` |
+| Diffusion Art or Digital Forgery? Investigating Data Replication in Diffusion Models | Somepalli, Singla, Goldblum, Geiping, Goldstein (2023) | CVPR 2023 | Misura la replicazione dei dati di addestramento nei modelli di diffusione (Stable Diffusion incluso). Fase 3 + confronto GAN/diffusione. | **Recuperato 2026-10-15** → `fase-3-ondata-etica/` |
+| Understanding and Mitigating Copying in Diffusion Models | Somepalli, Singla, Goldblum, Geiping, Goldstein (2023) | NeurIPS 2023 | La replicazione è rara nei modelli non condizionati e comune in quelli condizionati da testo: utile per collocare DCGAN/CAN (non condizionate). Fase 3. | **Recuperato 2026-10-15** → `fase-3-ondata-etica/` |
+| Extracting Training Data from Diffusion Models | Carlini, Hayes, Nasr, Jagielski, Sehwag, Tramèr, Balle, Ippolito, Wallace (2023) | 32nd USENIX Security Symposium, pp. 5253-5270 | Oltre mille immagini di addestramento estratte; diffusione molto meno privata delle GAN. Fase 3 + confronto GAN/diffusione. | **Recuperato 2026-10-15** → `fase-3-ondata-etica/` |
+
 ## Note
 
 - **Aggiornamento 2026-09-18.** Tutte le fonti di questo elenco che erano
